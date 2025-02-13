@@ -1,7 +1,7 @@
-﻿# TA Management System
+﻿# ProctorHub
 
 <!-- General description -->
-**TA Management System** is a modern web application designed to assign teaching assistants(TAs) to exams as proctors while ensuring a balanced workload distribution.This website automates proctor assignment tasks, which were formerly done manually, a method that often led to scheduling conflicts and uneven workload allocation. By implementing automation, the system aims to create a more balanced assignment process while lessening the workload for administrative staff. In addition to proctoring assignments, the application allows TAs to log and submit work hours for approval, keeps track of leave periods to prevent scheduling conflicts, supports proctoring swaps, automates student exam room distribution, and generates reports on TA workload and system activity.
+**ProctorHub** is a modern web application designed to assign teaching assistants(TAs) to exams as proctors while ensuring a balanced workload distribution.This website automates proctor assignment tasks, which were formerly done manually, a method that often led to scheduling conflicts and uneven workload allocation. By implementing automation, the system aims to create a more balanced assignment process while lessening the workload for administrative staff. In addition to proctoring assignments, the application allows TAs to log and submit work hours for approval, keeps track of leave periods to prevent scheduling conflicts, supports proctoring swaps, automates student exam room distribution, and generates reports on TA workload and system activity.
 
 <!-- Functions -->
 ## Key Features
