@@ -1,0 +1,243 @@
+classDiagram
+    %% Main abstract class - User
+    class User {
+        +id: String
+        +name: String
+        +email: String
+        -password: String
+        -notifications: List~Notification~
+        +login(email: String, password: String): boolean
+        +logout(): boolean
+        +changePassword(oldPassword: String, newPassword: String): boolean
+        +viewNotification(): List~Notification~
+    }
+    
+    %% User subclasses
+    class Admin {
+        +addUser(user: User): void
+        +deleteUser(userId: String): void
+        +editUser(userId: String, updatedInfo: User): boolean
+        +addStudent(student: Student): void
+        +deleteStudent(studentId: String): void
+        +editStudent(studentId: String, updatedInfo: Student): boolean
+        +addCourse(course: Course): void
+        +deleteCourse(courseId: String): void
+        +editCourse(courseId: String, updatedInfo: Course): boolean
+        +addOffering(offering: Offering): void
+        +deleteOffering(offeringId: String): void
+        +editOffering(offeringId: String, updatedInfo: Offering): boolean
+        +addClassroom(classroom: Classroom): void
+        +deleteClassroom(classroomId: String): void
+        +editClassroom(classroomId: String, updatedInfo: Classroom): boolean
+        +addSemester(semester: Semester): void
+        +viewPastSemesters(): List~Semester~
+        +importDataFromExcel(filePath: String, dataType: String): boolean
+        +viewLogs(startDate: DateTime, endDate: DateTime): List~Log~
+        +downloadReport(report: Report, format: String, type: String): File
+        +downloadLogs(startDate: DateTime, endDate: DateTime, logType: String): List~Log~
+    }
+    
+    class TeachingAssistant {
+        +department: String
+        +totalProctoringinDepartment: int
+        +totalNonDepartmentProctoring: int
+        +totalWorkload: int
+        +isPHD: boolean
+        +approvedAbsence: boolean
+        +waitingAbsenceRequest: boolean
+        +isPartTime: boolean
+        -workload: List~Workload~
+        -proctoring: List~Exam~
+        -enrolledCourses: List~Offering~
+        -taCourses: List~Course~
+        +requestLeaveOfAbsence(startDate: DateTime, endDate: DateTime, reason: String): void
+        +viewSchedule(): Schedule
+        +viewCurrentProctoringAssignments(): List~Exam~
+        +addWorkload(course: Course, taskType: String, date: DateTime, duration: int): void
+        +viewPastWorkload(): List~Workload~
+        +requestPersonalSwap(exam: Exam, recipient: TeachingAssistant, availableTime: List~TimeSlot~): void
+        +publishOnSwapForum(exam: Exam, availableTime: List~TimeSlot~): void
+        +evaluateSwapRequest(request: SwapRequest, isAccepted: bool): void
+        +evaluateProctoringRequest(request: Exam, isAccepted: bool): void
+    }
+    
+    class CourseInstructor {
+        +department: String
+        -courses: List~Course~
+        -offerings: List~Offering~
+        +defineExam(course: Course, date: DateTime, duration: int, examType: String, proctorNum: int, manualChosenTAs: List~TeachingAssistant~): Exam
+        +evaluateTAWorkloadRequest(workload: Workload, isApproved: boolean, rejectionReason: String): void
+        +swapTAsManually(exam: Exam, ta1: TeachingAssistant, ta2: TeachingAssistant): void
+    }
+    
+    class DeansOffice {
+        +defineExam(course: Course, date: DateTime, duration: int, examType: String, proctorNum: int, departments: List~String~, departmentnums: List~int~): Exam
+    }
+
+    class DepartmentChair {
+        +evaluateTALeaveRequest(request: LeaveRequest, isApproved: boolean, rejectionReason: String): void 
+    }
+    
+    %% Other main classes
+    class Course {
+        +exams: List~Exam~
+        +offerings: List~Offering~
+        +tas: List~TeachingAssistant~
+        +semester: Semester
+        +courseCode: String
+        +courseName: String
+        +department: String
+        +credit: int
+        +isGradCourse: bool                
+    }
+    
+    class Offering {
+        +course: Course
+        +instructors: List~CourseInstructor~
+        +studentTAs: List~TeachingAssistant~
+        +students: List~Student~
+        +sectionNumber: int
+        +studentCount: int
+        +sectionTime: List~TimeSlot~
+    }
+    
+    class Exam {
+        +isOutdated: boolean
+        +course: Course
+        +date: DateTime
+        +duration: int
+        +examType: String
+        +proctorNum: int
+        +manualAssignedTAs: int
+        +autoAssignedTAs: int    
+        +proctors: List~TeachingAssistant~
+        +examRooms: List~Classroom~
+        +manualAssign(tas: List~TeachingAssistant~): void
+        +autoAssignTAs(numberOfTAs: int): void
+        +swapTAs(ta1: TeachingAssistant, ta2: TeachingAssistant): void
+        +printClassroomLists(): void
+        +notifyAssignedTAs(): void
+    }
+    
+    class Classroom {
+        +name: String
+        +building: String
+        +capacity: int
+        +examSeatingCapacity: int
+    }
+    
+    class Student {
+        +id: String
+        +name: String
+        +email: String
+        +department: String
+        +enrolledCourses: List~Offering~
+    }
+    
+    class TimeSlot {
+        +day: DayOfWeek
+        +startTime: DateTime
+        +endTime: DateTime
+    }
+    
+    class Schedule {
+        +timeSlots: List~TimeSlot~
+        +checkAvailability(anotherTimeSlot: TimeSlot): boolean
+    }
+    
+    class Workload {
+        +ta: TeachingAssistant
+        +instructor: CourseInstructor
+        +course: Course
+        +taskType: String
+        +date: DateTime
+        +duration: int
+        +isApproved: boolean
+        +rejectionReason: String
+        +notifyStatusChange(): void
+    }
+    
+    class LeaveRequest {
+        +ta: TeachingAssistant
+        +reason: String
+        +startDate: DateTime
+        +endDate: DateTime
+        +isApproved: boolean
+        +rejectionReason: String
+        +notifyStatusChange(): void
+    }
+    
+    class SwapRequest {
+        +requester: TeachingAssistant
+        +recipient: TeachingAssistant
+        +examToSwap: Exam
+        +requestDate: DateTime
+        +isApproved: boolean
+        +isForumPost: boolean
+        +notifyStatusChange(): void
+    }
+
+    class Semester {
+        +year: int
+        +isFall: boolean
+        +offerings: List~Offering~
+    }
+    
+    class Log {
+        +timestamp: DateTime
+        +user: User
+        +action: String
+        +details: String
+    }
+    
+    class Report {
+        +isProctoring: boolean
+        +isWorkload: boolean
+        +timeSlot: TimeSlot 
+        +details: String
+    }
+
+    %% For email and notifications
+    class EmailService {
+        +sendEmail(recipient: User, subject: String, message: String): void
+    }
+    
+    class Notification {
+        +id: int
+        +subject: String
+        +message: String
+        +date: DateTime
+        +isRead: boolean
+        +recipient: User
+    }
+
+    %% Relationships
+    User <|-- Admin
+    User <|-- TeachingAssistant
+    User <|-- CourseInstructor
+    User <|-- DeansOffice
+    CourseInstructor <|-- DepartmentChair
+    Course "1" *-- "many" Offering : offers
+    Course "1" *-- "many" Exam : has
+    
+    Offering "many" o-- "many" CourseInstructor : taught by
+    Offering "many" o-- "many" TeachingAssistant : taken by
+    Course "many" o-- "many" TeachingAssistant : assisted by
+    Offering "many" o-- "many" Student : enrolled in
+    
+    Exam "many" o-- "many" Classroom : conducted in
+    
+    TeachingAssistant "1" -- "1" Schedule : has
+    TeachingAssistant "1" -- "many" Workload : submits
+    TeachingAssistant "1" -- "1" LeaveRequest : requests
+    TeachingAssistant "1" -- "*" SwapRequest : initiates or receives
+    TeachingAssistant "many" -- "many" Exam : proctors
+    Schedule "1" *-- "many" TimeSlot : contains
+    
+    CourseInstructor "1" -- "many" Workload : evaluates
+    DepartmentChair "1" -- "many" LeaveRequest : processes
+    Semester "1" *-- "many" Offering : includes
+    Log "many" -- "many" Admin : records actions of
+    Report "1" -- "1" TimeSlot : has
+    User "1" -- "many" Notification : receives
+    EmailService -- User : sends emails to
