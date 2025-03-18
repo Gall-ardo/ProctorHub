@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
-import AdminDashboard from './pages/admin/AdminMainPage';
+import AdminMainPage from './pages/admin/AdminMainPage';
 import './App.css';
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/admin/adminmainpage" element={<AdminDashboard />} />
+        <Route path="/admin/adminmainpage" element={<AdminMainPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
