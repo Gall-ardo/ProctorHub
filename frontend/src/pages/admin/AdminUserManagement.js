@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AdminUserManagement.css';
+import ErrorPopup from './ErrorPopup';
+import AdminUserDeleteConfirmation from './AdminUserDeleteConfirmation';
 
 const AdminUserManagement = () => {
   const navigate = useNavigate();
@@ -14,6 +16,30 @@ const AdminUserManagement = () => {
   const [userType, setUserType] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [userToEdit, setUserToEdit] = useState(null);
+  
+  // Popup states
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Mock user database for demonstration
+  const mockUsers = [
+    {
+      id: '12345678',
+      nameSurname: 'Sude Ergün',
+      email: 'sude.ergun@bilkent.edu.tr',
+      phoneNumber: '05123456789',
+      userType: 'master-part'
+    },
+    {
+      id: '87654321',
+      nameSurname: 'Ahmet Yılmaz',
+      email: 'ahmet.yilmaz@bilkent.edu.tr',
+      phoneNumber: '05556667788',
+      userType: 'phd-full'
+    }
+  ];
 
   // User type options
   const userTypeOptions = [
@@ -38,6 +64,14 @@ const AdminUserManagement = () => {
     }
   };
 
+  const findUser = (id, emailToFind) => {
+    // In a real app, this would be an API call
+    return mockUsers.find(user => 
+      (id && user.id === id) || 
+      (emailToFind && user.email === emailToFind)
+    );
+  };
+
   const handleFormSubmit = (event) => {
     event.preventDefault();
     
@@ -54,8 +88,14 @@ const AdminUserManagement = () => {
         // Add API call here
         break;
       case 'delete':
-        console.log('Finding user to delete:', { userId, email });
-        // Delete API call here
+        const userFound = findUser(userId, email);
+        if (userFound) {
+          setUserToDelete(userFound);
+          setShowConfirmation(true);
+        } else {
+          setErrorMessage("This user doesn't exist.");
+          setShowError(true);
+        }
         break;
       case 'edit':
         if (userToEdit) {
@@ -68,25 +108,19 @@ const AdminUserManagement = () => {
           });
           // Update API call here
         } else {
-          console.log('Finding user to edit:', { userId, email });
-          // Find user API call here
-          // This would normally set userToEdit with the response
-          // For demo, let's simulate finding a user
-          if (userId === '12345678' || email === 'sude.ergun@bilkent.edu.tr') {
-            setUserToEdit({
-              id: '12345678',
-              nameSurname: 'Sude Ergün',
-              email: 'sude.ergun@bilkent.edu.tr',
-              phoneNumber: '05123456789',
-              userType: 'master-part'
-            });
+          const userFound = findUser(userId, email);
+          if (userFound) {
+            setUserToEdit(userFound);
             
             // Update form fields with found user data
-            setUserId('12345678');
-            setNameSurname('Sude Ergün');
-            setEmail('sude.ergun@bilkent.edu.tr');
-            setPhoneNumber('05123456789');
-            setUserType('master-part');
+            setUserId(userFound.id);
+            setNameSurname(userFound.nameSurname);
+            setEmail(userFound.email);
+            setPhoneNumber(userFound.phoneNumber);
+            setUserType(userFound.userType);
+          } else {
+            setErrorMessage("This user doesn't exist.");
+            setShowError(true);
           }
         }
         break;
@@ -100,7 +134,8 @@ const AdminUserManagement = () => {
       console.log('Uploading file:', selectedFile);
       // File upload API call here
     } else {
-      alert('Please select a file first');
+      setErrorMessage("Please select a file first.");
+      setShowError(true);
     }
   };
 
@@ -111,6 +146,25 @@ const AdminUserManagement = () => {
     setPhoneNumber('');
     setUserType('');
     setUserToEdit(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    console.log('Deleting user:', userToDelete);
+    // API call to delete user
+    setShowConfirmation(false);
+    setUserToDelete(null);
+    resetForm();
+    // Show success message or redirect
+  };
+
+  const handleDeleteCancel = () => {
+    setShowConfirmation(false);
+    setUserToDelete(null);
+  };
+
+  const handleErrorClose = () => {
+    setShowError(false);
+    setErrorMessage('');
   };
 
   return (
@@ -388,6 +442,23 @@ const AdminUserManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Popup */}
+      {showConfirmation && userToDelete && (
+        <AdminUserDeleteConfirmation
+          user={userToDelete}
+          onCancel={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+
+      {/* Error Popup */}
+      {showError && (
+        <ErrorPopup 
+          message={errorMessage}
+          onClose={handleErrorClose}
+        />
+      )}
     </div>
   );
 };

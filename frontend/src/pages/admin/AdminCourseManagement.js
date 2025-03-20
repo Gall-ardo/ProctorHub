@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AdminUserSelectUserPopup from './AdminUserSelectUserPopup';
 import './AdminCourseManagement.css';
 
 const AdminCourseManagement = () => {
@@ -11,7 +12,9 @@ const AdminCourseManagement = () => {
   const [courseCode, setCourseCode] = useState('');
   const [isGradCourse, setIsGradCourse] = useState(false);
   const [teachingAssistantNumber, setTeachingAssistantNumber] = useState(1);
+  const [selectedAssistants, setSelectedAssistants] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showTAPopup, setShowTAPopup] = useState(false);
 
   // Department options
   const departmentOptions = [
@@ -42,7 +45,13 @@ const AdminCourseManagement = () => {
     // Handle different form submissions based on active view
     switch(activeView) {
       case 'add':
-        console.log('Adding course:', { department, courseCode, isGradCourse, teachingAssistantNumber });
+        console.log('Adding course:', { 
+          department, 
+          courseCode, 
+          isGradCourse, 
+          teachingAssistantNumber,
+          selectedAssistants 
+        });
         // Add API call here
         break;
       case 'delete':
@@ -68,8 +77,17 @@ const AdminCourseManagement = () => {
   };
 
   const handleSelectTeachingAssistants = () => {
-    // Logic to select teaching assistants
-    console.log('Selecting TAs for number:', teachingAssistantNumber);
+    setShowTAPopup(true);
+  };
+
+  const handleTAPopupCancel = () => {
+    setShowTAPopup(false);
+  };
+
+  const handleTAPopupConfirm = (assistants) => {
+    setSelectedAssistants(assistants);
+    setTeachingAssistantNumber(assistants.length);
+    setShowTAPopup(false);
   };
 
   return (
@@ -202,10 +220,10 @@ const AdminCourseManagement = () => {
                         />
                         <span>Grad Course</span>
                       </label>
-                      <span className="option-indicator"></span>
+                      <span className={`option-indicator ${isGradCourse ? 'selected' : ''}`}></span>
                     </div>
                   </div>
-                  <div className="form-group teaching-assistant">
+                  <div className="form-group">
                     <label>Teaching Assistant Number</label>
                     <div className="ta-input-group">
                       <input 
@@ -213,6 +231,7 @@ const AdminCourseManagement = () => {
                         min="1"
                         value={teachingAssistantNumber}
                         onChange={(e) => setTeachingAssistantNumber(parseInt(e.target.value))}
+                        readOnly={selectedAssistants.length > 0}
                       />
                       <button 
                         type="button" 
@@ -222,6 +241,17 @@ const AdminCourseManagement = () => {
                         Select Teaching Assistant(s)
                       </button>
                     </div>
+                    
+                    {/* Display selected assistants */}
+                    {selectedAssistants.length > 0 && (
+                      <div className="selected-assistants">
+                        {selectedAssistants.map(assistant => (
+                          <div key={assistant.id} className="assistant-chip">
+                            {assistant.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <button type="submit" className="form-submit-btn">Add Course</button>
                 </form>
@@ -266,6 +296,16 @@ const AdminCourseManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Teaching Assistant Selection Popup */}
+      {showTAPopup && (
+        <AdminUserSelectUserPopup
+          onCancel={handleTAPopupCancel}
+          onConfirm={handleTAPopupConfirm}
+          selectedAssistants={selectedAssistants}
+          setSelectedAssistants={setSelectedAssistants}
+        />
+      )}
     </div>
   );
 };

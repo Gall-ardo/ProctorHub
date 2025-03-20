@@ -319,3 +319,77 @@
       width: 100%;
     }
   }
+  /* Add these styles to your existing AdminCourseManagement.css file */
+
+/* Selected assistants display */
+.selected-assistants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .assistant-chip {
+    background-color: #f0f0f0;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+    color: #333;
+  }
+  
+  /* Checkbox styling updates */
+  .checkbox-group .option-indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+  
+  .checkbox-group .option-indicator.selected {
+    background-color: #4CAF50;
+    position: relative;
+  }
+  
+  .checkbox-group .option-indicator.selected:after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    top: -2px;
+    left: 2px;
+  }
+  
+  /* Teaching assistant input group */
+  .ta-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .ta-input-group input[type="number"] {
+    width: 60px;
+    text-align: center;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .ta-input-group input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
+  
+  .select-ta-btn {
+    background-color: #c42626;
+    color: white;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    flex-grow: 1;
+  }
+  
+  .select-ta-btn:hover {
+    background-color: #a52020;
+  }
