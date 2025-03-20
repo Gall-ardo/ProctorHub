@@ -8,6 +8,8 @@ import AdminCourseManagement from './pages/admin/AdminCourseManagement';
 import AdminStudentManagement from './pages/admin/AdminStudentManagement';
 import AdminUserManagement from './pages/admin/AdminUserManagement';
 import AdminOfferingManagement from './pages/admin/AdminOfferingManagement';
+import TAMainPage from './pages/ta/TAMainPage';
+
 import './App.css';
 
 function App() {
@@ -21,6 +23,7 @@ function App() {
         <Route path="/admin/adminstudentmanagement" element={<AdminStudentManagement />} />
         <Route path="/admin/adminusermanagement" element={<AdminUserManagement />} />
         <Route path="/admin/adminofferingmanagement" element={<AdminOfferingManagement />} />
+        <Route path="/ta/tamainpage" element={<TAMainPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

@@ -1,0 +1,68 @@
+.proctor-swap-forum {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .proctor-swap-forum h2 {
+    padding: 15px 20px;
+    margin: 0;
+    border-bottom: 1px solid #eee;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .upcoming-exams {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+  }
+  
+  .exam-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .course-code {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  
+  .info-button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #999;
+    background: none;
+    color: #333;
+    font-style: italic;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  
+  .exam-details {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .exam-date, .exam-time {
+    font-size: 14px;
+  }
