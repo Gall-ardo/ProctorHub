@@ -5,6 +5,7 @@ import Login from './pages/auth/Login';
 import AdminMainPage from './pages/admin/main/AdminMainPage';
 import AdminStudentPage from './pages/admin/Student/AdminStudentManagement';
 import AdminCoursePage from './pages/admin/Course/AdminCourseManagement';
+import AdminClassroomPage from './pages/admin/Classroom/AdminClassroomManagement';
 import AdminUserPage from './pages/admin/User/AdminUserManagement';
 import AdminOfferingPage from './pages/admin/Offering/AdminOfferingManagement';
 import TAMainPage from './pages/ta/TAMainPage';
@@ -22,8 +23,8 @@ function App() {
         <Route path="/admin/course" element={<AdminCoursePage />} />
         <Route path="/admin/user" element={<AdminUserPage />} />
         <Route path="/admin/offering" element={<AdminOfferingPage />} />
+        <Route path="/admin/classroom" element={<AdminClassroomPage />} />
         <Route path="/ta/tamainpage" element={<TAMainPage />} />
-
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
