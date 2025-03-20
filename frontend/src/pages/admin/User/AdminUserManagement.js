@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AdminUserManagement.css';
-import ErrorPopup from './ErrorPopup';
+import ErrorPopup from '../ErrorPopup';
 import AdminUserDeleteConfirmation from './AdminUserDeleteConfirmation';
 
 const AdminUserManagement = () => {
