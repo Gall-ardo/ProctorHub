@@ -7,6 +7,8 @@ import AdminStudentPage from './pages/admin/Student/AdminStudentManagement';
 import AdminCoursePage from './pages/admin/Course/AdminCourseManagement';
 import AdminUserPage from './pages/admin/User/AdminUserManagement';
 import AdminOfferingPage from './pages/admin/Offering/AdminOfferingManagement';
+import TAMainPage from './pages/ta/TAMainPage';
+
 
 import './App.css';
 
@@ -20,6 +22,7 @@ function App() {
         <Route path="/admin/course" element={<AdminCoursePage />} />
         <Route path="/admin/user" element={<AdminUserPage />} />
         <Route path="/admin/offering" element={<AdminOfferingPage />} />
+        <Route path="/ta/tamainpage" element={<TAMainPage />} />
 
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
