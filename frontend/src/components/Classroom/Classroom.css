@@ -1,0 +1,126 @@
+/* Classroom.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+  }
+  
+  .classroom-container {
+    padding: 20px;
+  }
+  
+  .header {
+    background-color: #b30000;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .classroom-content {
+    display: flex;
+    padding: 20px;
+  }
+  
+  .left-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    width: 200px;
+  }
+  
+  .button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    font-size: 16px;
+  }
+  
+  .button.add {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .button.delete {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .button.edit {
+    background-color: #008CBA;
+    color: white;
+  }
+  
+  .upload-section {
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+  }
+  
+  .upload-box {
+    border: 2px dashed #ccc;
+    padding: 50px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .upload-box input {
+    margin-top: 20px;
+  }
+  
+  .form-section {
+    flex: 2;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    margin-left: 20px;
+    width: 50%;
+  }
+  
+  .form-section h2 {
+    margin-top: 0;
+  }
+  
+  .input-field {
+    margin-bottom: 15px;
+  }
+  
+  .input-field input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .form-buttons {
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  .form-buttons button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .form-buttons button.add-classroom {
+    background-color: #b30000;
+    color: white;
+    border: none;
+  }
+  
