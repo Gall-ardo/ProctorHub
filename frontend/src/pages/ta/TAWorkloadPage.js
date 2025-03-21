@@ -10,7 +10,7 @@ const NavBar = () => {
         <Link to="/ta/tamainpage">Home</Link>
         <Link to="/ta/taworkloadpage"><strong>Workload</strong></Link>
         <Link to="/ta/taproctoringpage">Proctoring</Link>
-        <Link to="#">Leave of Absence</Link>
+        <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
         <Link to="#">Swap</Link>
       </div>
       <div className="nav-icons">

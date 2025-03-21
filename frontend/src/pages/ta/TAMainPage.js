@@ -221,7 +221,7 @@ const TAMainPage = () => {
         <Link to="/ta/tamainpage"><strong>Home</strong></Link>
           <Link to="/ta/taworkloadpage">Workload</Link>
           <Link to="/ta/taproctoringpage">Proctoring</Link>
-          <Link to="#">Leave of Absence</Link>
+          <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
           <Link to="#">Swap</Link>
         </div>
         <div className="nav-icons">

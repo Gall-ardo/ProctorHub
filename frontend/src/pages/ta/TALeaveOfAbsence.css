@@ -1,0 +1,294 @@
+.file-upload {
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border: 2px dashed #ccc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+    cursor: pointer;
+  }.reason-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }.ta-main-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f5f5f5;
+    font-family: Arial, sans-serif;
+  }
+  
+  .top-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #c62828;
+    color: white;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+  }
+  
+  .nav-links a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  
+  .nav-icons {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .notification-icon, .profile-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+  
+  .main-content {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  /* Leave of Absence specific styles */
+  .leave-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .leave-title {
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+  
+  .leave-status {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .leave-status.not-submitted {
+    color: #c62828;
+  }
+  .leave-status.pending {
+    color: #f2c94c;
+  }
+  
+  .leave-status.accepted {
+    color: #4CAF50;
+  }
+  
+  .status-icon {
+    font-size: 24px;
+    margin-right: 10px;
+  }
+  
+  .leave-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 25px;
+  }
+  
+  .date-selector {
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .date-selector label, .file-upload label, .reason-container label {
+    display: block;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .date-inputs {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  
+  .date-field {
+    flex: 1;
+  }
+  
+  .date-field label {
+    font-size: 14px;
+    color: #666;
+    font-weight: normal;
+    text-align: center;
+  }
+  
+  .date-field input, .reason-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .file-upload {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+    background-color: white;
+    cursor: pointer;
+  }
+  
+  .file-upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .upload-text {
+    font-size: 1rem;
+    color: #555;
+  }
+  
+  .upload-divider {
+    font-size: 0.9rem;
+    color: #777;
+  }
+  
+  .upload-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.6;
+  }
+  
+  .select-file-btn {
+    background-color: #c62828;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 5px;
+  }
+  
+  .selected-file {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #444;
+  }
+  
+  .upload-file-btn {
+    background-color: #c62828;
+    color: white;
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+  
+  .reason-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+  
+  .reason-container textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  
+  .form-submit {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .submit-btn {
+    background-color: #c62828;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .submit-btn:hover {
+    background-color: #b71c1c;
+  }
+  
+  /* Accepted request styles */
+  .leave-details {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+  }
+  
+  .leave-date, .remaining-days {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #4CAF50;
+  }
+  
+  .remaining-days {
+    margin-top: 40px;
+  }
+  
+  /* Debug toggle - you can remove this in production */
+  .debug-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 12px;
+  }
+  
+  .debug-toggle:hover {
+    opacity: 1;
+  }
