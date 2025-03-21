@@ -5,40 +5,8 @@ import './TAMainPage.css';
 
 const TAMainPage = () => {
   const [currentWeek, setCurrentWeek] = useState(getWeekDates());
-  const [upcomingExams, setUpcomingExams] = useState([]);
-
-  // Mock data - in a real app, this would come from an API
-  useEffect(() => {
-    // Simulating API call to fetch exams
-    const mockExams = [
-      {
-        id: 1,
-        course: { code: 'CS202', name: 'Algorithms' },
-        date: new Date('2025-03-16T13:00:00'),
-        duration: 180, // in minutes
-        examType: 'Midterm Exam',
-        proctorNum: 4,
-        manualAssignedTAs: 2,
-        autoAssignedTAs: 2,
-        proctors: [],
-        examRooms: []
-      },
-      {
-        id: 2,
-        course: { code: 'GE301', name: 'Economics' },
-        date: new Date('2025-03-19T10:00:00'),
-        duration: 180, // in minutes
-        examType: 'Midterm Exam',
-        proctorNum: 3,
-        manualAssignedTAs: 1,
-        autoAssignedTAs: 2,
-        proctors: [],
-        examRooms: []
-      }
-    ];
-    
-    setUpcomingExams(mockExams);
-  }, []);
+  const [myScheduleEvents, setMyScheduleEvents] = useState([]);
+  const [swapRequests, setSwapRequests] = useState([]);
 
   // Get dates for current week (Mon-Sun)
   function getWeekDates() {
@@ -59,64 +27,224 @@ const TAMainPage = () => {
     return weekDates;
   }
 
-  // Format date for display
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric'
-    }).replace(/\//g, '.');
-  };
+  // Initialize MY schedule events - this is what appears in MY calendar
+  useEffect(() => {
+    // These are MY schedule events (for the weekly schedule)
+    const myEvents = [
+      {
+        id: 1,
+        title: 'CS550',
+        examDate: '25/03/2025',
+        startTime: 10,
+        endTime: 12.5,
+        color: 'blue',
+        isExam: false
+      },
+      {
+        id: 2,
+        title: 'EEE586',
+        examDate: '28/03/2025',
+        startTime: 8.5,
+        endTime: 10.5,
+        color: 'blue',
+        isExam: false
+      },
+      {
+        id: 3,
+        title: 'EEE586',
+        examDate: '24/03/2025',
+        startTime: 13.5,
+        endTime: 15.5,
+        color: 'blue',
+        isExam: false // Just a course session
+      },
+      {
+        id: 4,
+        title: 'CS202 - Proctoring',
+        examDate: '29/03/2025',
+        startTime: 15,
+        endTime: 18,
+        color: 'red',
+        isExam: true
+      },
+      {
+        id: 5,
+        title: 'CS550',
+        examDate: '28/03/2025',
+        startTime: 15.5,
+        endTime: 17.5,
+        color: 'blue',
+        isExam: false // Course review session
+      },
+      // Additional exams
+      {
+        id: 6,
+        title: 'MATH301 - Proctoring',
+        examDate: '22/03/2025',
+        startTime: 9,
+        endTime: 11,
+        color: 'red',
+        isExam: true
+      },
+      {
+        id: 7,
+        title: 'PHYS210 - Proctoring',
+        examDate: '26/03/2025',
+        startTime: 14,
+        endTime: 16,
+        color: 'red',
+        isExam: true
+      },
+      {
+        id: 8,
+        title: 'HIST220 - Proctoring',
+        examDate: '27/03/2025',
+        startTime: 11,
+        endTime: 13,
+        color: 'red',
+        isExam: true
+      },
+      {
+        id: 9,
+        title: 'BIO110 - Proctoring',
+        examDate: '30/03/2025',
+        startTime: 10.5,
+        endTime: 12.5,
+        color: 'red',
+        isExam: true
+      },
+      {
+        id: 10,
+        title: 'STAT205 - Proctoring',
+        examDate: '31/03/2025',
+        startTime: 13,
+        endTime: 15,
+        color: 'red',
+        isExam: true
+      }
+    ];
+    
+    setMyScheduleEvents(myEvents);
+  }, []);
 
-  // Format time for display
-  const formatTime = (date, durationMins = 0) => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
+  // Initialize swap requests from OTHER TAs
+  useEffect(() => {
+    // Mock data for swap requests from other TAs
+    const mockSwapRequests = [
+      {
+        id: 1,
+        requesterName: 'Sude Ergün',
+        exam: {
+          id: 101,
+          examDate: '30/03/2025',
+          title: 'CS202 Midterm Exam',
+          startTime: 15,
+          endTime: 18,
+          course: { code: 'CS202', name: 'Algorithms' },
+          examRooms: ['B201', 'B202', 'B203'],
+          proctorNum: 4,
+          manualAssignedTAs: 2,
+          autoAssignedTAs: 2
+        },
+        requestDate: new Date('2025-03-15T10:30:00'),
+        availableTimeStart: '02/04/2025', // Time window start
+        availableTimeEnd: '02/04/2025'     // Time window end
+      },
+      {
+        id: 2,
+        requesterName: 'Ahmet Yılmaz',
+        exam: {
+          id: 102,
+          examDate: '31/03/2025',
+          title: 'MATH301 Midterm Exam',
+          startTime: 9,
+          endTime: 11,
+          course: { code: 'MATH301', name: 'Linear Algebra' },
+          examRooms: ['EA101', 'EA102'],
+          proctorNum: 3,
+          manualAssignedTAs: 1,
+          autoAssignedTAs: 2
+        },
+        requestDate: new Date('2025-03-16T14:20:00'),
+        availableTimeStart: '30/03/2025', // Time window start
+        availableTimeEnd: '01/04/2025' // Time window end
+      },
+      {
+        id: 3,
+        requesterName: 'Zeynep Kaya',
+        exam: {
+          id: 103,
+          examDate: '30/03/2025',
+          title: 'BIO110 Midterm Exam',
+          startTime: 10.5,
+          endTime: 12.5,
+          course: { code: 'BIO110', name: 'Biology' },
+          examRooms: ['A101', 'A102'],
+          proctorNum: 3,
+          manualAssignedTAs: 2,
+          autoAssignedTAs: 1
+        },
+        requestDate: new Date('2025-03-17T09:15:00'),
+        availableTimeStart: '31/03/2025', // Time window start
+        availableTimeEnd: '04/04/2025' // Time window end
+      },
+      {
+        id: 4,
+        requesterName: 'Mehmet Yıldız',
+        exam: {
+          id: 104,
+          examDate: '31/03/2025',
+          title: 'PHYS210 Midterm Exam',
+          startTime: 14,
+          endTime: 16,
+          course: { code: 'PHYS210', name: 'Physics' },
+          examRooms: ['B301', 'B302'],
+          proctorNum: 2,
+          manualAssignedTAs: 1,
+          autoAssignedTAs: 1
+        },
+        requestDate: new Date('2025-03-18T11:45:00'),
+        availableTimeStart: '30/03/2025', // Time window start
+        availableTimeEnd: '01/04/2025' // Time window end
+      }
+    ];
     
-    const formattedStart = `${hours.toString().padStart(2, '0')}.${minutes.toString().padStart(2, '0')}`;
-    
-    if (durationMins) {
-      const endDate = new Date(date);
-      endDate.setMinutes(endDate.getMinutes() + durationMins);
-      const endHours = endDate.getHours();
-      const endMinutes = endDate.getMinutes();
-      const formattedEnd = `${endHours.toString().padStart(2, '0')}.${endMinutes.toString().padStart(2, '0')}`;
-      return `${formattedStart}-${formattedEnd}`;
-    }
-    
-    return formattedStart;
-  };
+    setSwapRequests(mockSwapRequests);
+  }, []);
 
   return (
     <div className="ta-main-page">
-      <header className="header">
-        <div className="logo-area">
-        <img src="/university-logo.png" alt="University Logo" className="logo" />
+      {/* Top Navigation Bar */}
+      <div className="top-navbar">
+        <div className="logo">
+          <img src="/logo.png" alt="Logo" />
         </div>
-        <nav className="main-nav">
-          <ul>
-            <li className="active"><a href="#">Home</a></li>
-            <li><a href="#">Workload</a></li>
-            <li><a href="#">Proctoring</a></li>
-            <li><a href="#">Leave of Absence</a></li>
-            <li><a href="#">Swap</a></li>
-          </ul>
-        </nav>
-        <div className="user-actions">
-          <button className="notification-btn">
-            <i className="notification-icon"></i>
-          </button>
-          <button className="profile-btn">
-            <i className="profile-icon"></i>
-          </button>
+        <div className="nav-links">
+        <a href="#"><strong>Home</strong></a>
+          <a href="#">Workload</a>
+          <a href="#">Proctoring</a>
+          <a href="#">Leave of Absence</a>
+          <a href="#">Swap</a>
         </div>
-      </header>
-
+        <div className="nav-icons">
+          <div className="notification-icon">
+            <img src="/notification.png" alt="Notifications" />
+          </div>
+          <div className="profile-icon">
+            <img src="/profile.png" alt="Profile" />
+          </div>
+        </div>
+      </div>
       <main className="main-content">
-        <WeeklySchedule weekDates={currentWeek} />
-        
+        <WeeklySchedule 
+          weekDates={currentWeek} 
+          events={myScheduleEvents} 
+        />
         <div className="side-panel">
-          <ProctorSwapForum upcomingExams={upcomingExams} />
+          <ProctorSwapForum 
+            scheduleEvents={myScheduleEvents}
+            swapRequests={swapRequests}
+          />
         </div>
       </main>
     </div>

@@ -1,68 +1,355 @@
 .proctor-swap-forum {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  
-  .proctor-swap-forum h2 {
-    padding: 15px 20px;
-    margin: 0;
-    border-bottom: 1px solid #eee;
-    font-size: 18px;
-    font-weight: 500;
-  }
-  
-  .upcoming-exams {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    overflow-y: auto;
-  }
-  
-  .exam-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .exam-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .course-code {
-    font-weight: 600;
-    font-size: 16px;
-  }
-  
-  .info-button {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 1px solid #999;
-    background: none;
-    color: #333;
-    font-style: italic;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-  }
-  
-  .exam-details {
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .exam-date, .exam-time {
-    font-size: 14px;
-  }
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Ensure the header stays visible */
+.proctor-swap-forum h2 {
+  padding: 15px 20px;
+  margin: 0;
+  border-bottom: 1px solid #eee;
+  font-size: 18px;
+  font-weight: 500;
+  background-color: white; /* Keep it visible when scrolling */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.proctor-swap-forum h3 {
+  padding: 10px 15px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+/* Ensures all swap request cards have the same height */
+.swap-request-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  padding: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px; /* Ensures all cards maintain the same height */
+}
+
+.swap-request-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.requester-info {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.request-date {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Ensures exam cards inside swap requests are uniform */
+.exam-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1; /* Ensures uniform stretching */
+}
+
+.exam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.course-code {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.info-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #999;
+  background: none;
+  color: #333;
+  font-style: italic;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.info-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #ccc;
+  color: #999;
+}
+
+.exam-details {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exam-date, .exam-time {
+  font-size: 14px;
+}
+
+.swap-window {
+  font-size: 13px;
+  color: #1976d2;
+  margin-top: 5px;
+}
+
+.swap-restriction {
+  font-size: 12px;
+  color: #e53935;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.swap-restriction::before {
+  content: "🔒";
+  margin-right: 5px;
+}
+
+.no-requests-message {
+  padding: 20px;
+  text-align: center;
+  color: #757575;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+/* Popup Styles */
+.exam-info-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.exam-info-popup {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: transparent;
+  padding: 0;
+  border: none;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+.popup-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.requester-exam-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.requester-exam-section h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.exam-details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exam-details-section p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.swap-window-section {
+  background-color: #e3f2fd;
+  padding: 12px 15px;
+  border-radius: 6px;
+  border-left: 4px solid #2196f3;
+}
+
+.swap-window-section p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.swap-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.swap-section h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.possible-exams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.possible-exam-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.possible-exam-item:hover {
+  background-color: #f9f9f9;
+}
+
+.possible-exam-item.selected {
+  border-color: #2196f3;
+  background-color: #e3f2fd;
+}
+
+.possible-exam-course {
+  font-weight: 500;
+}
+
+.possible-exam-time {
+  color: #666;
+  font-size: 13px;
+}
+
+.selection-indicator {
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 4px;
+  background-color: transparent;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.possible-exam-item.selected .selection-indicator {
+  background-color: #2196f3;
+}
+
+.no-exams-message {
+  padding: 15px;
+  text-align: center;
+  color: #757575;
+  font-style: italic;
+  border: 1px dashed #e0e0e0;
+  border-radius: 4px;
+}
+
+.swap-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.swap-button {
+  background-color: #c62828;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.swap-button:hover {
+  background-color: #b71c1c;
+}
+
+.swap-button:disabled {
+  background-color: #e0e0e0;
+  color: #9e9e9e;
+  cursor: not-allowed;
+}

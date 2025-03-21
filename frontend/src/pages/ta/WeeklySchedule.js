@@ -53,50 +53,105 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     
     // For demo, just use some hard-coded events with exam dates
     const demoEvents = [
-      {
-        id: 1,
-        title: 'CS550',
-        examDate: '24/03/2025',
-        startTime: 10,
-        endTime: 12.5,
-        color: 'blue'
-      },
-      {
-        id: 2,
-        title: 'EEE586',
-        examDate: '27/03/2025',
-        startTime: 8.5,
-        endTime: 10.5,
-        color: 'blue'
-      },
-      {
-        id: 3,
-        title: 'EEE586',
-        examDate: '23/03/2025',
-        startTime: 13.5,
-        endTime: 15.5,
-        color: 'blue'
-      },
-      {
-        id: 4,
-        title: 'CS202 - Proctoring',
-        examDate: '28/03/2025',
-        startTime: 15,
-        endTime: 18,
-        color: 'red'
-      },
-      {
-        id: 5,
-        title: 'CS550',
-        examDate: '27/03/2025', 
-        startTime: 15.5,
-        endTime: 17.5,
-        color: 'blue'
-      }
+        {
+            id: 1,
+            title: 'CS550',
+            examDate: '25/03/2025',
+            startTime: 10,
+            endTime: 12.5,
+            color: 'blue',
+            isExam: false
+          },
+          {
+            id: 2,
+            title: 'EEE586',
+            examDate: '28/03/2025',
+            startTime: 8.5,
+            endTime: 10.5,
+            color: 'blue',
+            isExam: false
+          },
+          {
+            id: 3,
+            title: 'EEE586',
+            examDate: '24/03/2025',
+            startTime: 13.5,
+            endTime: 15.5,
+            color: 'blue',
+            isExam: false // Just a course session
+          },
+          {
+            id: 4,
+            title: 'CS202 - Proctoring',
+            examDate: '29/03/2025',
+            startTime: 15,
+            endTime: 18,
+            color: 'red',
+            isExam: true
+          },
+          {
+            id: 5,
+            title: 'CS550',
+            examDate: '28/03/2025',
+            startTime: 15.5,
+            endTime: 17.5,
+            color: 'blue',
+            isExam: false // Course review session
+          },
+          // Additional exams
+          {
+            id: 6,
+            title: 'MATH301 - Proctoring',
+            examDate: '22/03/2025',
+            startTime: 9,
+            endTime: 11,
+            color: 'red',
+            isExam: true
+          },
+          {
+            id: 7,
+            title: 'PHYS210 - Proctoring',
+            examDate: '26/03/2025',
+            startTime: 14,
+            endTime: 16,
+            color: 'red',
+            isExam: true
+          },
+          {
+            id: 8,
+            title: 'HIST220 - Proctoring',
+            examDate: '27/03/2025',
+            startTime: 11,
+            endTime: 13,
+            color: 'red',
+            isExam: true
+          },
+          {
+            id: 9,
+            title: 'BIO110 - Proctoring',
+            examDate: '30/03/2025',
+            startTime: 10.5,
+            endTime: 12.5,
+            color: 'red',
+            isExam: true
+          },
+          {
+            id: 10,
+            title: 'STAT205 - Proctoring',
+            examDate: '31/03/2025',
+            startTime: 13,
+            endTime: 15,
+            color: 'red',
+            isExam: true
+          }
+        
     ];
     
+    // Use provided events if available, otherwise use demo events
+    const eventsToUse = events && events.length > 0 ? events : demoEvents;
+    
     // Process events to determine which ones fall in the current week
-    const processedEvents = demoEvents.map(event => {
+    const processedEvents = eventsToUse.map(event => {
       const eventDate = parseExamDate(event.examDate);
       
       // Check if the event date falls within the current week
@@ -124,7 +179,7 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     });
     
     setScheduleEvents(processedEvents);
-  }, [activeDate]);
+  }, [activeDate, events]);
 
   // Helper function to format the date number
   const formatDateNumber = (date) => {
@@ -191,14 +246,6 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     } else {
       setInternalCurrentDate(today);
     }
-  };
-
-  // Format date to DD/MM/YYYY
-  const formatDateToDDMMYYYY = (date) => {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
   };
 
   return (
