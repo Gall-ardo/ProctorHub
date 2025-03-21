@@ -1,23 +1,12 @@
-const express = require('express');
-const cors = require('cors');
-const authRoutes = require('./routes/auth');
+const express = require("express");
+require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 5000;
+app.use(express.json()); // Middleware to handle JSON requests
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.use('/api/auth', authRoutes);
-
-// Basic route for testing
-app.get('/', (req, res) => {
-  res.send('ProctorHub API is running');
+app.get("/", (req, res) => {
+  res.send("sude irem elif yunus arda");
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
