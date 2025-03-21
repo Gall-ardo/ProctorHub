@@ -9,7 +9,7 @@ const NavBar = () => {
       <div className="nav-links">
         <Link to="/ta/tamainpage">Home</Link>
         <Link to="/ta/taworkloadpage"><strong>Workload</strong></Link>
-        <Link to="#">Proctoring</Link>
+        <Link to="/ta/taproctoringpage">Proctoring</Link>
         <Link to="#">Leave of Absence</Link>
         <Link to="#">Swap</Link>
       </div>

@@ -220,7 +220,7 @@ const TAMainPage = () => {
         <div className="nav-links">
         <Link to="/ta/tamainpage"><strong>Home</strong></Link>
           <Link to="/ta/taworkloadpage">Workload</Link>
-          <Link to="#">Proctoring</Link>
+          <Link to="/ta/taproctoringpage">Proctoring</Link>
           <Link to="#">Leave of Absence</Link>
           <Link to="#">Swap</Link>
         </div>

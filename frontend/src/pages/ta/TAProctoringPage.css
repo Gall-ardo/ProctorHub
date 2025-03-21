@@ -1,0 +1,323 @@
+.ta-main-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f5f5f5;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Top Navbar styles */
+  .top-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;
+    background-color: #c62828;
+    color: white;
+  }
+  
+  .logo img {
+    height: 40px;
+    margin-right: 20px;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 30px;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+  }
+  
+  .nav-icons {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .notification-icon img, .profile-icon img {
+    height: 24px;
+    width: 24px;
+  }
+  
+  /* Main content styles */
+  .main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .proctoring-main {
+    display: flex;
+  }
+  
+  /* Stats section styles */
+  .proctoring-stats-vertical {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-right: 20px;
+    width: 250px;
+    flex-shrink: 0;
+    height: calc(100vh - 100px);
+    padding: 20px 0;
+  }
+  
+  .stat-container, .middle-stat, .multidepartment-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .stat-label {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  /* Circle styles */
+  .circle {
+    width: 120px;
+    height: 120px;
+    position: relative;
+  }
+  
+  .circular-chart {
+    max-width: 100%;
+    max-height: 100%;
+  }
+  
+  .circle-bg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 3.8;
+  }
+  
+  .circle.proctoring .circle {
+    stroke: #4CAF50;
+  }
+  
+  .circle.rejected .circle {
+    stroke: #F44336;
+  }
+  
+  .circle path {
+    fill: none;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+  }
+  
+  .percentage {
+    fill: #666;
+    font-size: 0.5em;
+    text-anchor: middle;
+    font-weight: bold;
+  }
+  
+  /* Multidepartment toggle styles */
+  .multidepartment-container {
+    cursor: pointer;
+  }
+  
+  .circle.multidepartment {
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .circle.multidepartment.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .circle.multidepartment.inactive {
+    background-color: #F44336;
+    color: white;
+  }
+  
+  .check-icon, .x-icon {
+    font-size: 50px;
+    line-height: 120px;
+    text-align: center;
+  }
+  
+  /* Proctoring lists styles */
+  .proctoring-lists {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+  }
+  
+  .proctoring-list-container {
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .proctoring-list-container h2 {
+    margin: 0;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .proctoring-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 15px;
+  }
+  
+  .proctoring-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+    position: relative;
+  }
+  
+  .proctoring-item:last-child {
+    border-bottom: none;
+  }
+  
+  .proctoring-item:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .course-info {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  
+  .proctoring-meta {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .proctoring-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .action-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+  }
+  
+  .action-button.accept {
+    background-color: #4CAF50;
+  }
+  
+  .action-button.reject {
+    background-color: #F44336;
+  }
+  
+  /* Confirmation dialog styles */
+  .dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .dialog-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .dialog-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .dialog-icon span {
+    font-size: 24px;
+    color: #1976D2;
+  }
+  
+  .dialog-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .dialog-message {
+    margin-bottom: 20px;
+  }
+  
+  .dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .dialog-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .dialog-button.confirm {
+    background-color: #1976D2;
+    color: white;
+  }
+  
+  .dialog-button.cancel {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  .dialog-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666;
+  }

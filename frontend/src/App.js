@@ -13,6 +13,7 @@ import AdminSemesterPage from './pages/admin/Semester/AdminSemesterManagement';
 import TAMainPage from './pages/ta/TAMainPage';
 import TAWorkloadPage from './pages/ta/TAWorkloadPage';
 import NavBar from './pages/ta/NavBar';
+import TAProctoringPage from './pages/ta/TAProctoringPage';
 
 
 import './App.css';
@@ -33,6 +34,7 @@ function App() {
         <Route path="/ta/tamainpage" element={<TAMainPage />} />
         <Route path="/ta/taworkloadpage" element={<TAWorkloadPage />} />
         <Route path="/ta/navbar" element={<NavBar />} />
+        <Route path="/ta/taproctoringpage" element={<TAProctoringPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
