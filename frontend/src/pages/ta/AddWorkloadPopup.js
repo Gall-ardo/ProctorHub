@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AddWorkloadPopup.css';
 
 const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
@@ -13,9 +13,9 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -25,11 +25,24 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
     onClose();
   };
 
+  const handleClose = () => {
+    onClose(); // This will close the popup when the "X" is clicked
+  };
+
+  // This ensures that the popup doesn't disappear immediately
+  useEffect(() => {
+    console.log("Popup is open:", isOpen);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="popup-overlay">
       <div className="popup-container">
+        {/* Close Button */}
+        <button className="close-btn" onClick={handleClose}>
+          ×
+        </button>
         <h2>Add Workload</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -89,14 +102,14 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           <div className="form-group">
-            <label>Select the workload type</label>
+            <label>Select the workload type: </label>
             <div className="workload-type-options">
               <label className="radio-option">
                 <input
                   type="radio"
                   name="workloadType"
                   value="Lab Work"
-                  checked={formData.workloadType === "Lab Work"}
+                  checked={formData.workloadType === 'Lab Work'}
                   onChange={handleChange}
                 />
                 <span className="radio-circle"></span>
@@ -107,7 +120,7 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   type="radio"
                   name="workloadType"
                   value="Grading"
-                  checked={formData.workloadType === "Grading"}
+                  checked={formData.workloadType === 'Grading'}
                   onChange={handleChange}
                 />
                 <span className="radio-circle"></span>
@@ -118,7 +131,7 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   type="radio"
                   name="workloadType"
                   value="Recitation"
-                  checked={formData.workloadType === "Recitation"}
+                  checked={formData.workloadType === 'Recitation'}
                   onChange={handleChange}
                 />
                 <span className="radio-circle"></span>
@@ -129,7 +142,7 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   type="radio"
                   name="workloadType"
                   value="Office Hour"
-                  checked={formData.workloadType === "Office Hour"}
+                  checked={formData.workloadType === 'Office Hour'}
                   onChange={handleChange}
                 />
                 <span className="radio-circle"></span>
@@ -138,7 +151,9 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
             </div>
           </div>
 
-          <button type="submit" className="submit-btn">Send Workload Request</button>
+          <button type="submit" className="submit-btn">
+            Send Workload Request
+          </button>
         </form>
       </div>
     </div>
