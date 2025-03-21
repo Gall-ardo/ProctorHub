@@ -12,7 +12,14 @@
     "type": "git",
     "url": "git+https://github.com/Gall-ardo/ProctorHub.git"
   },
-  "keywords": ["proctoring", "exam-management", "teaching-assistants", "nodejs", "express", "mysql"],
+  "keywords": [
+    "proctoring",
+    "exam-management",
+    "teaching-assistants",
+    "nodejs",
+    "express",
+    "mysql"
+  ],
   "author": "Your Name",
   "license": "ISC",
   "bugs": {
@@ -20,6 +27,7 @@
   },
   "homepage": "https://github.com/Gall-ardo/ProctorHub#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mysql2": "^3.13.0"

@@ -2,12 +2,14 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
-import AdminMainPage from './pages/admin/main/AdminMainPage';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import AdminLogsReports from './pages/admin/LogsAndReports/AdminLogsReports';
 import AdminStudentPage from './pages/admin/Student/AdminStudentManagement';
 import AdminCoursePage from './pages/admin/Course/AdminCourseManagement';
 import AdminClassroomPage from './pages/admin/Classroom/AdminClassroomManagement';
 import AdminUserPage from './pages/admin/User/AdminUserManagement';
 import AdminOfferingPage from './pages/admin/Offering/AdminOfferingManagement';
+import AdminSemesterPage from './pages/admin/Semester/AdminSemesterManagement';
 import TAMainPage from './pages/ta/TAMainPage';
 
 
@@ -18,12 +20,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/admin" element={<AdminMainPage />} />
+        <Route path="/forgotpassword" element={<ForgotPassword />} />
+        <Route path="/admin" element={<AdminLogsReports />} />
         <Route path="/admin/student" element={<AdminStudentPage />} />
         <Route path="/admin/course" element={<AdminCoursePage />} />
         <Route path="/admin/user" element={<AdminUserPage />} />
         <Route path="/admin/offering" element={<AdminOfferingPage />} />
         <Route path="/admin/classroom" element={<AdminClassroomPage />} />
+        <Route path="/admin/semester" element={<AdminSemesterPage />} />
         <Route path="/ta/tamainpage" element={<TAMainPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
