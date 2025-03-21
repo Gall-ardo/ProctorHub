@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import WeeklySchedule from './WeeklySchedule';
 import ProctorSwapForum from './ProctorSwapForum';
 import './TAMainPage.css';
@@ -216,15 +217,12 @@ const TAMainPage = () => {
     <div className="ta-main-page">
       {/* Top Navigation Bar */}
       <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
         <div className="nav-links">
-        <a href="#"><strong>Home</strong></a>
-          <a href="#">Workload</a>
-          <a href="#">Proctoring</a>
-          <a href="#">Leave of Absence</a>
-          <a href="#">Swap</a>
+        <Link to="/ta/tamainpage"><strong>Home</strong></Link>
+          <Link to="/ta/taworkloadpage">Workload</Link>
+          <Link to="#">Proctoring</Link>
+          <Link to="#">Leave of Absence</Link>
+          <Link to="#">Swap</Link>
         </div>
         <div className="nav-icons">
           <div className="notification-icon">
@@ -235,6 +233,7 @@ const TAMainPage = () => {
           </div>
         </div>
       </div>
+      
       <main className="main-content">
         <WeeklySchedule 
           weekDates={currentWeek} 

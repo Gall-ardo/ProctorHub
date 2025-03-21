@@ -11,6 +11,8 @@ import AdminUserPage from './pages/admin/User/AdminUserManagement';
 import AdminOfferingPage from './pages/admin/Offering/AdminOfferingManagement';
 import AdminSemesterPage from './pages/admin/Semester/AdminSemesterManagement';
 import TAMainPage from './pages/ta/TAMainPage';
+import TAWorkloadPage from './pages/ta/TAWorkloadPage';
+import NavBar from './pages/ta/NavBar';
 
 
 import './App.css';
@@ -29,6 +31,8 @@ function App() {
         <Route path="/admin/classroom" element={<AdminClassroomPage />} />
         <Route path="/admin/semester" element={<AdminSemesterPage />} />
         <Route path="/ta/tamainpage" element={<TAMainPage />} />
+        <Route path="/ta/taworkloadpage" element={<TAWorkloadPage />} />
+        <Route path="/ta/navbar" element={<NavBar />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

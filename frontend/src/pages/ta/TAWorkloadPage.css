@@ -1,0 +1,215 @@
+.ta-main-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+}
+
+.workload-main {
+  display: flex;
+}
+
+.workload-stats-vertical {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-right: 20px;
+  width: 250px;
+  flex-shrink: 0;
+  height: calc(100vh - 100px);
+  padding: 20px 0;
+}
+
+.stat-container, .middle-stat, .add-workload-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.circle {
+  width: 120px;
+  height: 120px;
+  position: relative;
+}
+
+.circular-chart {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #eee;
+  stroke-width: 3.8;
+}
+
+.circle.approved .circle {
+  stroke: #4CAF50;
+}
+
+.circle.waiting .circle {
+  stroke: #F44336;
+}
+
+.circle path {
+  fill: none;
+  stroke-width: 3.8;
+  stroke-linecap: round;
+}
+
+.percentage {
+  fill: #666;
+  font-size: 0.5em;
+  text-anchor: middle;
+  font-weight: bold;
+}
+
+.circle.add {
+  background-color: #c62828;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.add-icon {
+  color: white;
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.workload-lists {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+.workload-list-container {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.workload-list-container h2 {
+  margin: 0;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  font-size: 16px;
+  color: #333;
+}
+
+.workload-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 15px;
+}
+
+.workload-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 15px 0;
+  position: relative;
+}
+
+.workload-item:last-child {
+  border-bottom: none;
+}
+
+.workload-item:hover {
+  background-color: #f9f9f9;
+}
+
+.course-info {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.workload-meta {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.instructor {
+  color: #666;
+  font-size: 14px;
+}
+
+.workload-actions {
+  display: flex;
+  align-items: center;
+  min-width: 70px;
+  justify-content: flex-end;
+}
+
+.workload-type-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  margin-left: 10px;
+}
+
+/* Custom workload type icons */
+.flask-icon::before {
+  content: "🧪";
+  font-size: 24px;
+  display: inline-block;
+}
+
+.pencil-icon::before {
+  content: "✏️";
+  font-size: 24px;
+  display: inline-block;
+}
+
+.presentation-icon::before {
+  content: "👨‍🏫";
+  font-size: 24px;
+  display: inline-block;
+}
+
+.clock-icon::before {
+  content: "🕒";
+  font-size: 24px;
+  display: inline-block;
+}
+
+.default-icon::before {
+  content: "📝";
+  font-size: 24px;
+  display: inline-block;
+}
