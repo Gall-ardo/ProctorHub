@@ -8,13 +8,13 @@ function InstructorMainPage() {
 
   useEffect(() => {
     // Fetch upcoming exams
-    fetch('/api/exams/upcoming')
+    fetch('/api/exams')
       .then(response => response.json())
       .then(data => setUpcomingExams(data))
       .catch(err => console.error('Error fetching upcoming exams:', err));
 
     // Fetch latest swaps
-    fetch('/api/swaps/latest')
+    fetch('/api/swaps')
       .then(response => response.json())
       .then(data => setLatestSwaps(data))
       .catch(err => console.error('Error fetching latest swaps:', err));
