@@ -1,6 +1,7 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import './styles/global.css';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import AdminLogsReports from './pages/admin/LogsAndReports/AdminLogsReports';
@@ -15,6 +16,7 @@ import TAWorkloadPage from './pages/ta/TAWorkloadPage';
 import NavBar from './pages/ta/NavBar';
 import TAProctoringPage from './pages/ta/TAProctoringPage';
 import TALeaveOfAbsence from './pages/ta/TALeaveOfAbsence';
+import InstructorMainPage from './pages/instructor/InstructorMainPage';
 
 
 import './App.css';
@@ -37,6 +39,7 @@ function App() {
         <Route path="/ta/navbar" element={<NavBar />} />
         <Route path="/ta/taproctoringpage" element={<TAProctoringPage />} />
         <Route path="/ta/taleaveofabsence" element={<TALeaveOfAbsence />} />
+        <Route path="/instructor/main" element={<InstructorMainPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

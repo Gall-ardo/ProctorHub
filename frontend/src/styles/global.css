@@ -1,0 +1,25 @@
+:root {
+    /* Primary color of our website */
+    --primary-color: #c62828;
+    
+    /* Secondary color of our website */
+    --secondary-color: #ffffff;
+    
+    /* Page background */
+    --background-color: #f5f5f5;
+    
+    /* Default text color */
+    --text-color: #333333;
+  
+    /* Card background & drop shadow */
+    --card-background: #ffffff;
+    --card-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  
+    /* Border radius for curved shapes. */
+    --border-radius: 8px;
+  
+    /* Font family */
+    --font-family: 'Arial', sans-serif;
+  
+    /* Add more as needed, e.g., spacing, breakpoints, etc. */
+  }
