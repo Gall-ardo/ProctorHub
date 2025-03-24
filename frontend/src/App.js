@@ -18,6 +18,7 @@ import TAProctoringPage from './pages/ta/TAProctoringPage';
 import TALeaveOfAbsence from './pages/ta/TALeaveOfAbsence';
 import InstructorMainPage from './pages/instructor/InstructorMainPage';
 import InstructorTAWorkloadPage from './pages/instructor/InstructorTAWorkloadPage';
+import InstructorExamsPage from './pages/instructor/InstructorExamsPage';
 
 
 import './App.css';
@@ -42,6 +43,7 @@ function App() {
         <Route path="/ta/taleaveofabsence" element={<TALeaveOfAbsence />} />
         <Route path="/instructor/home" element={<InstructorMainPage />} />
         <Route path="/instructor/ta-workload" element={<InstructorTAWorkloadPage />} />
+        <Route path="/instructor/exams" element={<InstructorExamsPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

@@ -1,0 +1,239 @@
+.instructor-exams-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--background-color);
+    font-family: var(--font-family);
+  }
+  
+  /* Top Navbar */
+  .top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    height: 60px;
+    padding: 0 20px;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .nav-links a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    padding: 5px 10px;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .nav-links a:hover {
+    background-color: rgba(255,255,255,0.2);
+  }
+  
+  .nav-icons {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .nav-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+  
+  /* Main content area */
+  .main-content {
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow: auto;
+    background-color: var(--background-color);
+  }
+  
+  /* Exams container */
+  .exams-container {
+    background-color: var(--card-background);
+    box-shadow: var(--card-shadow);
+    border-radius: var(--border-radius);
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .exams-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .exams-header h2 {
+    margin: 0;
+  }
+  
+  .add-exam-btn {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  /* Cards container */
+  .cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  /* Individual exam card */
+  .exam-card {
+    background-color: #fafafa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: var(--border-radius);
+    padding: 15px;
+  }
+  
+  .exam-card h3 {
+    margin: 0 0 5px;
+    color: var(--primary-color);
+  }
+  
+  .card-buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .card-buttons button {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+  .card-buttons button:hover {
+    opacity: 0.8;
+  }
+  
+  /* ====== Modals ====== */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  .modal-content {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    width: 500px;
+    max-width: 90%;
+    padding: 20px;
+  }
+  
+  .modal-content h2 {
+    margin-top: 0;
+    color: var(--primary-color);
+  }
+  
+  /* Form layout inside modal */
+  .form-row {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-row label {
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  
+  .form-row input,
+  .form-row select {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .select-proctor-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    margin-left: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  
+  .button-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .primary-btn {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .close-btn {
+    background-color: #888;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  /* Swap History Cards */
+  .swap-history-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .swap-history-card {
+    background-color: #fafafa;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+  }
+  
+  /* Proctors List in SelectProctorsModal */
+  .proctors-list {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .proctor-tag {
+    background-color: #eee;
+    padding: 6px 10px;
+    border-radius: 4px;
+  }
