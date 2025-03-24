@@ -39,7 +39,7 @@ function App() {
         <Route path="/ta/navbar" element={<NavBar />} />
         <Route path="/ta/taproctoringpage" element={<TAProctoringPage />} />
         <Route path="/ta/taleaveofabsence" element={<TALeaveOfAbsence />} />
-        <Route path="/instructor/main" element={<InstructorMainPage />} />
+        <Route path="/instructor/home" element={<InstructorMainPage />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

@@ -8,13 +8,20 @@ function InstructorMainPage() {
 
   useEffect(() => {
     // Fetch upcoming exams
-    fetch('/api/exams')
-      .then(response => response.json())
+    fetch('http://localhost:5001/api/exams/upcoming')
+      .then(async response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          throw new Error(`Expected JSON, got: ${text}`);
+        }
+        return response.json();
+      })
       .then(data => setUpcomingExams(data))
-      .catch(err => console.error('Error fetching upcoming exams:', err));
+      .catch(err => console.error("Error fetching upcoming exams:", err));
 
     // Fetch latest swaps
-    fetch('/api/swaps')
+    fetch('http://localhost:5001/api/swaps/latest')
       .then(response => response.json())
       .then(data => setLatestSwaps(data))
       .catch(err => console.error('Error fetching latest swaps:', err));
