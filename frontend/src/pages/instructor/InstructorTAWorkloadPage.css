@@ -1,0 +1,132 @@
+.ta-workload-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f5f5f5;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Top navigation bar */
+  .top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    background-color: #c62828;
+    color: white;
+    height: 60px;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 5px 10px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    border-radius: 4px;
+  }
+  
+  .nav-links a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .nav-icons {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .nav-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+  
+  /* Main content area */
+  .main-content {
+    display: flex;
+    flex: 1;
+    padding: 20px;
+    gap: 20px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+  }
+  
+  /* Panels (Left & Right) */
+  .content-panel {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.1); /* Figma style shadow */
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .content-panel h2 {
+    margin: 0 0 10px;
+  }
+  
+  /* Cards Container */
+  .cards-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Individual Card */
+  .card {
+    background-color: #fafafa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+  }
+  
+  .card h3 {
+    margin: 0 0 5px;
+    color: #c62828;
+  }
+  
+  .card p {
+    margin: 0 0 5px;
+    color: #333;
+  }
+  
+  /* Action buttons inside a card (Verify, Reject) */
+ /* Position the buttons at the right side inside the card */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;  /* Align them to the right */
+  align-items: center;        /* Vertically center them */
+  gap: 10px;                  /* Spacing between buttons */
+}
+
+/* Style for all buttons (Verify, Reject, Info) */
+.action-buttons button {
+  background-color: #c62828;  /* Same red color for all */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;          /* Bigger padding = bigger button */
+  font-size: 1rem;            /* Slightly larger text */
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.action-buttons button:hover {
+  opacity: 0.8;               /* Hover effect */
+}
+  
+  .action-buttons button:first-of-type {
+    background-color: #f44336; /* Green for verify */
+    color: #fff;
+  }
+  
+  .action-buttons button:last-of-type {
+    background-color: #f44336; /* Red for reject */
+    color: #fff;
+  }

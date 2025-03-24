@@ -32,10 +32,10 @@ function InstructorMainPage() {
       {/* Top Navbar */}
       <div className="top-navbar">
         <div className="nav-links">
-          <Link to="/instructor/main"><strong>Home</strong></Link>
-          <Link to="/ta/taworkloadpage">TA Workload</Link>
-          <Link to="/exams">Exams</Link>
-          <Link to="/ta/assign">TA Assign</Link>
+          <Link to="/instructor/home"><strong>Home</strong></Link>
+          <Link to="/instructor/ta-workload">TA Workload</Link>
+          <Link to="/instructor/exams">Exams</Link>
+          <Link to="/instructor/assign">TA Assign</Link>
         </div>
         <div className="nav-icons">
           <div className="notification-icon">
