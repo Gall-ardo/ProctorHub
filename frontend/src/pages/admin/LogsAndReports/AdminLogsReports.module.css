@@ -1,0 +1,196 @@
+/* AdminLogsReports.module.css */
+
+/* Main content */
+.logsReportsContainer {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.logsReportsContent {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 24px;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Filter section */
+.filterSection {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.filterContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.filterGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filterGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.filterGroup select,
+.filterGroup input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.filterGroup select:focus,
+.filterGroup input:focus {
+  outline: none;
+  border-color: #c42626;
+}
+
+.searchFilter {
+  flex: 2;
+}
+
+.clearFiltersBtn {
+  padding: 0.75rem 1.5rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  height: fit-content;
+}
+
+.clearFiltersBtn:hover {
+  background-color: #e0e0e0;
+}
+
+/* Reports section */
+.reportsSection {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.reportsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.reportsHeader h2 {
+  font-size: 20px;
+  color: #333;
+}
+
+.downloadSelectedBtn {
+  padding: 0.75rem 1.5rem;
+  background-color: #c42626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.downloadSelectedBtn:hover {
+  background-color: #a52020;
+}
+
+/* Reports table */
+.reportsTableContainer {
+  overflow-x: auto;
+}
+
+.reportsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reportsTable th,
+.reportsTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.reportsTable th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+  color: #555;
+}
+
+.reportsTable tr:hover {
+  background-color: #f9f9f9;
+}
+
+.checkboxColumn {
+  width: 40px;
+}
+
+.downloadBtn {
+  padding: 0.5rem 0.75rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.downloadBtn:hover {
+  background-color: #3a8a3e;
+}
+
+.noReportsMessage {
+  text-align: center;
+  color: #777;
+  padding: 2rem 0;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .filterContainer {
+    gap: 1rem;
+  }
+  
+  .filterGroup {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filterGroup {
+    flex: 100%;
+  }
+  
+  .reportsHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .downloadSelectedBtn {
+    width: 100%;
+  }
+}

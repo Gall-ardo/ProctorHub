@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import './AdminLogsReports.css';
+import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
+import styles from './AdminLogsReports.module.css';
 
 const AdminLogsReports = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -98,36 +99,16 @@ const AdminLogsReports = () => {
   };
 
   return (
-    <div className="logs-reports-container">
-      <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
-        <div className="nav-links">
-          <a href="#" className="active">Logs and Reports</a>
-          <a href="#">User</a>
-          <a href="#">Student</a>
-          <a href="#">Course</a>
-          <a href="#">Classrooms</a>
-          <a href="#">Offering</a>
-          <a href="#">Semester</a>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className={styles.logsReportsContainer}>
+      {/* Using the reusable AdminNavBar component */}
+      <AdminNavBar />
 
-      <div className="logs-reports-content">
-        <h1 className="page-title">Logs and Reports</h1>
+      <div className={styles.logsReportsContent}>
+        <h1 className={styles.pageTitle}>Logs and Reports</h1>
         
-        <div className="filter-section">
-          <div className="filter-container">
-            <div className="filter-group">
+        <div className={styles.filterSection}>
+          <div className={styles.filterContainer}>
+            <div className={styles.filterGroup}>
               <label>Year</label>
               <select 
                 value={selectedYear} 
@@ -139,7 +120,7 @@ const AdminLogsReports = () => {
               </select>
             </div>
             
-            <div className="filter-group">
+            <div className={styles.filterGroup}>
               <label>Report Type</label>
               <select 
                 value={selectedReport || ''} 
@@ -152,7 +133,7 @@ const AdminLogsReports = () => {
               </select>
             </div>
             
-            <div className="filter-group">
+            <div className={styles.filterGroup}>
               <label>Semester</label>
               <select 
                 value={selectedSemester} 
@@ -165,7 +146,7 @@ const AdminLogsReports = () => {
               </select>
             </div>
             
-            <div className="filter-group search-filter">
+            <div className={`${styles.filterGroup} ${styles.searchFilter}`}>
               <label>Search</label>
               <input 
                 type="text" 
@@ -176,7 +157,7 @@ const AdminLogsReports = () => {
             </div>
             
             <button 
-              className="clear-filters-btn"
+              className={styles.clearFiltersBtn}
               onClick={handleClearFilters}
             >
               Clear Filters
@@ -184,22 +165,22 @@ const AdminLogsReports = () => {
           </div>
         </div>
         
-        <div className="reports-section">
-          <div className="reports-header">
+        <div className={styles.reportsSection}>
+          <div className={styles.reportsHeader}>
             <h2>Available Reports ({filteredReports.length})</h2>
             <button 
-              className="download-selected-btn"
+              className={styles.downloadSelectedBtn}
               onClick={handleDownloadSelected}
             >
               Download Selected
             </button>
           </div>
           
-          <div className="reports-table-container">
-            <table className="reports-table">
+          <div className={styles.reportsTableContainer}>
+            <table className={styles.reportsTable}>
               <thead>
                 <tr>
-                  <th className="checkbox-column">
+                  <th className={styles.checkboxColumn}>
                     <input 
                       type="checkbox" 
                       onChange={(e) => {
@@ -240,7 +221,7 @@ const AdminLogsReports = () => {
                       <td>{report.date}</td>
                       <td>
                         <button 
-                          className="download-btn"
+                          className={styles.downloadBtn}
                           onClick={() => handleDownload(report.id)}
                         >
                           Download
@@ -250,7 +231,7 @@ const AdminLogsReports = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="no-reports-message">
+                    <td colSpan="7" className={styles.noReportsMessage}>
                       No reports found matching your criteria
                     </td>
                   </tr>

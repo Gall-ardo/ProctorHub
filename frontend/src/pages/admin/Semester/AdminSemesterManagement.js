@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminSemesterManagement.css';
+import AdminNavBar from '../AdminNavBar'; // Import the shared AdminNavBar component
+import styles from './AdminSemesterManagement.module.css';
 
 const AdminSemesterManagement = () => {
   const navigate = useNavigate();
@@ -83,37 +84,16 @@ const AdminSemesterManagement = () => {
   };
 
   return (
-    <div className="semester-management">
-      {/* Top Navigation Bar */}
-      <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
-        <div className="nav-links">
-          <a href="#">Logs and Reports</a>
-          <a href="#">User</a>
-          <a href="#">Student</a>
-          <a href="#">Course</a>
-          <a href="#">Classrooms</a>
-          <a href="#">Offering</a>
-          <a href="#" className="active">Semester</a>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className={styles.semesterManagement}>
+      {/* Using the shared AdminNavBar component */}
+      <AdminNavBar />
 
-      <div className="semester-content">
+      <div className={styles.semesterContent}>
         {/* Semester Information Form */}
-        <div className="semester-info-card">
-          <h2 className="card-title">Enter Semester Information</h2>
+        <div className={styles.semesterInfoCard}>
+          <h2 className={styles.cardTitle}>Enter Semester Information</h2>
           <form>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Year</label>
               <input 
                 type="text" 
@@ -123,17 +103,17 @@ const AdminSemesterManagement = () => {
               />
             </div>
             
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Term</label>
-              <div className="term-options">
+              <div className={styles.termOptions}>
                 {termOptions.map((termOption) => (
                   <div 
                     key={termOption.value} 
-                    className={`term-option ${term === termOption.value ? 'selected' : ''}`}
+                    className={`${styles.termOption} ${term === termOption.value ? styles.selected : ''}`}
                     onClick={() => setTerm(termOption.value)}
                   >
                     {termOption.label}
-                    <span className="radio-indicator"></span>
+                    <span className={styles.radioIndicator}></span>
                   </div>
                 ))}
               </div>
@@ -142,21 +122,21 @@ const AdminSemesterManagement = () => {
         </div>
         
         {/* Upload Cards */}
-        <div className="upload-cards-container">
+        <div className={styles.uploadCardsContainer}>
           {/* Offerings Upload Card */}
-          <div className="upload-card">
-            <h3 className="upload-title">Upload Offerings List</h3>
+          <div className={styles.uploadCard}>
+            <h3 className={styles.uploadTitle}>Upload Offerings List</h3>
             <div 
-              className="upload-area"
+              className={styles.uploadArea}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop('offerings', e)}
             >
-              <div className="upload-icon">
+              <div className={styles.uploadIcon}>
                 <img src="/upload-icon.png" alt="Upload" />
               </div>
-              <div className="upload-text">Drag and Drop here</div>
-              <div className="upload-divider">or</div>
-              <label className="select-file-btn">
+              <div className={styles.uploadText}>Drag and Drop here</div>
+              <div className={styles.uploadDivider}>or</div>
+              <label className={styles.selectFileBtn}>
                 Select file
                 <input 
                   type="file" 
@@ -165,24 +145,24 @@ const AdminSemesterManagement = () => {
                   onChange={(e) => handleFileSelect('offerings', e)}
                 />
               </label>
-              {offeringsFile && <div className="selected-file">{offeringsFile.name}</div>}
+              {offeringsFile && <div className={styles.selectedFile}>{offeringsFile.name}</div>}
             </div>
           </div>
           
           {/* Students Upload Card */}
-          <div className="upload-card">
-            <h3 className="upload-title">Upload Students List</h3>
+          <div className={styles.uploadCard}>
+            <h3 className={styles.uploadTitle}>Upload Students List</h3>
             <div 
-              className="upload-area"
+              className={styles.uploadArea}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop('students', e)}
             >
-              <div className="upload-icon">
+              <div className={styles.uploadIcon}>
                 <img src="/upload-icon.png" alt="Upload" />
               </div>
-              <div className="upload-text">Drag and Drop here</div>
-              <div className="upload-divider">or</div>
-              <label className="select-file-btn">
+              <div className={styles.uploadText}>Drag and Drop here</div>
+              <div className={styles.uploadDivider}>or</div>
+              <label className={styles.selectFileBtn}>
                 Select file
                 <input 
                   type="file" 
@@ -191,24 +171,24 @@ const AdminSemesterManagement = () => {
                   onChange={(e) => handleFileSelect('students', e)}
                 />
               </label>
-              {studentsFile && <div className="selected-file">{studentsFile.name}</div>}
+              {studentsFile && <div className={styles.selectedFile}>{studentsFile.name}</div>}
             </div>
           </div>
           
           {/* Teaching Assistants Upload Card */}
-          <div className="upload-card">
-            <h3 className="upload-title">Upload Teaching Assistants List</h3>
+          <div className={styles.uploadCard}>
+            <h3 className={styles.uploadTitle}>Upload Teaching Assistants List</h3>
             <div 
-              className="upload-area"
+              className={styles.uploadArea}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop('assistants', e)}
             >
-              <div className="upload-icon">
+              <div className={styles.uploadIcon}>
                 <img src="/upload-icon.png" alt="Upload" />
               </div>
-              <div className="upload-text">Drag and Drop here</div>
-              <div className="upload-divider">or</div>
-              <label className="select-file-btn">
+              <div className={styles.uploadText}>Drag and Drop here</div>
+              <div className={styles.uploadDivider}>or</div>
+              <label className={styles.selectFileBtn}>
                 Select file
                 <input 
                   type="file" 
@@ -217,15 +197,15 @@ const AdminSemesterManagement = () => {
                   onChange={(e) => handleFileSelect('assistants', e)}
                 />
               </label>
-              {assistantsFile && <div className="selected-file">{assistantsFile.name}</div>}
+              {assistantsFile && <div className={styles.selectedFile}>{assistantsFile.name}</div>}
             </div>
           </div>
         </div>
         
         {/* Submit Button */}
-        <div className="semester-submit">
+        <div className={styles.semesterSubmit}>
           <button 
-            className="add-semester-btn"
+            className={styles.addSemesterBtn}
             onClick={handleFormSubmit}
           >
             Add Semester

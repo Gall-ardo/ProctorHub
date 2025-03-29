@@ -1,0 +1,202 @@
+/* AdminUserSelectUserPopup.module.css */
+
+.assistantPopupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.assistantPopupContainer {
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  padding: 24px;
+}
+
+.assistantPopupTitle {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+}
+
+.assistantSearchSection {
+  margin-bottom: 20px;
+}
+
+.assistantSearchSection label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
+}
+
+.assistantSearchInputGroup {
+  display: flex;
+  gap: 10px;
+  position: relative;
+}
+
+.assistantSearchInput {
+  flex-grow: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: #fff;
+}
+
+.assistantSearchInput:focus {
+  outline: none;
+  border-color: #c42626;
+}
+
+.assistantAddBtn {
+  padding: 0 15px;
+  background-color: #c42626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.assistantAddBtn:hover {
+  background-color: #a52020;
+}
+
+.assistantAddBtn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Dropdown styling */
+.assistantDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 68px; /* To account for the add button */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.assistantDropdownItem {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.assistantDropdownItem:hover {
+  background-color: #f5f5f5;
+}
+
+.assistantDropdownItem:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+
+.assistantSelectedList {
+  margin: 20px 0;
+  min-height: 50px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assistantChip {
+  display: inline-flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 20px;
+  padding: 8px 12px 8px 15px;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.assistantRemoveBtn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  margin-left: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assistantRemoveBtn:hover {
+  color: #c42626;
+}
+
+.assistantPopupActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.assistantCancelBtn,
+.assistantConfirmBtn {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.assistantCancelBtn {
+  color: #c42626;
+  background-color: white;
+  border: 1px solid #c42626;
+}
+
+.assistantConfirmBtn {
+  color: #4CAF50;
+  background-color: white;
+  border: 1px solid #4CAF50;
+}
+
+.assistantCancelIcon,
+.assistantConfirmIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.assistantCancelIcon {
+  border: 1px solid #c42626;
+  color: #c42626;
+  margin-right: 8px;
+}
+
+.assistantConfirmIcon {
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  margin-left: 8px;
+}
+
+.assistantActionText {
+  font-weight: 500;
+}

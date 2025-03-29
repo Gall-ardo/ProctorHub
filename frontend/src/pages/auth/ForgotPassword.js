@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './ForgotPassword.css';
+import styles from './ForgotPassword.module.css';
 import bilkentLogo from '../../assets/bilkent-logo.png';
 
 function ForgotPassword() {
@@ -37,14 +37,14 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="forgot-password-page">
-      <div className="forgot-password-card">
-        <div className="logo-container">
-          <img src={bilkentLogo} alt="Bilkent University Logo" className="university-logo" />
+    <div className={styles.forgotPasswordPage}>
+      <div className={styles.forgotPasswordCard}>
+        <div className={styles.logoContainer}>
+          <img src={bilkentLogo} alt="Bilkent University Logo" className={styles.universityLogo} />
         </div>
         
-        <div className="forgot-password-form">
-          <div className="form-field">
+        <div className={styles.forgotPasswordForm}>
+          <div className={styles.formField}>
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -58,19 +58,19 @@ function ForgotPassword() {
             />
           </div>
           
-          {errorMessage && <div className="error-message">{errorMessage}</div>}
+          {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
           
-          <div className="form-buttons">
-            <button 
-              className="cancel-button"
+          <div className={styles.formButtons}>
+            <button
+               className={styles.cancelButton}
               onClick={handleCancel}
               disabled={isSubmitting}
             >
               Cancel
             </button>
             
-            <button 
-              className="send-password-button"
+            <button
+               className={styles.sendPasswordButton}
               onClick={handleSendPassword}
               disabled={isSubmitting}
             >
@@ -79,9 +79,9 @@ function ForgotPassword() {
           </div>
         </div>
         
-        <div className="footer">
+        <div className={styles.footer}>
           <p>2025 Erasmus Wizard. All rights reserved.</p>
-          <Link to="/about" className="about-link">About Us</Link>
+          <Link to="/about" className={styles.aboutLink}>About Us</Link>
         </div>
       </div>
     </div>

@@ -30,6 +30,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/admin" element={<AdminLogsReports />} />
+        <Route path="/admin/logs" element={<Navigate to="/admin" />} /> {/* Redirect /admin/logs to /admin */}
         <Route path="/admin/student" element={<AdminStudentPage />} />
         <Route path="/admin/course" element={<AdminCoursePage />} />
         <Route path="/admin/user" element={<AdminUserPage />} />
@@ -45,7 +46,7 @@ function App() {
         <Route path="/instructor/ta-workload" element={<InstructorTAWorkloadPage />} />
         <Route path="/instructor/exams" element={<InstructorExamsPage />} />
         {/* Add more routes as needed */}
-        <Route path="*" element={<Navigate to="/" />} />
+         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,0 +1,355 @@
+/* AdminCourseManagement.module.css */
+
+/* General container */
+.courseManagement {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Main content container */
+.mainContent {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Left panel styles */
+.leftPanel {
+  width: 50%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.actionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.actionButton:hover {
+  transform: scale(1.05);
+}
+
+.circleIcon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.circleIcon span {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.buttonLabel {
+  font-weight: bold;
+}
+
+/* Active state styles */
+.circleIcon.active {
+  background-color: #4CAF50;
+  border-color: #4CAF50;
+  color: white;
+}
+
+.buttonLabel.active {
+  color: #4CAF50;
+}
+
+/* File upload area */
+.fileUploadArea {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.uploadIcon img {
+  width: 48px;
+  height: 48px;
+  opacity: 0.6;
+}
+
+.uploadText {
+  font-size: 1rem;
+  color: #555;
+}
+
+.uploadDivider {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.selectFileBtn {
+  background-color: #c42626;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.selectedFile {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.uploadFileBtn {
+  background-color: #c42626;
+  color: white;
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+/* Right panel - form section */
+.rightPanel {
+  width: 50%;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.formContainer {
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 90%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.formTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formGroup label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="email"],
+.formGroup input[type="number"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #c42626;
+}
+
+.formSubmitBtn {
+  background-color: #c42626;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+/* Department options styling */
+.departmentOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.departmentOption {
+  flex: 1;
+  min-width: 80px;
+  padding: 0.75rem;
+  text-align: center;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.departmentOption:hover {
+  background-color: #e9e9e9;
+}
+
+.departmentOption.selected {
+  background-color: #e1f5e1;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.optionIndicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.departmentOption.selected .optionIndicator {
+  background-color: #4CAF50;
+  border-color: #4CAF50;
+}
+
+/* Checkbox styling */
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.checkboxGroup label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.checkboxGroup label input {
+  margin-right: 0.5rem;
+}
+
+.checkboxGroup .optionIndicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.checkboxGroup .optionIndicator.selected {
+  background-color: #4CAF50;
+  position: relative;
+}
+
+.checkboxGroup .optionIndicator.selected:after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  top: -2px;
+  left: 2px;
+}
+
+/* Teaching assistant input styling */
+.taInputGroup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.taInputGroup input[type="number"] {
+  width: 60px;
+  text-align: center;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.taInputGroup input[readonly] {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.selectTaBtn {
+  background-color: #c42626;
+  color: white;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-grow: 1;
+}
+
+.selectTaBtn:hover {
+  background-color: #a52020;
+}
+
+/* Selected assistants styling */
+.selectedAssistants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.assistantChip {
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+  color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .mainContent {
+    flex-direction: column;
+  }
+  
+  .leftPanel, .rightPanel {
+    width: 100%;
+  }
+  
+  .actionButtons {
+    gap: 1rem;
+  }
+  
+  .circleIcon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .formContainer {
+    width: 100%;
+  }
+  
+  .departmentOptions {
+    flex-direction: column;
+  }
+}

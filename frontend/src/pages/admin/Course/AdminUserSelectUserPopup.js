@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './AdminUserSelectUserPopup.css';
+import styles from './AdminUserSelectUserPopup.module.css';
 
 const AdminUserSelectUserPopup = ({ onCancel, onConfirm, selectedAssistants = [], setSelectedAssistants }) => {
   const [searchText, setSearchText] = useState('');
@@ -75,13 +75,13 @@ const AdminUserSelectUserPopup = ({ onCancel, onConfirm, selectedAssistants = []
   };
 
   return (
-    <div className="assistant-popup-overlay">
-      <div className="assistant-popup-container">
-        <h2 className="assistant-popup-title">Select Asistant(s)</h2>
+    <div className={styles.assistantPopupOverlay}>
+      <div className={styles.assistantPopupContainer}>
+        <h2 className={styles.assistantPopupTitle}>Select Asistant(s)</h2>
         
-        <div className="assistant-search-section">
+        <div className={styles.assistantSearchSection}>
           <label>Asistant</label>
-          <div className="assistant-search-input-group">
+          <div className={styles.assistantSearchInputGroup}>
             <input 
               ref={searchInputRef}
               type="text" 
@@ -89,10 +89,10 @@ const AdminUserSelectUserPopup = ({ onCancel, onConfirm, selectedAssistants = []
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onFocus={() => setShowDropdown(filteredAssistants.length > 0)}
-              className="assistant-search-input"
+              className={styles.assistantSearchInput}
             />
             <button 
-              className="assistant-add-btn"
+              className={styles.assistantAddBtn}
               onClick={handleAddAssistant}
               disabled={filteredAssistants.length === 0}
             >
@@ -100,11 +100,11 @@ const AdminUserSelectUserPopup = ({ onCancel, onConfirm, selectedAssistants = []
             </button>
             
             {showDropdown && (
-              <div className="assistant-dropdown" ref={dropdownRef}>
+              <div className={styles.assistantDropdown} ref={dropdownRef}>
                 {filteredAssistants.map(assistant => (
                   <div 
                     key={assistant.id} 
-                    className="assistant-dropdown-item"
+                    className={styles.assistantDropdownItem}
                     onClick={() => handleSelectAssistant(assistant)}
                   >
                     {assistant.name}
@@ -115,12 +115,12 @@ const AdminUserSelectUserPopup = ({ onCancel, onConfirm, selectedAssistants = []
           </div>
         </div>
         
-        <div className="assistant-selected-list">
+        <div className={styles.assistantSelectedList}>
           {tempSelectedAssistants.map(assistant => (
-            <div key={assistant.id} className="assistant-chip">
+            <div key={assistant.id} className={styles.assistantChip}>
               {assistant.name}
               <button 
-                className="assistant-remove-btn"
+                className={styles.assistantRemoveBtn}
                 onClick={() => handleRemoveAssistant(assistant.id)}
               >
                 ×
@@ -129,14 +129,14 @@ const AdminUserSelectUserPopup = ({ onCancel, onConfirm, selectedAssistants = []
           ))}
         </div>
         
-        <div className="assistant-popup-actions">
-          <button className="assistant-cancel-btn" onClick={onCancel}>
-            <span className="assistant-cancel-icon">×</span> 
-            <span className="assistant-action-text">Cancel</span>
+        <div className={styles.assistantPopupActions}>
+          <button className={styles.assistantCancelBtn} onClick={onCancel}>
+            <span className={styles.assistantCancelIcon}>×</span> 
+            <span className={styles.assistantActionText}>Cancel</span>
           </button>
-          <button className="assistant-confirm-btn" onClick={handleConfirm}>
-            <span className="assistant-action-text">Confirm</span>
-            <span className="assistant-confirm-icon">✓</span>
+          <button className={styles.assistantConfirmBtn} onClick={handleConfirm}>
+            <span className={styles.assistantActionText}>Confirm</span>
+            <span className={styles.assistantConfirmIcon}>✓</span>
           </button>
         </div>
       </div>

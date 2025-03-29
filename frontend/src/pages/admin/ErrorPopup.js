@@ -1,18 +1,18 @@
 import React from 'react';
-import './ErrorPopup.css';
+import styles from './ErrorPopup.module.css';
 
 const ErrorPopup = ({ message, onClose }) => {
   return (
-    <div className="error-popup-overlay">
-      <div className="error-popup-container">
-        <div className="error-popup-content">
-          <div className="error-icon">
+    <div className={styles.errorPopupOverlay}>
+      <div className={styles.errorPopupContainer}>
+        <div className={styles.errorPopupContent}>
+          <div className={styles.errorIcon}>
             <span>!</span>
           </div>
-          <div className="error-message">
+          <div className={styles.errorMessage}>
             <p>{message}</p>
           </div>
-          <button className="error-close-btn" onClick={onClose}>
+          <button className={styles.errorCloseBtn} onClick={onClose}>
             Close
           </button>
         </div>

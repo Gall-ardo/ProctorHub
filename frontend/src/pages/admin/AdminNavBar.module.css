@@ -1,0 +1,60 @@
+/* AdminNavBar.module.css */
+
+/* Top navigation bar */
+.topNavbar {
+  display: flex;
+  align-items: center;
+  background-color: #c42626;
+  color: white;
+  padding: 0 1.5rem;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  margin-right: 1rem;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.navLinks {
+  display: flex;
+  gap: 2rem;
+}
+
+.navLinks a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+}
+
+.navLinks a.active {
+  font-weight: bold;
+}
+
+.navIcons {
+  display: flex;
+  margin-left: auto;
+  gap: 1.5rem;
+}
+
+.notificationIcon img,
+.profileIcon img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navLinks {
+    gap: 1rem;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminClassroomManagement.css';
+import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
+import styles from './AdminClassroomManagement.module.css'; // Import CSS module
 
 const AdminClassroomManagement = () => {
   const navigate = useNavigate();
@@ -60,77 +61,56 @@ const AdminClassroomManagement = () => {
   };
 
   return (
-    <div className="classroom-management">
-      {/* Top Navigation Bar */}
-      <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
-        <div className="nav-links">
-          <a href="#">Logs and Reports</a>
-          <a href="#">User</a>
-          <a href="#">Student</a>
-          <a href="#">Course</a>
-          <a href="#" className="active">Classrooms</a>
-          <a href="#">Offering</a>
-          <a href="#">Semester</a>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className={styles.classroomManagement}>
+      {/* Using the reusable AdminNavBar component */}
+      <AdminNavBar />
 
-      <div className="main-content">
+      <div className={styles.mainContent}>
         {/* Left Panel */}
-        <div className="left-panel">
-          <div className="action-buttons">
+        <div className={styles.leftPanel}>
+          <div className={styles.actionButtons}>
             <div 
-              className={`action-button ${activeView === 'add' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
               onClick={() => setActiveView('add')}
             >
-              <div className={`circle-icon ${activeView === 'add' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
                 <span>+</span>
               </div>
-              <span className={`button-label ${activeView === 'add' ? 'active' : ''}`}>Add Classroom</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'add' ? styles.active : ''}`}>Add Classroom</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'delete' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
               onClick={() => setActiveView('delete')}
             >
-              <div className={`circle-icon ${activeView === 'delete' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
                 <span>-</span>
               </div>
-              <span className={`button-label ${activeView === 'delete' ? 'active' : ''}`}>Delete Classroom</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'delete' ? styles.active : ''}`}>Delete Classroom</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'edit' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
               onClick={() => setActiveView('edit')}
             >
-              <div className={`circle-icon ${activeView === 'edit' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
                 <span>✎</span>
               </div>
-              <span className={`button-label ${activeView === 'edit' ? 'active' : ''}`}>Edit Classroom</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'edit' ? styles.active : ''}`}>Edit Classroom</span>
             </div>
           </div>
 
           <div 
-            className="file-upload-area"
+            className={styles.fileUploadArea}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
           >
-            <div className="upload-icon">
+            <div className={styles.uploadIcon}>
               <img src="/upload-icon.png" alt="Upload" />
             </div>
-            <div className="upload-text">Drag and Drop here</div>
-            <div className="upload-divider">or</div>
-            <label className="select-file-btn">
+            <div className={styles.uploadText}>Drag and Drop here</div>
+            <div className={styles.uploadDivider}>or</div>
+            <label className={styles.selectFileBtn}>
               Select file
               <input 
                 type="file" 
@@ -138,9 +118,9 @@ const AdminClassroomManagement = () => {
                 onChange={handleFileSelect}
               />
             </label>
-            {selectedFile && <div className="selected-file">{selectedFile.name}</div>}
+            {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
             <button 
-              className="upload-file-btn"
+              className={styles.uploadFileBtn}
               onClick={handleFileUpload}
             >
               Upload File
@@ -149,13 +129,13 @@ const AdminClassroomManagement = () => {
         </div>
 
         {/* Right Panel - Form Section */}
-        <div className="right-panel">
-          <div className="form-container">
+        <div className={styles.rightPanel}>
+          <div className={styles.formContainer}>
             {activeView === 'add' && (
               <>
-                <h2 className="form-title">Enter Classroom Information</h2>
+                <h2 className={styles.formTitle}>Enter Classroom Information</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Building</label>
                     <input 
                       type="text" 
@@ -164,7 +144,7 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setBuildingId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Classroom ID</label>
                     <input 
                       type="text" 
@@ -173,7 +153,7 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setClassroomId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Capacity</label>
                     <input 
                       type="number" 
@@ -182,7 +162,7 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setCapacity(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Exam Capacity</label>
                     <input 
                       type="number" 
@@ -191,16 +171,16 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setExamCapacity(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Add Classroom</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Add Classroom</button>
                 </form>
               </>
             )}
 
             {activeView === 'delete' && (
               <>
-                <h2 className="form-title">Enter building ID and classroom ID to Find Classroom</h2>
+                <h2 className={styles.formTitle}>Enter building ID and classroom ID to Find Classroom</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Building</label>
                     <input 
                       type="text" 
@@ -209,7 +189,7 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setBuildingId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Classroom ID</label>
                     <input 
                       type="text" 
@@ -218,16 +198,16 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setClassroomId(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find Classroom to Delete</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find Classroom to Delete</button>
                 </form>
               </>
             )}
 
             {activeView === 'edit' && (
               <>
-                <h2 className="form-title">Enter building ID and classroom ID to Find Classroom</h2>
+                <h2 className={styles.formTitle}>Enter building ID and classroom ID to Find Classroom</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Building</label>
                     <input 
                       type="text" 
@@ -236,7 +216,7 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setBuildingId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Classroom ID</label>
                     <input 
                       type="text" 
@@ -245,7 +225,7 @@ const AdminClassroomManagement = () => {
                       onChange={(e) => setClassroomId(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find Classroom to Edit</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find Classroom to Edit</button>
                 </form>
               </>
             )}

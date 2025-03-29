@@ -1,41 +1,41 @@
 import React from 'react';
-import './ConfirmationPopup.css';
+import styles from './ConfirmationPopup.module.css';
 
 const ConfirmationPopup = ({ user, onCancel, onConfirm }) => {
   return (
-    <div className="popup-overlay">
-      <div className="popup-container">
-        <div className="popup-content">
-          <div className="user-details">
-            <div className="detail-row">
+    <div className={styles.popupOverlay}>
+      <div className={styles.popupContainer}>
+        <div className={styles.popupContent}>
+          <div className={styles.userDetails}>
+            <div className={styles.detailRow}>
               <label>ID</label>
               <input type="text" value={user.id} readOnly />
             </div>
-            <div className="detail-row">
+            <div className={styles.detailRow}>
               <label>Name Surname</label>
               <input type="text" value={user.nameSurname} readOnly />
             </div>
-            <div className="detail-row">
+            <div className={styles.detailRow}>
               <label>Mail</label>
               <input type="text" value={user.email} readOnly />
             </div>
-            <div className="detail-row">
+            <div className={styles.detailRow}>
               <label>Phone Number</label>
               <input type="text" value={user.phoneNumber} readOnly />
             </div>
           </div>
           
-          <div className="popup-message">
+          <div className={styles.popupMessage}>
             <p>These are information of the user.</p>
             <p>Do you want to continue?</p>
           </div>
           
-          <div className="popup-actions">
-            <button className="cancel-btn" onClick={onCancel}>
-              <span className="icon">✕</span> Cancel
+          <div className={styles.popupActions}>
+            <button className={styles.cancelBtn} onClick={onCancel}>
+              <span className={styles.icon}>✕</span> Cancel
             </button>
-            <button className="confirm-btn" onClick={onConfirm}>
-              Confirm <span className="icon">✓</span>
+            <button className={styles.confirmBtn} onClick={onConfirm}>
+              Confirm <span className={styles.icon}>✓</span>
             </button>
           </div>
         </div>

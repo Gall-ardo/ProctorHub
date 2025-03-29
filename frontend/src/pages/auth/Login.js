@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './Login.css';
+import styles from './Login.module.css';
 import bilkentLogo from '../../assets/bilkent-logo.png'; // Ensure you have this logo in your assets folder
 
 function Login() {
@@ -36,14 +36,14 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="logo-container">
-          <img src={bilkentLogo} alt="Bilkent University Logo" className="university-logo" />
+    <div className={styles.loginPage}>
+      <div className={styles.loginCard}>
+        <div className={styles.logoContainer}>
+          <img src={bilkentLogo} alt="Bilkent University Logo" className={styles.universityLogo} />
         </div>
         
-        <div className="login-form-container">
-          <div className="form-field">
+        <div className={styles.loginFormContainer}>
+          <div className={styles.formField}>
             <label htmlFor="email">Bilkent Email</label>
             <input
               type="email"
@@ -57,7 +57,7 @@ function Login() {
             />
           </div>
           
-          <div className="form-field">
+          <div className={styles.formField}>
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -71,34 +71,34 @@ function Login() {
             />
           </div>
           
-          {errorMessage && <div className="error-message">{errorMessage}</div>}
+          {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
           
-          <button 
-            className="sign-in-button"
+          <button
+             className={styles.signInButton}
             onClick={handleSubmit}
           >
             Sign In
           </button>
           
-          <div className="login-options">
-            <Link to="/forgotpassword" className="forgot-password-link">
+          <div className={styles.loginOptions}>
+            <Link to="/forgotpassword" className={styles.forgotPasswordLink}>
               Forgot password?
             </Link>
             
-            <label className="remember-me-container">
+            <label className={styles.rememberMeContainer}>
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={() => setRememberMe(!rememberMe)}
               />
-              <span className="checkbox-label">Remember Me</span>
+              <span className={styles.checkboxLabel}>Remember Me</span>
             </label>
           </div>
         </div>
         
-        <div className="footer">
+        <div className={styles.footer}>
           <p>2025 ProctorHub. All rights reserved.</p>
-          <Link to="/about" className="about-link">About Us</Link>
+          <Link to="/about" className={styles.aboutLink}>About Us</Link>
         </div>
       </div>
     </div>

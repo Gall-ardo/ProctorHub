@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminStudentManagement.css';
+import AdminNavBar from '../AdminNavBar';
+import styles from './AdminStudentManagement.module.css';
 
 const AdminStudentManagement = () => {
   const navigate = useNavigate();
@@ -88,77 +89,56 @@ const AdminStudentManagement = () => {
   };
 
   return (
-    <div className="student-management">
-      {/* Top Navigation Bar */}
-      <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
-        <div className="nav-links">
-          <a href="#">Logs and Reports</a>
-          <a href="#">User</a>
-          <a href="#" className="active">Student</a>
-          <a href="#">Course</a>
-          <a href="#">Classrooms</a>
-          <a href="#">Offering</a>
-          <a href="#">Semester</a>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className={styles.studentManagement}>
+      {/* Using the reusable AdminNavBar component */}
+      <AdminNavBar />
 
-      <div className="main-content">
+      <div className={styles.mainContent}>
         {/* Left Panel */}
-        <div className="left-panel">
-          <div className="action-buttons">
+        <div className={styles.leftPanel}>
+          <div className={styles.actionButtons}>
             <div 
-              className={`action-button ${activeView === 'add' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
               onClick={() => setActiveView('add')}
             >
-              <div className={`circle-icon ${activeView === 'add' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
                 <span>+</span>
               </div>
-              <span className={`button-label ${activeView === 'add' ? 'active' : ''}`}>Add Student</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'add' ? styles.active : ''}`}>Add Student</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'delete' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
               onClick={() => setActiveView('delete')}
             >
-              <div className={`circle-icon ${activeView === 'delete' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
                 <span>-</span>
               </div>
-              <span className={`button-label ${activeView === 'delete' ? 'active' : ''}`}>Delete Student</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'delete' ? styles.active : ''}`}>Delete Student</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'edit' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
               onClick={() => setActiveView('edit')}
             >
-              <div className={`circle-icon ${activeView === 'edit' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
                 <span>✎</span>
               </div>
-              <span className={`button-label ${activeView === 'edit' ? 'active' : ''}`}>Edit Student</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'edit' ? styles.active : ''}`}>Edit Student</span>
             </div>
           </div>
 
           <div 
-            className="file-upload-area"
+            className={styles.fileUploadArea}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
           >
-            <div className="upload-icon">
+            <div className={styles.uploadIcon}>
               <img src="/upload-icon.png" alt="Upload" />
             </div>
-            <div className="upload-text">Drag and Drop here</div>
-            <div className="upload-divider">or</div>
-            <label className="select-file-btn">
+            <div className={styles.uploadText}>Drag and Drop here</div>
+            <div className={styles.uploadDivider}>or</div>
+            <label className={styles.selectFileBtn}>
               Select file
               <input 
                 type="file" 
@@ -166,9 +146,9 @@ const AdminStudentManagement = () => {
                 onChange={handleFileSelect}
               />
             </label>
-            {selectedFile && <div className="selected-file">{selectedFile.name}</div>}
+            {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
             <button 
-              className="upload-file-btn"
+              className={styles.uploadFileBtn}
               onClick={handleFileUpload}
             >
               Upload File
@@ -177,13 +157,13 @@ const AdminStudentManagement = () => {
         </div>
 
         {/* Right Panel - Form Section */}
-        <div className="right-panel">
-          <div className="form-container">
+        <div className={styles.rightPanel}>
+          <div className={styles.formContainer}>
             {activeView === 'add' && (
               <>
-                <h2 className="form-title">Enter Student Information</h2>
+                <h2 className={styles.formTitle}>Enter Student Information</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>ID</label>
                     <input 
                       type="text" 
@@ -192,7 +172,7 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setStudentId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Name Surname</label>
                     <input 
                       type="text" 
@@ -201,7 +181,7 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setNameSurname(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Mail</label>
                     <input 
                       type="email" 
@@ -210,46 +190,46 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Department</label>
-                    <div className="selection-list">
+                    <div className={styles.selectionList}>
                       {departmentOptions.map((dept) => (
                         <div 
                           key={dept.value} 
-                          className={`selection-item ${department === dept.value ? 'selected' : ''}`}
+                          className={`${styles.selectionItem} ${department === dept.value ? styles.selected : ''}`}
                           onClick={() => setDepartment(dept.value)}
                         >
                           {dept.label}
-                          <span className="option-indicator"></span>
+                          <span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Courses</label>
-                    <div className="selection-list">
+                    <div className={styles.selectionList}>
                       {courseOptions.map((course) => (
                         <div 
                           key={course.value} 
-                          className={`selection-item ${selectedCourses.includes(course.value) ? 'selected' : ''}`}
+                          className={`${styles.selectionItem} ${selectedCourses.includes(course.value) ? styles.selected : ''}`}
                           onClick={() => toggleCourse(course.value)}
                         >
                           {course.label}
-                          <span className="option-indicator"></span>
+                          <span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <button type="submit" className="form-submit-btn">Add Student</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Add Student</button>
                 </form>
               </>
             )}
 
             {activeView === 'delete' && (
               <>
-                <h2 className="form-title">Enter ID or mail to find Student</h2>
+                <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>ID</label>
                     <input 
                       type="text" 
@@ -258,7 +238,7 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setStudentId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Mail</label>
                     <input 
                       type="email" 
@@ -267,16 +247,16 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find Student to Delete</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find Student to Delete</button>
                 </form>
               </>
             )}
 
             {activeView === 'edit' && (
               <>
-                <h2 className="form-title">Enter ID or mail to find Student</h2>
+                <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>ID</label>
                     <input 
                       type="text" 
@@ -285,7 +265,7 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setStudentId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Mail</label>
                     <input 
                       type="email" 
@@ -294,7 +274,7 @@ const AdminStudentManagement = () => {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find Student to Edit</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find Student to Edit</button>
                 </form>
               </>
             )}

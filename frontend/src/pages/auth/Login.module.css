@@ -1,6 +1,6 @@
-/* Login.css */
+/* Login.module.css */
 
-.login-page {
+.loginPage {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -9,7 +9,7 @@
   font-family: Arial, sans-serif;
 }
 
-.login-card {
+.loginCard {
   width: 100%;
   max-width: 450px;
   background-color: white;
@@ -21,53 +21,53 @@
   gap: 2rem;
 }
 
-.logo-container {
+.logoContainer {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
 }
 
-.university-logo {
+.universityLogo {
   width: 120px;
   height: 120px;
 }
 
-.login-form-container {
+.loginFormContainer {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-.form-field {
+.formField {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.form-field label {
+.formField label {
   font-size: 0.9rem;
   color: #333;
 }
 
-.form-field input {
+.formField input {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
 }
 
-.form-field input:focus {
+.formField input:focus {
   outline: none;
   border-color: #c42626;
 }
 
-.error-message {
+.errorMessage {
   color: #c42626;
   font-size: 0.9rem;
   margin-top: -0.5rem;
 }
 
-.sign-in-button {
+.signInButton {
   background-color: #c42626;
   color: white;
   border: none;
@@ -80,39 +80,39 @@
   margin-top: 0.5rem;
 }
 
-.sign-in-button:hover {
+.signInButton:hover {
   background-color: #a52020;
 }
 
-.login-options {
+.loginOptions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
 }
 
-.forgot-password-link {
+.forgotPasswordLink {
   color: #333;
   text-decoration: none;
 }
 
-.forgot-password-link:hover {
+.forgotPasswordLink:hover {
   text-decoration: underline;
 }
 
-.remember-me-container {
+.rememberMeContainer {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
 }
 
-.remember-me-container input[type="checkbox"] {
+.rememberMeContainer input[type="checkbox"] {
   margin: 0;
   cursor: pointer;
 }
 
-.checkbox-label {
+.checkboxLabel {
   cursor: pointer;
 }
 
@@ -126,11 +126,11 @@
   margin-top: 1rem;
 }
 
-.about-link {
+.aboutLink {
   color: #666;
   text-decoration: none;
 }
 
-.about-link:hover {
+.aboutLink:hover {
   text-decoration: underline;
 }

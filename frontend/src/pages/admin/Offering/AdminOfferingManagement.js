@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminOfferingManagement.css';
+import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
+import styles from './AdminOfferingManagement.module.css';
 
 const AdminOfferingManagement = () => {
   const navigate = useNavigate();
@@ -73,77 +74,56 @@ const AdminOfferingManagement = () => {
   };
 
   return (
-    <div className="offering-management">
-      {/* Top Navigation Bar */}
-      <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
-        <div className="nav-links">
-          <a href="#">Logs and Reports</a>
-          <a href="#">User</a>
-          <a href="#">Student</a>
-          <a href="#">Course</a>
-          <a href="#">Classrooms</a>
-          <a href="#" className="active">Offering</a>
-          <a href="#">Semester</a>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className={styles.offeringManagement}>
+      {/* Using the reusable AdminNavBar component */}
+      <AdminNavBar />
 
-      <div className="main-content">
+      <div className={styles.mainContent}>
         {/* Left Panel */}
-        <div className="left-panel">
-          <div className="action-buttons">
+        <div className={styles.leftPanel}>
+          <div className={styles.actionButtons}>
             <div 
-              className={`action-button ${activeView === 'add' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
               onClick={() => setActiveView('add')}
             >
-              <div className={`circle-icon ${activeView === 'add' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
                 <span>+</span>
               </div>
-              <span className={`button-label ${activeView === 'add' ? 'active' : ''}`}>Add Offering</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'add' ? styles.active : ''}`}>Add Offering</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'delete' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
               onClick={() => setActiveView('delete')}
             >
-              <div className={`circle-icon ${activeView === 'delete' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
                 <span>-</span>
               </div>
-              <span className={`button-label ${activeView === 'delete' ? 'active' : ''}`}>Delete Offering</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'delete' ? styles.active : ''}`}>Delete Offering</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'edit' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
               onClick={() => setActiveView('edit')}
             >
-              <div className={`circle-icon ${activeView === 'edit' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
                 <span>✎</span>
               </div>
-              <span className={`button-label ${activeView === 'edit' ? 'active' : ''}`}>Edit Offering</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'edit' ? styles.active : ''}`}>Edit Offering</span>
             </div>
           </div>
 
           <div 
-            className="file-upload-area"
+            className={styles.fileUploadArea}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
           >
-            <div className="upload-icon">
+            <div className={styles.uploadIcon}>
               <img src="/upload-icon.png" alt="Upload" />
             </div>
-            <div className="upload-text">Drag and Drop here</div>
-            <div className="upload-divider">or</div>
-            <label className="select-file-btn">
+            <div className={styles.uploadText}>Drag and Drop here</div>
+            <div className={styles.uploadDivider}>or</div>
+            <label className={styles.selectFileBtn}>
               Select file
               <input 
                 type="file" 
@@ -151,9 +131,9 @@ const AdminOfferingManagement = () => {
                 onChange={handleFileSelect}
               />
             </label>
-            {selectedFile && <div className="selected-file">{selectedFile.name}</div>}
+            {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
             <button 
-              className="upload-file-btn"
+              className={styles.uploadFileBtn}
               onClick={handleFileUpload}
             >
               Upload File
@@ -162,28 +142,28 @@ const AdminOfferingManagement = () => {
         </div>
 
         {/* Right Panel - Form Section */}
-        <div className="right-panel">
-          <div className="form-container">
+        <div className={styles.rightPanel}>
+          <div className={styles.formContainer}>
             {activeView === 'add' && (
               <>
-                <h2 className="form-title">Enter Offering Information</h2>
+                <h2 className={styles.formTitle}>Enter Offering Information</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Instructors</label>
-                    <div className="instructor-options">
+                    <div className={styles.instructorOptions}>
                       {instructorOptions.map((inst) => (
                         <div 
                           key={inst.value} 
-                          className={`instructor-option ${instructor === inst.value ? 'selected' : ''}`}
+                          className={`${styles.instructorOption} ${instructor === inst.value ? styles.selected : ''}`}
                           onClick={() => setInstructor(inst.value)}
                         >
                           {inst.label}
-                          <span className="option-indicator"></span>
+                          <span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Course Code</label>
                     <input 
                       type="text" 
@@ -192,7 +172,7 @@ const AdminOfferingManagement = () => {
                       onChange={(e) => setCourseCode(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Section ID</label>
                     <input 
                       type="text" 
@@ -201,31 +181,31 @@ const AdminOfferingManagement = () => {
                       onChange={(e) => setSectionId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Semester</label>
-                    <div className="semester-options">
+                    <div className={styles.semesterOptions}>
                       {semesterOptions.map((sem) => (
                         <div 
                           key={sem.value} 
-                          className={`semester-option ${semester === sem.value ? 'selected' : ''}`}
+                          className={`${styles.semesterOption} ${semester === sem.value ? styles.selected : ''}`}
                           onClick={() => setSemester(sem.value)}
                         >
                           {sem.label}
-                          <span className="option-indicator"></span>
+                          <span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <button type="submit" className="form-submit-btn">Add Offering</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Add Offering</button>
                 </form>
               </>
             )}
 
             {activeView === 'delete' && (
               <>
-                <h2 className="form-title">Enter Course Code and Section ID to find Section</h2>
+                <h2 className={styles.formTitle}>Enter Course Code and Section ID to find Section</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Course Code</label>
                     <input 
                       type="text" 
@@ -234,7 +214,7 @@ const AdminOfferingManagement = () => {
                       onChange={(e) => setCourseCode(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Section ID</label>
                     <input 
                       type="text" 
@@ -243,16 +223,16 @@ const AdminOfferingManagement = () => {
                       onChange={(e) => setSectionId(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find Offerings To Delete</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find Offerings To Delete</button>
                 </form>
               </>
             )}
 
             {activeView === 'edit' && (
               <>
-                <h2 className="form-title">Enter Course Code and Section ID to find Section</h2>
+                <h2 className={styles.formTitle}>Enter Course Code and Section ID to find Section</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Course Code</label>
                     <input 
                       type="text" 
@@ -261,7 +241,7 @@ const AdminOfferingManagement = () => {
                       onChange={(e) => setCourseCode(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Section ID</label>
                     <input 
                       type="text" 
@@ -270,7 +250,7 @@ const AdminOfferingManagement = () => {
                       onChange={(e) => setSectionId(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find Offerings To Edit</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find Offerings To Edit</button>
                 </form>
               </>
             )}

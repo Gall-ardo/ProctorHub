@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminUserManagement.css';
+import styles from './AdminUserManagement.module.css';
 import ErrorPopup from '../ErrorPopup';
 import AdminUserDeleteConfirmation from './AdminUserDeleteConfirmation';
+import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
 
 const AdminUserManagement = () => {
   const navigate = useNavigate();
@@ -168,86 +169,65 @@ const AdminUserManagement = () => {
   };
 
   return (
-    <div className="user-management">
-      {/* Top Navigation Bar */}
-      <div className="top-navbar">
-        <div className="logo">
-          <img src="/logo.png" alt="Logo" />
-        </div>
-        <div className="nav-links">
-          <a href="#">Logs and Reports</a>
-          <a href="#" className="active">User</a>
-          <a href="#">Student</a>
-          <a href="#">Course</a>
-          <a href="#">Classrooms</a>
-          <a href="#">Offering</a>
-          <a href="#">Semester</a>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className={styles.userManagement}>
+      {/* Using the reusable AdminNavBar component */}
+      <AdminNavBar />
 
-      <div className="main-content">
+      <div className={styles.mainContent}>
         {/* Left Panel */}
-        <div className="left-panel">
-          <div className="action-buttons">
+        <div className={styles.leftPanel}>
+          <div className={styles.actionButtons}>
             <div 
-              className={`action-button ${activeView === 'add' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
               onClick={() => {
                 setActiveView('add');
                 resetForm();
               }}
             >
-              <div className={`circle-icon ${activeView === 'add' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
                 <span>+</span>
               </div>
-              <span className={`button-label ${activeView === 'add' ? 'active' : ''}`}>Add User</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'add' ? styles.active : ''}`}>Add User</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'delete' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
               onClick={() => {
                 setActiveView('delete');
                 resetForm();
               }}
             >
-              <div className={`circle-icon ${activeView === 'delete' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
                 <span>-</span>
               </div>
-              <span className={`button-label ${activeView === 'delete' ? 'active' : ''}`}>Delete User</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'delete' ? styles.active : ''}`}>Delete User</span>
             </div>
             
             <div 
-              className={`action-button ${activeView === 'edit' ? 'active' : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
               onClick={() => {
                 setActiveView('edit');
                 resetForm();
               }}
             >
-              <div className={`circle-icon ${activeView === 'edit' ? 'active' : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
                 <span>✎</span>
               </div>
-              <span className={`button-label ${activeView === 'edit' ? 'active' : ''}`}>Edit User</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'edit' ? styles.active : ''}`}>Edit User</span>
             </div>
           </div>
 
           <div 
-            className="file-upload-area"
+            className={styles.fileUploadArea}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
           >
-            <div className="upload-icon">
+            <div className={styles.uploadIcon}>
               <img src="/upload-icon.png" alt="Upload" />
             </div>
-            <div className="upload-text">Drag and Drop here</div>
-            <div className="upload-divider">or</div>
-            <label className="select-file-btn">
+            <div className={styles.uploadText}>Drag and Drop here</div>
+            <div className={styles.uploadDivider}>or</div>
+            <label className={styles.selectFileBtn}>
               Select file
               <input 
                 type="file" 
@@ -255,9 +235,9 @@ const AdminUserManagement = () => {
                 onChange={handleFileSelect}
               />
             </label>
-            {selectedFile && <div className="selected-file">{selectedFile.name}</div>}
+            {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
             <button 
-              className="upload-file-btn"
+              className={styles.uploadFileBtn}
               onClick={handleFileUpload}
             >
               Upload File
@@ -266,13 +246,13 @@ const AdminUserManagement = () => {
         </div>
 
         {/* Right Panel - Form Section */}
-        <div className="right-panel">
-          <div className="form-container">
+        <div className={styles.rightPanel}>
+          <div className={styles.formContainer}>
             {activeView === 'add' && (
               <>
-                <h2 className="form-title">Enter User Information</h2>
+                <h2 className={styles.formTitle}>Enter User Information</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>ID</label>
                     <input 
                       type="text" 
@@ -281,7 +261,7 @@ const AdminUserManagement = () => {
                       onChange={(e) => setUserId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Name Surname</label>
                     <input 
                       type="text" 
@@ -290,7 +270,7 @@ const AdminUserManagement = () => {
                       onChange={(e) => setNameSurname(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Mail</label>
                     <input 
                       type="email" 
@@ -299,7 +279,7 @@ const AdminUserManagement = () => {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Phone Number</label>
                     <input 
                       type="text" 
@@ -308,31 +288,31 @@ const AdminUserManagement = () => {
                       onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Type</label>
-                    <div className="selection-list">
+                    <div className={styles.selectionList}>
                       {userTypeOptions.map((type) => (
                         <div 
                           key={type.value} 
-                          className={`selection-item ${userType === type.value ? 'selected' : ''}`}
+                          className={`${styles.selectionItem} ${userType === type.value ? styles.selected : ''}`}
                           onClick={() => setUserType(type.value)}
                         >
                           {type.label}
-                          <span className="option-indicator"></span>
+                          <span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <button type="submit" className="form-submit-btn">Add User</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Add User</button>
                 </form>
               </>
             )}
 
             {activeView === 'delete' && (
               <>
-                <h2 className="form-title">Enter ID or mail to find User</h2>
+                <h2 className={styles.formTitle}>Enter ID or mail to find User</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>ID</label>
                     <input 
                       type="text" 
@@ -341,7 +321,7 @@ const AdminUserManagement = () => {
                       onChange={(e) => setUserId(e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Mail</label>
                     <input 
                       type="email" 
@@ -350,7 +330,7 @@ const AdminUserManagement = () => {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className="form-submit-btn">Find User to Delete</button>
+                  <button type="submit" className={styles.formSubmitBtn}>Find User to Delete</button>
                 </form>
               </>
             )}
@@ -359,9 +339,9 @@ const AdminUserManagement = () => {
               <>
                 {!userToEdit ? (
                   <>
-                    <h2 className="form-title">Enter ID or mail to find User</h2>
+                    <h2 className={styles.formTitle}>Enter ID or mail to find User</h2>
                     <form onSubmit={handleFormSubmit}>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>ID</label>
                         <input 
                           type="text" 
@@ -370,7 +350,7 @@ const AdminUserManagement = () => {
                           onChange={(e) => setUserId(e.target.value)}
                         />
                       </div>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>Mail</label>
                         <input 
                           type="email" 
@@ -379,22 +359,23 @@ const AdminUserManagement = () => {
                           onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
-                      <button type="submit" className="form-submit-btn">Find User to Edit</button>
+                      <button type="submit" className={styles.formSubmitBtn}>Find User to Edit</button>
                     </form>
                   </>
                 ) : (
                   <>
-                    <h2 className="form-title">Edit User Information</h2>
+                    <h2 className={styles.formTitle}>Edit User Information</h2>
                     <form onSubmit={handleFormSubmit}>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>ID</label>
                         <input 
                           type="text" 
                           value={userId}
                           readOnly
+                          className={styles.readOnly}
                         />
                       </div>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>Name Surname</label>
                         <input 
                           type="text" 
@@ -402,7 +383,7 @@ const AdminUserManagement = () => {
                           onChange={(e) => setNameSurname(e.target.value)}
                         />
                       </div>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>Mail</label>
                         <input 
                           type="email" 
@@ -410,7 +391,7 @@ const AdminUserManagement = () => {
                           onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>Phone Number</label>
                         <input 
                           type="text" 
@@ -418,22 +399,22 @@ const AdminUserManagement = () => {
                           onChange={(e) => setPhoneNumber(e.target.value)}
                         />
                       </div>
-                      <div className="form-group">
+                      <div className={styles.formGroup}>
                         <label>Type</label>
-                        <div className="selection-list">
+                        <div className={styles.selectionList}>
                           {userTypeOptions.map((type) => (
                             <div 
                               key={type.value} 
-                              className={`selection-item ${userType === type.value ? 'selected' : ''}`}
+                              className={`${styles.selectionItem} ${userType === type.value ? styles.selected : ''}`}
                               onClick={() => setUserType(type.value)}
                             >
                               {type.label}
-                              <span className="option-indicator"></span>
+                              <span className={styles.optionIndicator}></span>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <button type="submit" className="form-submit-btn">Edit User</button>
+                      <button type="submit" className={styles.formSubmitBtn}>Edit User</button>
                     </form>
                   </>
                 )}
