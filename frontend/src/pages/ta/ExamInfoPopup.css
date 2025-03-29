@@ -1,4 +1,4 @@
-.exam-info-popup-overlay {
+.ta-main-page-exam-info-popup-exam-info-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -11,7 +11,7 @@
     z-index: 1000;
   }
   
-  .exam-info-popup {
+  .ta-main-page-exam-info-popup-exam-info-popup {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -23,7 +23,7 @@
     flex-direction: column;
   }
   
-  .popup-header {
+  .ta-main-page-exam-info-popup-popup-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -31,13 +31,13 @@
     border-bottom: 1px solid #eee;
   }
   
-  .popup-header h3 {
+  .ta-main-page-exam-info-popup-popup-header h3 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
   }
   
-  .close-button {
+  .ta-main-page-exam-info-popup-close-button {
     background: none;
     border: none;
     font-size: 22px;
@@ -45,35 +45,35 @@
     color: #666;
   }
   
-  .close-button:hover {
+  .ta-main-page-exam-info-popup-close-button:hover {
     color: #333;
   }
   
-  .popup-content {
+  .ta-main-page-exam-info-popup-popup-content {
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
   
-  .exam-details-section {
+  .ta-main-page-exam-info-popup-exam-details-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
   
-  .exam-details-section p {
+  .ta-main-page-exam-info-popup-exam-details-section p {
     margin: 0;
     font-size: 14px;
   }
   
-  .swap-section {
+  .ta-main-page-exam-info-popup-swap-section {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
   
-  .swap-section h4 {
+  .ta-main-page-exam-info-popup-swap-section h4 {
     margin: 0;
     font-size: 16px;
     font-weight: 500;
@@ -81,7 +81,7 @@
     border-bottom: 1px solid #eee;
   }
   
-  .possible-exams-list {
+  .ta-main-page-exam-info-popup-possible-exams-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -89,7 +89,7 @@
     overflow-y: auto;
   }
   
-  .possible-exam-item {
+  .ta-main-page-exam-info-popup-possible-exam-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -100,25 +100,25 @@
     position: relative;
   }
   
-  .possible-exam-item:hover {
+  .ta-main-page-exam-info-popup-possible-exam-item:hover {
     background-color: #f9f9f9;
   }
   
-  .possible-exam-item.selected {
+  .ta-main-page-exam-info-popup-possible-exam-item.selected {
     border-color: #2196f3;
     background-color: #e3f2fd;
   }
   
-  .possible-exam-course {
+  .ta-main-page-exam-info-popup-possible-exam-course {
     font-weight: 500;
   }
   
-  .possible-exam-time {
+  .ta-main-page-exam-info-popup-possible-exam-time {
     color: #666;
     font-size: 13px;
   }
   
-  .selection-indicator {
+  .ta-main-page-exam-info-popup-selection-indicator {
     position: absolute;
     right: -1px;
     top: -1px;
@@ -129,11 +129,11 @@
     border-bottom-right-radius: 4px;
   }
   
-  .possible-exam-item.selected .selection-indicator {
+  .ta-main-page-exam-info-popup-possible-exam-item.selected .ta-main-page-exam-info-popup-selection-indicator {
     background-color: #2196f3;
   }
   
-  .no-exams-message {
+  .ta-main-page-exam-info-popup-no-exams-message {
     padding: 15px;
     text-align: center;
     color: #757575;
@@ -142,13 +142,13 @@
     border-radius: 4px;
   }
   
-  .swap-action {
+  .ta-main-page-exam-info-popup-swap-action {
     display: flex;
     justify-content: center;
     margin-top: 15px;
   }
   
-  .swap-button {
+  .ta-main-page-exam-info-popup-swap-button {
     background-color: #c62828;
     color: white;
     border: none;
@@ -160,11 +160,11 @@
     min-width: 120px;
   }
   
-  .swap-button:hover {
+  .ta-main-page-exam-info-popup-swap-button:hover {
     background-color: #b71c1c;
   }
   
-  .swap-button:disabled {
+  .ta-main-page-exam-info-popup-swap-button:disabled {
     background-color: #e0e0e0;
     color: #9e9e9e;
     cursor: not-allowed;

@@ -5,19 +5,19 @@ import AddWorkloadPopup from './AddWorkloadPopup';
 
 const NavBar = () => {
   return (
-    <div className="top-navbar">
-      <div className="nav-links">
+    <div className="ta-workload-page-top-navbar">
+      <div className="ta-workload-page-nav-links">
         <Link to="/ta/tamainpage">Home</Link>
         <Link to="/ta/taworkloadpage"><strong>Workload</strong></Link>
         <Link to="/ta/taproctoringpage">Proctoring</Link>
         <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
         <Link to="#">Swap</Link>
       </div>
-      <div className="nav-icons">
-        <div className="notification-icon">
+      <div className="ta-workload-page-nav-icons">
+        <div className="ta-workload-page-notification-icon">
           <img src="/notification.png" alt="Notifications" />
         </div>
-        <div className="profile-icon">
+        <div className="ta-workload-page-profile-icon">
           <img src="/profile.png" alt="Profile" />
         </div>
       </div>
@@ -184,32 +184,32 @@ const TAWorkloadPage = () => {
   const renderWorkloadIcon = (type) => {
     const typeLC = type.toLowerCase();
     if (typeLC.includes('lab')) {
-      return <div className="flask-icon"></div>;
+      return <div className="ta-workload-page-flask-icon"></div>;
     } else if (typeLC.includes('grading')) {
-      return <div className="pencil-icon"></div>;
+      return <div className="ta-workload-page-pencil-icon"></div>;
     } else if (typeLC.includes('recitation')) {
-      return <div className="presentation-icon"></div>;
+      return <div className="ta-workload-page-presentation-icon"></div>;
     } else if (typeLC.includes('office')) {
-      return <div className="clock-icon"></div>;
+      return <div className="ta-workload-page-clock-icon"></div>;
     } else {
-      return <div className="default-icon"></div>;
+      return <div className="ta-workload-page-default-icon"></div>;
     }
   };
 
   const renderWorkloadList = (workloads, isWaiting = false) => {
     return workloads.map((workload) => (
-      <div key={workload.id} className="workload-item">
-        <div className="workload-details">
-          <div className="course-info">{workload.course} - {workload.type}</div>
-          <div className="workload-meta">
+      <div key={workload.id} className="ta-workload-page-workload-item">
+        <div className="ta-workload-page-workload-details">
+          <div className="ta-workload-page-course-info">{workload.course} - {workload.type}</div>
+          <div className="ta-workload-page-workload-meta">
             <span>{workload.date}</span>
             <span> - </span>
             <span>{workload.hours} hours</span>
           </div>
-          <div className="instructor">Instructor: {workload.instructor}</div>
+          <div className="ta-workload-page-instructor">Instructor: {workload.instructor}</div>
         </div>
-        <div className="workload-actions">
-          <div className="workload-type-icon">
+        <div className="ta-workload-page-workload-actions">
+          <div className="ta-workload-page-workload-type-icon">
             {renderWorkloadIcon(workload.type)}
           </div>
         </div>
@@ -221,78 +221,78 @@ const TAWorkloadPage = () => {
   const totalWaitingHours = waitingWorkloads.reduce((sum, workload) => sum + workload.hours, 0);
 
   return (
-    <div className="ta-main-page">
+    <div className="ta-workload-page-ta-main-page">
       <NavBar />
-      <main className="main-content workload-main">
-        <div className="workload-stats-vertical">
-          <div className="stat-container">
-            <div className="stat-item">
-              <div className="stat-label">Total Approved Workload Hours</div>
-              <div className="circle approved">
-                <svg viewBox="0 0 36 36" className="circular-chart">
+      <main className="ta-workload-page-main-content ta-workload-page-workload-main">
+        <div className="ta-workload-page-workload-stats-vertical">
+          <div className="ta-workload-page-stat-container">
+            <div className="ta-workload-page-stat-item">
+              <div className="ta-workload-page-stat-label">Total Approved Workload Hours</div>
+              <div className="ta-workload-page-circle approved">
+                <svg viewBox="0 0 36 36" className="ta-workload-page-circular-chart">
                   <path 
-                    className="circle-bg" 
+                    className="ta-workload-page-circle-bg" 
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path 
-                    className="circle"
+                    className="ta-workload-page-circle"
                     strokeDasharray={`${totalApprovedHours}, 100`}
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
-                  <text x="18" y="20.35" className="percentage">{totalApprovedHours}</text>
+                  <text x="18" y="20.35" className="ta-workload-page-percentage">{totalApprovedHours}</text>
                 </svg>
               </div>
             </div>
           </div>
           
-          <div className="middle-stat">
-            <div className="stat-item">
-              <div className="stat-label">Total Waiting Workload Hours</div>
-              <div className="circle waiting">
-                <svg viewBox="0 0 36 36" className="circular-chart">
+          <div className="ta-workload-page-middle-stat">
+            <div className="ta-workload-page-stat-item">
+              <div className="ta-workload-page-stat-label">Total Waiting Workload Hours</div>
+              <div className="ta-workload-page-circle waiting">
+                <svg viewBox="0 0 36 36" className="ta-workload-page-circular-chart">
                   <path 
-                    className="circle-bg" 
+                    className="ta-workload-page-circle-bg" 
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path 
-                    className="circle"
+                    className="ta-workload-page-circle"
                     strokeDasharray={`${totalWaitingHours}, 100`}
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
-                  <text x="18" y="20.35" className="percentage">{totalWaitingHours}</text>
+                  <text x="18" y="20.35" className="ta-workload-page-percentage">{totalWaitingHours}</text>
                 </svg>
               </div>
             </div>
           </div>
           
-          <div className="add-workload-container">
-            <div className="stat-item add-workload">
-              <div className="stat-label">Add Workload</div>
-              <div className="circle add" onClick={handleOpenPopup}>
-                <span className="add-icon">+</span>
+          <div className="ta-workload-page-add-workload-container">
+            <div className="ta-workload-page-stat-item ta-workload-page-add-workload">
+              <div className="ta-workload-page-stat-label">Add Workload</div>
+              <div className="ta-workload-page-circle add" onClick={handleOpenPopup}>
+                <span className="ta-workload-page-add-icon">+</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="workload-lists">
-          <div className="workload-list-container">
+        <div className="ta-workload-page-workload-lists">
+          <div className="ta-workload-page-workload-list-container">
             <h2>Waiting For Approval</h2>
-            <div className="workload-content">
+            <div className="ta-workload-page-workload-content">
               {renderWorkloadList(waitingWorkloads, true)}
             </div>
           </div>
-          <div className="workload-list-container">
+          <div className="ta-workload-page-workload-list-container">
             <h2>Approved Workloads</h2>
-            <div className="workload-content">
+            <div className="ta-workload-page-workload-content">
               {renderWorkloadList(approvedWorkloads)}
             </div>
           </div>

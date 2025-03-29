@@ -4,6 +4,28 @@ import WeeklySchedule from './WeeklySchedule';
 import ProctorSwapForum from './ProctorSwapForum';
 import './TAMainPage.css';
 
+const NavBar = () => {
+  return (
+    <div className="ta-main-page-top-navbar">
+      <div className="ta-main-page-nav-links">
+        <Link to="/ta/tamainpage"><strong>Home</strong></Link>
+        <Link to="/ta/taworkloadpage">Workload</Link>
+        <Link to="/ta/taproctoringpage">Proctoring</Link>
+        <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
+        <Link to="#">Swap</Link>
+      </div>
+      <div className="ta-main-page-nav-icons">
+        <div className="ta-main-page-notification-icon">
+          <img src="/notification.png" alt="Notifications" />
+        </div>
+        <div className="ta-main-page-profile-icon">
+          <img src="/profile.png" alt="Profile" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TAMainPage = () => {
   const [currentWeek, setCurrentWeek] = useState(getWeekDates());
   const [myScheduleEvents, setMyScheduleEvents] = useState([]);
@@ -214,32 +236,15 @@ const TAMainPage = () => {
   }, []);
 
   return (
-    <div className="ta-main-page">
-      {/* Top Navigation Bar */}
-      <div className="top-navbar">
-        <div className="nav-links">
-        <Link to="/ta/tamainpage"><strong>Home</strong></Link>
-          <Link to="/ta/taworkloadpage">Workload</Link>
-          <Link to="/ta/taproctoringpage">Proctoring</Link>
-          <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
-          <Link to="#">Swap</Link>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+    <div className="ta-main-page-main-page">
+      <NavBar />
       
-      <main className="main-content">
+      <main className="ta-main-page-main-content">
         <WeeklySchedule 
           weekDates={currentWeek} 
           events={myScheduleEvents} 
         />
-        <div className="side-panel">
+        <div className="ta-main-page-side-panel">
           <ProctorSwapForum 
             scheduleEvents={myScheduleEvents}
             swapRequests={swapRequests}

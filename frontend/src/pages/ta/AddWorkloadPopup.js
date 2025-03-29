@@ -37,15 +37,15 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-container">
+    <div className="ta-add-workload-popup-popup-overlay">
+      <div className="ta-add-workload-popup-popup-container">
         {/* Close Button */}
-        <button className="close-btn" onClick={handleClose}>
+        <button className="ta-add-workload-popup-close-btn" onClick={handleClose}>
           ×
         </button>
         <h2>Add Workload</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="ta-add-workload-popup-form-group">
             <label>Instructor Email</label>
             <input
               type="email"
@@ -57,7 +57,7 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="ta-add-workload-popup-form-group">
             <label>Course Code</label>
             <input
               type="text"
@@ -69,7 +69,7 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="ta-add-workload-popup-form-group">
             <label>Enter date</label>
             <input
               type="date"
@@ -80,9 +80,9 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="ta-add-workload-popup-form-group">
             <label>Enter time</label>
-            <div className="time-input">
+            <div className="ta-add-workload-popup-time-input">
               <input
                 type="text"
                 name="hours"
@@ -101,10 +101,10 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="ta-add-workload-popup-form-group">
             <label>Select the workload type: </label>
-            <div className="workload-type-options">
-              <label className="radio-option">
+            <div className="ta-add-workload-popup-workload-type-options">
+              <label className="ta-add-workload-popup-radio-option">
                 <input
                   type="radio"
                   name="workloadType"
@@ -112,10 +112,10 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   checked={formData.workloadType === 'Lab Work'}
                   onChange={handleChange}
                 />
-                <span className="radio-circle"></span>
-                <span className="radio-label">Lab Work</span>
+                <span className="ta-add-workload-popup-radio-circle"></span>
+                <span className="ta-add-workload-popup-radio-label">Lab Work</span>
               </label>
-              <label className="radio-option">
+              <label className="ta-add-workload-popup-radio-option">
                 <input
                   type="radio"
                   name="workloadType"
@@ -123,10 +123,10 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   checked={formData.workloadType === 'Grading'}
                   onChange={handleChange}
                 />
-                <span className="radio-circle"></span>
-                <span className="radio-label">Grading</span>
+                <span className="ta-add-workload-popup-radio-circle"></span>
+                <span className="ta-add-workload-popup-radio-label">Grading</span>
               </label>
-              <label className="radio-option">
+              <label className="ta-add-workload-popup-radio-option">
                 <input
                   type="radio"
                   name="workloadType"
@@ -134,10 +134,10 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   checked={formData.workloadType === 'Recitation'}
                   onChange={handleChange}
                 />
-                <span className="radio-circle"></span>
-                <span className="radio-label">Recitation</span>
+                <span className="ta-add-workload-popup-radio-circle"></span>
+                <span className="ta-add-workload-popup-radio-label">Recitation</span>
               </label>
-              <label className="radio-option">
+              <label className="ta-add-workload-popup-radio-option">
                 <input
                   type="radio"
                   name="workloadType"
@@ -145,13 +145,13 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
                   checked={formData.workloadType === 'Office Hour'}
                   onChange={handleChange}
                 />
-                <span className="radio-circle"></span>
-                <span className="radio-label">Office Hour</span>
+                <span className="ta-add-workload-popup-radio-circle"></span>
+                <span className="ta-add-workload-popup-radio-label">Office Hour</span>
               </label>
             </div>
           </div>
 
-          <button type="submit" className="submit-btn">
+          <button type="submit" className="ta-add-workload-popup-submit-btn">
             Send Workload Request
           </button>
         </form>

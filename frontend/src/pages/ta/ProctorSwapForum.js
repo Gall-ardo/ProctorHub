@@ -103,29 +103,29 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
   };
 
   return (
-    <div className="proctor-swap-forum">
+    <div className="ta-main-page-proctor-swap-forum-proctor-swap-forum">
       <h2>Proctoring Swap Forum</h2>
       
-      <div className="swap-requests">
+      <div className="ta-main-page-proctor-swap-forum-swap-requests">
         {swapRequests && swapRequests.map(request => (
-          <div key={request.id} className="swap-request-card">
-            <div className="request-header">
-              <div className="requester-info">
+          <div key={request.id} className="ta-main-page-proctor-swap-forum-swap-request-card">
+            <div className="ta-main-page-proctor-swap-forum-request-header">
+              <div className="ta-main-page-proctor-swap-forum-requester-info">
                 {request.requesterName} wants to swap:
               </div>
               
             </div>
             
-            <div className="exam-card">
-              <div className="exam-header">
+            <div className="ta-main-page-proctor-swap-forum-exam-card">
+              <div className="ta-main-page-proctor-swap-forum-exam-header">
                 
-                <div className="exam-title">
+                <div className="ta-main-page-proctor-swap-forum-exam-title">
                     {request.exam.title}
                 </div>
 
                 
                 <button 
-                  className="info-button"
+                  className="ta-main-page-proctor-swap-forum-info-button"
                   onClick={() => handleInfoClick(request)}
                   title="View details and possible swaps"
                 >
@@ -133,12 +133,12 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
                 </button>
               </div>
               
-              <div className="exam-details">
-                <div className="exam-date">{formatDate(request.exam.examDate)}</div>
-                <div className="exam-time">
+              <div className="ta-main-page-proctor-swap-forum-exam-details">
+                <div className="ta-main-page-proctor-swap-forum-exam-date">{formatDate(request.exam.examDate)}</div>
+                <div className="ta-main-page-proctor-swap-forum-exam-time">
                   {formatTime(request.exam.startTime, request.exam.endTime)}
                 </div>
-                <div className="swap-window">
+                <div className="ta-main-page-proctor-swap-forum-swap-window">
                   Available: {formatDate(request.availableTimeStart)} to {formatDate(request.availableTimeEnd)}
                 </div>
               </div>
@@ -149,7 +149,7 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
       
       {/* Display message if no swap requests */}
       {(!swapRequests || swapRequests.length === 0) && (
-        <div className="no-requests-message">
+        <div className="ta-main-page-proctor-swap-forum-no-requests-message">
           No swap requests available at this time.
         </div>
       )}

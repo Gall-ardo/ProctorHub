@@ -1,4 +1,4 @@
-.weekly-schedule-container {
+.ta-main-page-weekly-schedule-weekly-schedule-container {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -9,7 +9,7 @@
     position: relative;
   }
   
-  .weekly-schedule-container::after {
+  .ta-main-page-weekly-schedule-weekly-schedule-container::after {
     content: "";
     position: absolute;
     bottom: 0;
@@ -20,7 +20,7 @@
     z-index: 5;
   }
   
-  .weekly-schedule-header {
+  .ta-main-page-weekly-schedule-weekly-schedule-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -29,18 +29,18 @@
     border-bottom: 1px solid #eee;
   }
   
-  .weekly-schedule-header h2 {
+  .ta-main-page-weekly-schedule-weekly-schedule-header h2 {
     font-size: 18px;
     font-weight: 500;
     margin: 0;
   }
   
-  .week-navigation {
+  .ta-main-page-weekly-schedule-week-navigation {
     display: flex;
     gap: 5px;
   }
   
-  .week-navigation button {
+  .ta-main-page-weekly-schedule-week-navigation button {
     background-color: #f5f5f5;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -50,15 +50,15 @@
     transition: background-color 0.2s;
   }
   
-  .week-navigation button:hover {
+  .ta-main-page-weekly-schedule-week-navigation button:hover {
     background-color: #e0e0e0;
   }
   
-  .week-navigation button:active {
+  .ta-main-page-weekly-schedule-week-navigation button:active {
     background-color: #d5d5d5;
   }
   
-  .weekly-schedule {
+  .ta-main-page-weekly-schedule-weekly-schedule {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -66,7 +66,7 @@
     position: relative;
   }
   
-  .schedule-header {
+  .ta-main-page-weekly-schedule-schedule-header {
     display: flex;
     border-bottom: 1px solid #eee;
     position: sticky;
@@ -75,7 +75,7 @@
     z-index: 3;
   }
   
-  .time-column-header {
+  .ta-main-page-weekly-schedule-time-column-header {
     width: 60px;
     flex-shrink: 0;
     border-right: 1px solid #eee;
@@ -85,28 +85,28 @@
     background-color: white;
   }
   
-  .day-column-header {
+  .ta-main-page-weekly-schedule-day-column-header {
     flex: 1;
     text-align: center;
     padding: 10px 0;
     border-right: 1px solid #eee;
   }
   
-  .day-column-header.today {
+  .ta-main-page-weekly-schedule-day-column-header.today {
     background-color: #e3f2fd;
   }
   
-  .day-name {
+  .ta-main-page-weekly-schedule-day-name {
     font-size: 12px;
     font-weight: 500;
   }
   
-  .day-number {
+  .ta-main-page-weekly-schedule-day-number {
     font-size: 18px;
     font-weight: 700;
   }
   
-  .schedule-body {
+  .ta-main-page-weekly-schedule-schedule-body {
     display: flex;
     flex: 1;
     overflow-y: auto;
@@ -114,7 +114,7 @@
     height: 100%;
   }
   
-  .time-column {
+  .ta-main-page-weekly-schedule-time-column {
     width: 60px;
     flex-shrink: 0;
     border-right: 1px solid #eee;
@@ -125,7 +125,7 @@
     z-index: 2;
   }
   
-  .time-slot {
+  .ta-main-page-weekly-schedule-time-slot {
     height: 30px;
     display: flex;
     align-items: flex-start;
@@ -137,11 +137,11 @@
     flex-shrink: 0;
   }
   
-  .time-slot.half-hour {
+  .ta-main-page-weekly-schedule-time-slot.half-hour {
     border-bottom: 1px dashed #eee;
   }
   
-  .day-columns-container {
+  .ta-main-page-weekly-schedule-day-columns-container {
     display: flex;
     flex: 1;
     width: 100%;
@@ -150,7 +150,7 @@
     min-height: 900px;
   }
   
-  .day-column {
+  .ta-main-page-weekly-schedule-day-column {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -159,24 +159,24 @@
     height: 100%;
   }
   
-  .schedule-cell {
+  .ta-main-page-weekly-schedule-schedule-cell {
     height: 30px;
     border-bottom: 1px solid #eee;
     flex-shrink: 0;
     width: 100%;
   }
   
-  .schedule-cell.half-hour {
+  .ta-main-page-weekly-schedule-schedule-cell.half-hour {
     border-bottom: 1px dashed #eee;
   }
   
   /* Add additional styling for the last time slot to ensure proper border */
-  .schedule-cell:last-child,
-  .time-slot:last-child {
+  .ta-main-page-weekly-schedule-schedule-cell:last-child,
+  .ta-main-page-weekly-schedule-time-slot:last-child {
     border-bottom: 1px solid #eee;
   }
   
-  .schedule-event {
+  .ta-main-page-weekly-schedule-schedule-event {
     position: absolute;
     z-index: 1;
     border-radius: 4px;
@@ -190,22 +190,22 @@
     left: 0;
   }
   
-  .schedule-event.blue {
+  .ta-main-page-weekly-schedule-schedule-event.blue {
     background-color: #2196f3;
   }
   
-  .schedule-event.purple {
+  .ta-main-page-weekly-schedule-schedule-event.purple {
     background-color: #2196f3; /* Changed to blue as requested */
   }
   
-  .schedule-event.red {
+  .ta-main-page-weekly-schedule-schedule-event.red {
     background-color: #e53935;
   }
   
-  .schedule-event.green {
+  .ta-main-page-weekly-schedule-schedule-event.green {
     background-color: #4caf50;
   }
   
-  .schedule-event.orange {
+  .ta-main-page-weekly-schedule-schedule-event.orange {
     background-color: #ff9800;
   }

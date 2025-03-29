@@ -4,19 +4,19 @@ import './TALeaveOfAbsence.css';
 
 const NavBar = () => {
   return (
-    <div className="top-navbar">
-      <div className="nav-links">
+    <div className="ta-leave-of-absence-top-navbar">
+      <div className="ta-leave-of-absence-nav-links">
         <Link to="/ta/tamainpage">Home</Link>
         <Link to="/ta/taworkloadpage">Workload</Link>
         <Link to="/ta/taproctoringpage">Proctoring</Link>
         <Link to="/ta/taleaveofabsence"><strong>Leave of Absence</strong></Link>
         <Link to="#">Swap</Link>
       </div>
-      <div className="nav-icons">
-        <div className="notification-icon">
+      <div className="ta-leave-of-absence-nav-icons">
+        <div className="ta-leave-of-absence-notification-icon">
           <img src="/notification.png" alt="Notifications" />
         </div>
-        <div className="profile-icon">
+        <div className="ta-leave-of-absence-profile-icon">
           <img src="/profile.png" alt="Profile" />
         </div>
       </div>
@@ -95,18 +95,18 @@ const TALeaveOfAbsence = () => {
     switch (requestStatus) {
       case 0: // No request
         return (
-          <div className="leave-container">
-            <div className="leave-status not-submitted">
-              <h1 className="leave-title">You have not submitted a request for a leave of absence.</h1>
+          <div className="ta-leave-of-absence-leave-container">
+            <div className="ta-leave-of-absence-leave-status not-submitted">
+              <h1 className="ta-leave-of-absence-leave-title">You have not submitted a request for a leave of absence.</h1>
             </div>
             
-            <form onSubmit={handleSubmit} className="leave-form">
-              <div className="form-row">
-                <div className="date-selector">
+            <form onSubmit={handleSubmit} className="ta-leave-of-absence-leave-form">
+              <div className="ta-leave-of-absence-form-row">
+                <div className="ta-leave-of-absence-date-selector">
                   <label>Select date</label>
-                  <div className="date-inputs">
-                    <div className="date-field">
-                      <label>Date</label>
+                  <div className="ta-leave-of-absence-date-inputs">
+                    <div className="ta-leave-of-absence-date-field">
+                      <label>Start Date</label>
                       <input 
                         type="date" 
                         value={startDate} 
@@ -114,8 +114,8 @@ const TALeaveOfAbsence = () => {
                         placeholder="mm/dd/yyyy"
                       />
                     </div>
-                    <div className="date-field">
-                      <label>End date</label>
+                    <div className="ta-leave-of-absence-date-field">
+                      <label>End ate</label>
                       <input 
                         type="date" 
                         value={endDate} 
@@ -126,15 +126,15 @@ const TALeaveOfAbsence = () => {
                   </div>
                 </div>
                 
-                <div className="file-upload"
+                <div className="ta-leave-of-absence-file-upload"
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                 >
-                  <div className="file-upload-content">
-                    <div className="upload-icon">⬆️</div>
+                  <div className="ta-leave-of-absence-file-upload-content">
+                    <div className="ta-leave-of-absence-upload-icon">⬆️</div>
                     <p>Drag and Drop here</p>
                     <p>or</p>
-                    <label className="select-file-btn">
+                    <label className="ta-leave-of-absence-select-file-btn">
                       Select file
                       <input 
                         type="file" 
@@ -143,7 +143,7 @@ const TALeaveOfAbsence = () => {
                       />
                     </label>
                     {selectedFile && (
-                      <p className="selected-file">
+                      <p className="ta-leave-of-absence-selected-file">
                         Selected: {selectedFile.name}
                       </p>
                     )}
@@ -151,7 +151,7 @@ const TALeaveOfAbsence = () => {
                 </div>
               </div>
 
-              <div className="reason-container">
+              <div className="ta-leave-of-absence-reason-container">
                 <label>Enter Your Reason</label>
                 <textarea 
                   value={reason}
@@ -160,8 +160,8 @@ const TALeaveOfAbsence = () => {
                 />
               </div>
 
-              <div className="form-submit">
-                <button type="submit" className="submit-btn">
+              <div className="ta-leave-of-absence-form-submit">
+                <button type="submit" className="ta-leave-of-absence-submit-btn">
                   Submit Leave of Absence Request
                 </button>
               </div>
@@ -171,18 +171,18 @@ const TALeaveOfAbsence = () => {
       
       case 1: // Pending request
         return (
-          <div className="leave-container">
-            <div className="leave-status pending">
-              <h1 className="leave-title">You have a pending request. Do you want to modify it?</h1>
+          <div className="ta-leave-of-absence-leave-container">
+            <div className="ta-leave-of-absence-leave-status pending">
+              <h1 className="ta-leave-of-absence-leave-title">You have a pending request. Do you want to modify it?</h1>
             </div>
             
-            <form onSubmit={handleUpdate} className="leave-form">
-              <div className="form-row">
-                <div className="date-selector">
+            <form onSubmit={handleUpdate} className="ta-leave-of-absence-leave-form">
+              <div className="ta-leave-of-absence-form-row">
+                <div className="ta-leave-of-absence-date-selector">
                   <label>Select date</label>
-                  <div className="date-inputs">
-                    <div className="date-field">
-                      <label>Date</label>
+                  <div className="ta-leave-of-absence-date-inputs">
+                    <div className="ta-leave-of-absence-date-field">
+                      <label>Start Date</label>
                       <input 
                         type="date" 
                         value={startDate} 
@@ -190,8 +190,8 @@ const TALeaveOfAbsence = () => {
                         placeholder="mm/dd/yyyy"
                       />
                     </div>
-                    <div className="date-field">
-                      <label>End date</label>
+                    <div className="ta-leave-of-absence-date-field">
+                      <label>End Date</label>
                       <input 
                         type="date" 
                         value={endDate} 
@@ -202,15 +202,15 @@ const TALeaveOfAbsence = () => {
                   </div>
                 </div>
                 
-                <div className="file-upload"
+                <div className="ta-leave-of-absence-file-upload"
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                 >
-                  <div className="file-upload-content">
-                    <div className="upload-icon">⬆️</div>
+                  <div className="ta-leave-of-absence-file-upload-content">
+                    <div className="ta-leave-of-absence-upload-icon">⬆️</div>
                     <p>Drag and Drop here</p>
                     <p>or</p>
-                    <label className="select-file-btn">
+                    <label className="ta-leave-of-absence-select-file-btn">
                       Select file
                       <input 
                         type="file" 
@@ -219,7 +219,7 @@ const TALeaveOfAbsence = () => {
                       />
                     </label>
                     {selectedFile && (
-                      <p className="selected-file">
+                      <p className="ta-leave-of-absence-selected-file">
                         Selected: {selectedFile.name}
                       </p>
                     )}
@@ -227,7 +227,7 @@ const TALeaveOfAbsence = () => {
                 </div>
               </div>
 
-              <div className="reason-container">
+              <div className="ta-leave-of-absence-reason-container">
                 <label>Enter Your Reason</label>
                 <textarea 
                   value={reason}
@@ -236,8 +236,8 @@ const TALeaveOfAbsence = () => {
                 />
               </div>
 
-              <div className="form-submit">
-                <button type="submit" className="submit-btn">
+              <div className="ta-leave-of-absence-form-submit">
+                <button type="submit" className="ta-leave-of-absence-submit-btn">
                   Update Leave of Absence Request
                 </button>
               </div>
@@ -247,16 +247,16 @@ const TALeaveOfAbsence = () => {
       
       case 2: // Accepted request
         return (
-          <div className="leave-container">
-            <div className="leave-status accepted">
-              <h1 className="leave-title">Your leave of absence request has been accepted.</h1>
+          <div className="ta-leave-of-absence-leave-container">
+            <div className="ta-leave-of-absence-leave-status accepted">
+              <h1 className="ta-leave-of-absence-leave-title">Your leave of absence request has been accepted.</h1>
             </div>
             
-            <div className="leave-details">
-              <p className="leave-date">Start time: 01/01/2025</p>
-              <p className="leave-date">End time: 01/04/2025</p>
+            <div className="ta-leave-of-absence-leave-details">
+              <p className="ta-leave-of-absence-leave-date">Start time: 01/01/2025</p>
+              <p className="ta-leave-of-absence-leave-date">End time: 01/04/2025</p>
               
-              <p className="remaining-days">Remaining: 14 days</p>
+              <p className="ta-leave-of-absence-remaining-days">Remaining: 14 days</p>
             </div>
           </div>
         );
@@ -267,15 +267,15 @@ const TALeaveOfAbsence = () => {
   };
 
   return (
-    <div className="ta-main-page">
+    <div className="ta-leave-of-absence-main-page">
       <NavBar />
-      <main className="main-content">
+      <main className="ta-leave-of-absence-main-content">
         {renderLeaveOfAbsenceContent()}
         
         {/* Debug button to toggle between states - you can remove this in production */}
         <button 
           onClick={toggleRequestStatus} 
-          className="debug-toggle"
+          className="ta-leave-of-absence-debug-toggle"
           title="For testing: Click to cycle through different request states"
         >
           Toggle Status (Current: {

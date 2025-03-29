@@ -1,4 +1,4 @@
-.ta-main-page {
+.ta-main-page-main-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -6,62 +6,45 @@
   font-family: Arial, sans-serif;
 }
 
-.header {
+/* Top Navbar styles */
+.ta-main-page-top-navbar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
   background-color: #c62828;
   color: white;
-  height: 60px;
 }
 
+.ta-main-page-logo img {
+  height: 40px;
+  margin-right: 20px;
+}
 
-.main-nav ul {
+.ta-main-page-nav-links {
   display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  gap: 30px;
 }
 
-.main-nav li {
-  margin: 0 10px;
-}
-
-.main-nav a {
+.ta-main-page-nav-links a {
   color: white;
   text-decoration: none;
-  padding: 5px 10px;
-  font-weight: 500;
+  font-size: 16px;
 }
 
-.main-nav li.active a {
-  font-weight: 700;
-}
-
-.user-actions {
+.ta-main-page-nav-icons {
   display: flex;
+  gap: 15px;
 }
 
-.notification-btn,
-.profile-btn {
-  background: none;
-  border: none;
-  color: white;
-  margin-left: 15px;
-  cursor: pointer;
-  font-size: 1.2rem;
+.ta-main-page-notification-icon img, .ta-main-page-profile-icon img {
+  height: 24px;
+  width: 24px;
 }
 
-.notification-icon::before {
-  content: "🔔";
-}
-
-.profile-icon::before {
-  content: "👤";
-}
-
-.main-content {
+/* Main content styles */
+.ta-main-page-main-content {
   display: flex;
   flex: 1;
   padding: 20px;
@@ -69,130 +52,8 @@
   overflow: hidden;
 }
 
-.side-panel {
+.ta-main-page-side-panel {
   width: 320px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-}
-
-.main-content {
-  display: flex;
-  flex: 1;
-  padding: 20px;
-  gap: 20px;
-  overflow: hidden;
-}
-
-.side-panel {
-  width: 320px;/* TAMainPage.css */
-  .ta-main-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #f5f5f5;
-    font-family: Arial, sans-serif;
-  }
-  
-  .header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: 0 1rem;
-    background-color: #c62828;
-    color: white;
-    height: 60px;
-  }
-  
-  .logo-area {
-    display: flex;
-    align-items: center;
-    justify-self: start;
-  }
-  
-  .logo {
-    height: 40px;
-    margin-right: 10px;
-  }
-  
-  .main-nav {
-    justify-self: center;
-  }
-  
-  .main-nav ul {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .main-nav li {
-    margin: 0 10px;
-  }
-  
-  .main-nav a {
-    color: white;
-    text-decoration: none;
-    padding: 5px 10px;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-    border-radius: 4px;
-  }
-  
-  .main-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .main-nav li.active a {
-    font-weight: 700;
-    background-color: rgba(255, 255, 255, 0.3);
-  }
-  
-  .user-actions {
-    display: flex;
-    justify-self: end;
-  }
-  
-  .notification-btn,
-  .profile-btn {
-    background: none;
-    border: none;
-    color: white;
-    margin-left: 15px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: opacity 0.3s ease;
-  }
-  
-  .notification-btn:hover,
-  .profile-btn:hover {
-    opacity: 0.7;
-  }
-  
-  .notification-icon::before {
-    content: "🔔";
-  }
-  
-  .profile-icon::before {
-    content: "👤";
-  }
-  
-  .main-content {
-    display: flex;
-    flex: 1;
-    padding: 20px;
-    gap: 20px;
-    overflow: hidden;
-  }
-  
-  .side-panel {
-    width: 320px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
-  }
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);

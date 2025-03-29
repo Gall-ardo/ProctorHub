@@ -4,19 +4,19 @@ import './TAProctoringPage.css';
 
 const NavBar = () => {
   return (
-    <div className="top-navbar">
-      <div className="nav-links">
+    <div className="ta-proctoring-page-top-navbar">
+      <div className="ta-proctoring-page-nav-links">
         <Link to="/ta/tamainpage">Home</Link>
         <Link to="/ta/taworkloadpage">Workload</Link>
         <Link to="/ta/taproctoringpage"><strong>Proctoring</strong></Link>
         <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
         <Link to="#">Swap</Link>
       </div>
-      <div className="nav-icons">
-        <div className="notification-icon">
+      <div className="ta-proctoring-page-nav-icons">
+        <div className="ta-proctoring-page-notification-icon">
           <img src="/notification.png" alt="Notifications" />
         </div>
-        <div className="profile-icon">
+        <div className="ta-proctoring-page-profile-icon">
           <img src="/profile.png" alt="Profile" />
         </div>
       </div>
@@ -28,20 +28,20 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-container">
-        <div className="dialog-icon">
+    <div className="ta-proctoring-page-dialog-overlay">
+      <div className="ta-proctoring-page-dialog-container">
+        <div className="ta-proctoring-page-dialog-icon">
           <span>ⓘ</span>
         </div>
-        <div className="dialog-content">
-          <div className="dialog-title">Submit for Accept</div>
-          <div className="dialog-message">{message || "Are you sure you want to continue?"}</div>
-          <div className="dialog-actions">
-            <button className="dialog-button confirm" onClick={onConfirm}>Yes</button>
-            <button className="dialog-button cancel" onClick={onClose}>Cancel</button>
+        <div className="ta-proctoring-page-dialog-content">
+          <div className="ta-proctoring-page-dialog-title">Submit for Accept</div>
+          <div className="ta-proctoring-page-dialog-message">{message || "Are you sure you want to continue?"}</div>
+          <div className="ta-proctoring-page-dialog-actions">
+            <button className="ta-proctoring-page-dialog-button confirm" onClick={onConfirm}>Yes</button>
+            <button className="ta-proctoring-page-dialog-button cancel" onClick={onClose}>Cancel</button>
           </div>
         </div>
-        <button className="dialog-close" onClick={onClose}>×</button>
+        <button className="ta-proctoring-page-dialog-close" onClick={onClose}>×</button>
       </div>
     </div>
   );
@@ -150,25 +150,25 @@ const TAProctoringPage = () => {
   // Render proctoring items for waiting approval
   const renderWaitingProctoringList = () => {
     return waitingProctorings.map((proctoring) => (
-      <div key={proctoring.id} className="proctoring-item">
-        <div className="proctoring-details">
-          <div className="course-info">
+      <div key={proctoring.id} className="ta-proctoring-page-proctoring-item">
+        <div className="ta-proctoring-page-proctoring-details">
+          <div className="ta-proctoring-page-course-info">
             {proctoring.course} {proctoring.type}
           </div>
-          <div className="proctoring-meta">
+          <div className="ta-proctoring-page-proctoring-meta">
             <div>{proctoring.date}      {proctoring.time}</div>
             <div>Clasrooms: {proctoring.classrooms}</div>
           </div>
         </div>
-        <div className="proctoring-actions">
+        <div className="ta-proctoring-page-proctoring-actions">
           <button 
-            className="action-button accept"
+            className="ta-proctoring-page-action-button accept"
             onClick={() => handleProctoringAction('accept', proctoring.id)}
           >
             ✓
           </button>
           <button 
-            className="action-button reject"
+            className="ta-proctoring-page-action-button reject"
             onClick={() => handleProctoringAction('reject', proctoring.id)}
           >
             ✕
@@ -181,12 +181,12 @@ const TAProctoringPage = () => {
   // Render assigned proctoring items
   const renderAssignedProctoringList = () => {
     return assignedProctorings.map((proctoring) => (
-      <div key={proctoring.id} className="proctoring-item">
-        <div className="proctoring-details">
-          <div className="course-info">
+      <div key={proctoring.id} className="ta-proctoring-page-proctoring-item">
+        <div className="ta-proctoring-page-proctoring-details">
+          <div className="ta-proctoring-page-course-info">
             {proctoring.course} {proctoring.type}
           </div>
-          <div className="proctoring-meta">
+          <div className="ta-proctoring-page-proctoring-meta">
             <div>{proctoring.date}      {proctoring.time}</div>
             <div>Clasrooms: {proctoring.classrooms}</div>
           </div>
@@ -199,84 +199,84 @@ const TAProctoringPage = () => {
   const totalRejectedProctoring = 1; // This could be tracked separately
 
   return (
-    <div className="ta-main-page">
+    <div className="ta-proctoring-page-main-page">
       <NavBar />
-      <main className="main-content proctoring-main">
-        <div className="proctoring-stats-vertical">
-          <div className="stat-container">
-            <div className="stat-item">
-              <div className="stat-label">Total Proctoring Hours</div>
-              <div className="circle proctoring">
-                <svg viewBox="0 0 36 36" className="circular-chart">
+      <main className="ta-proctoring-page-main-content ta-proctoring-page-proctoring-main">
+        <div className="ta-proctoring-page-proctoring-stats-vertical">
+          <div className="ta-proctoring-page-stat-container">
+            <div className="ta-proctoring-page-stat-item">
+              <div className="ta-proctoring-page-stat-label">Total Proctoring Hours</div>
+              <div className="ta-proctoring-page-circle proctoring">
+                <svg viewBox="0 0 36 36" className="ta-proctoring-page-circular-chart">
                   <path 
-                    className="circle-bg" 
+                    className="ta-proctoring-page-circle-bg" 
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path 
-                    className="circle"
+                    className="ta-proctoring-page-circle"
                     strokeDasharray={`${totalProctoringHours}, 100`}
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                     stroke="#4CAF50"
                   />
-                  <text x="18" y="20.35" className="percentage">{totalProctoringHours}</text>
+                  <text x="18" y="20.35" className="ta-proctoring-page-percentage">{totalProctoringHours}</text>
                 </svg>
               </div>
             </div>
           </div>
           
-          <div className="middle-stat">
-            <div className="stat-item">
-              <div className="stat-label">Total Rejected Proctoring Number</div>
-              <div className="circle rejected">
-                <svg viewBox="0 0 36 36" className="circular-chart">
+          <div className="ta-proctoring-page-middle-stat">
+            <div className="ta-proctoring-page-stat-item">
+              <div className="ta-proctoring-page-stat-label">Total Rejected Proctoring Number</div>
+              <div className="ta-proctoring-page-circle rejected">
+                <svg viewBox="0 0 36 36" className="ta-proctoring-page-circular-chart">
                   <path 
-                    className="circle-bg" 
+                    className="ta-proctoring-page-circle-bg" 
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path 
-                    className="circle"
+                    className="ta-proctoring-page-circle"
                     strokeDasharray={`${totalRejectedProctoring}, 100`}
                     d="M18 2.0845
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                     stroke="#F44336"
                   />
-                  <text x="18" y="20.35" className="percentage">{totalRejectedProctoring}</text>
+                  <text x="18" y="20.35" className="ta-proctoring-page-percentage">{totalRejectedProctoring}</text>
                 </svg>
               </div>
             </div>
           </div>
           
-          <div className="multidepartment-container" onClick={toggleMultidepartment}>
-            <div className="stat-item">
-              <div className="stat-label">Multidepartment Exam<br/>Proctoring Request</div>
-              <div className={`circle multidepartment ${isMultidepartment ? 'active' : 'inactive'}`}>
+          <div className="ta-proctoring-page-multidepartment-container" onClick={toggleMultidepartment}>
+            <div className="ta-proctoring-page-stat-item">
+              <div className="ta-proctoring-page-stat-label">Multidepartment Exam<br/>Proctoring Request</div>
+              <div className={`ta-proctoring-page-circle multidepartment ${isMultidepartment ? 'active' : 'inactive'}`}>
                 {isMultidepartment ? (
-                  <span className="check-icon">✓</span>
+                  <span className="ta-proctoring-page-check-icon">✓</span>
                 ) : (
-                  <span className="x-icon">✕</span>
+                  <span className="ta-proctoring-page-x-icon">✕</span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="proctoring-lists">
-          <div className="proctoring-list-container">
+        <div className="ta-proctoring-page-proctoring-lists">
+          <div className="ta-proctoring-page-proctoring-list-container">
             <h2>Waiting for Approval</h2>
-            <div className="proctoring-content">
+            <div className="ta-proctoring-page-proctoring-content">
               {renderWaitingProctoringList()}
             </div>
           </div>
-          <div className="proctoring-list-container">
+          <div className="ta-proctoring-page-proctoring-list-container">
             <h2>Current Proctoring Assignments</h2>
-            <div className="proctoring-content">
+            <div className="ta-proctoring-page-proctoring-content">
               {renderAssignedProctoringList()}
             </div>
           </div>

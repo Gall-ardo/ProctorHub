@@ -249,50 +249,50 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
   };
 
   return (
-    <div className="weekly-schedule-container">
-      <div className="weekly-schedule-header">
+    <div className="ta-main-page-weekly-schedule-weekly-schedule-container">
+      <div className="ta-main-page-weekly-schedule-weekly-schedule-header">
         <h2>Weekly Schedule</h2>
-        <div className="week-navigation">
+        <div className="ta-main-page-weekly-schedule-week-navigation">
           <button onClick={goToPreviousWeek}>Previous Week</button>
           <button onClick={goToCurrentWeek}>Current Week</button>
           <button onClick={goToNextWeek}>Next Week</button>
         </div>
       </div>
       
-      <div className="weekly-schedule">
-        <div className="schedule-header">
-          <div className="time-column-header"></div>
+      <div className="ta-main-page-weekly-schedule-weekly-schedule">
+        <div className="ta-main-page-weekly-schedule-schedule-header">
+          <div className="ta-main-page-weekly-schedule-time-column-header"></div>
           {weekDates.map((date, index) => (
             <div 
               key={index} 
-              className={`day-column-header ${isToday(date) ? 'today' : ''}`}
+              className={`ta-main-page-weekly-schedule-day-column-header ${isToday(date) ? 'today' : ''}`}
             >
-              <div className="day-name">{dayNames[index]}</div>
-              <div className="day-number">{formatDateNumber(date)}</div>
+              <div className="ta-main-page-weekly-schedule-day-name">{dayNames[index]}</div>
+              <div className="ta-main-page-weekly-schedule-day-number">{formatDateNumber(date)}</div>
             </div>
           ))}
         </div>
         
-        <div className="schedule-body">
-          <div className="time-column">
+        <div className="ta-main-page-weekly-schedule-schedule-body">
+          <div className="ta-main-page-weekly-schedule-time-column">
             {timeSlots.map(time => (
               <React.Fragment key={time}>
-                <div className="time-slot">
+                <div className="ta-main-page-weekly-schedule-time-slot">
                   <span>{formatHour(time)}</span>
                 </div>
-                <div className="time-slot half-hour"></div>
+                <div className="ta-main-page-weekly-schedule-time-slot half-hour"></div>
               </React.Fragment>
             ))}
           </div>
           
-          <div className="day-columns-container">
+          <div className="ta-main-page-weekly-schedule-day-columns-container">
             {weekDates.map((date, dayIndex) => (
-              <div key={dayIndex} className="day-column">
+              <div key={dayIndex} className="ta-main-page-weekly-schedule-day-column">
                 {/* Grid cells for the time slots */}
                 {timeSlots.map(time => (
                   <React.Fragment key={`${dayIndex}-${time}`}>
-                    <div className="schedule-cell"></div>
-                    <div className="schedule-cell half-hour"></div>
+                    <div className="ta-main-page-weekly-schedule-schedule-cell"></div>
+                    <div className="ta-main-page-weekly-schedule-schedule-cell half-hour"></div>
                   </React.Fragment>
                 ))}
                 
@@ -302,7 +302,7 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
                   .map(event => (
                     <div
                       key={`event-${event.id}`}
-                      className={`schedule-event ${event.color || 'blue'}`}
+                      className={`ta-main-page-weekly-schedule-schedule-event ${event.color || 'blue'}`}
                       style={{
                         position: 'absolute',
                         top: `${getEventTopPosition(event)}px`,

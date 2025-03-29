@@ -61,18 +61,18 @@ const ExamInfoPopup = ({ request, onClose, onRequestSwap, myCompatibleExams }) =
   };
 
   return (
-    <div className="exam-info-popup-overlay">
-      <div className="exam-info-popup">
-        <div className="popup-header">
+    <div className="ta-main-page-exam-info-popup-exam-info-popup-overlay">
+      <div className="ta-main-page-exam-info-popup-exam-info-popup">
+        <div className="ta-main-page-exam-info-popup-popup-header">
           <h3>Swap Request from {request.requesterName}</h3>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="ta-main-page-exam-info-popup-close-button" onClick={onClose}>×</button>
         </div>
         
-        <div className="popup-content">
+        <div className="ta-main-page-exam-info-popup-popup-content">
           {/* Requester's exam details */}
-          <div className="requester-exam-section">
+          <div className="ta-main-page-exam-info-popup-requester-exam-section">
             <h4>Requester's Exam</h4>
-            <div className="exam-details-section">
+            <div className="ta-main-page-exam-info-popup-exam-details-section">
               <p><strong>Course:</strong> {getCourseCode(request.exam)}</p>
               <p><strong>Date:</strong> {formatDate(request.exam.examDate)}</p>
               <p><strong>Time:</strong> {formatTime(request.exam.startTime, request.exam.endTime)}</p>
@@ -80,41 +80,41 @@ const ExamInfoPopup = ({ request, onClose, onRequestSwap, myCompatibleExams }) =
             </div>
           </div>
           
-          <div className="swap-window-section">
+          <div className="ta-main-page-exam-info-popup-swap-window-section">
             <p><strong>Available Swap Period:</strong> {formatDate(request.availableTimeStart)} to {formatDate(request.availableTimeEnd)}</p>
           </div>
 
           {/* Your exams that are compatible */}
-          <div className="swap-section">
+          <div className="ta-main-page-exam-info-popup-swap-section">
             <h4>Your Compatible Exams</h4>
-            <div className="possible-exams-list">
+            <div className="ta-main-page-exam-info-popup-possible-exams-list">
               {myCompatibleExams && myCompatibleExams.length > 0 ? (
                 myCompatibleExams.map(exam => (
                   <div 
                     key={exam.id} 
-                    className={`possible-exam-item ${selectedExam === exam.id ? 'selected' : ''}`}
+                    className={`ta-main-page-exam-info-popup-possible-exam-item ${selectedExam === exam.id ? 'selected' : ''}`}
                     onClick={() => handleSelectExam(exam.id)}
                   >
-                    <div className="possible-exam-course">
+                    <div className="ta-main-page-exam-info-popup-possible-exam-course">
                       {getCourseCode(exam)} / {formatDate(exam.examDate)}
                     </div>
-                    <div className="possible-exam-time">
+                    <div className="ta-main-page-exam-info-popup-possible-exam-time">
                       {formatTime(exam.startTime, exam.endTime)}
                     </div>
-                    <div className="selection-indicator"></div>
+                    <div className="ta-main-page-exam-info-popup-selection-indicator"></div>
                   </div>
                 ))
               ) : (
-                <div className="no-exams-message">
+                <div className="ta-main-page-exam-info-popup-no-exams-message">
                   You don't have any exams within the requester's available time period.
                 </div>
               )}
             </div>
           </div>
 
-          <div className="swap-action">
+          <div className="ta-main-page-exam-info-popup-swap-action">
             <button 
-              className="swap-button"
+              className="ta-main-page-exam-info-popup-swap-button"
               disabled={!selectedExam}
               onClick={handleSwapSubmit}
             >
