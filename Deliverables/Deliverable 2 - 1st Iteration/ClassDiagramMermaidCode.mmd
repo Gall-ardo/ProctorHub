@@ -1,702 +1,243 @@
 classDiagram
-    %% ENTITIES
-    class UserEntity {
-        -id: String
-        -name: String
-        -email: String
+    %% Main abstract class - User
+    class User {
+        +id: String
+        +name: String
+        +email: String
         -password: String
-        -userType: UserType
-        -notifications: List~NotificationEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getName(): String
-        +setName(name: String): void
-        +getEmail(): String
-        +setEmail(email: String): void
-        -getPassword(): String
-        -setPassword(password: String): void
-        +getUserType(): UserType
-        +setUserType(userType: UserType): void
-        +getNotifications(): List~NotificationEntity~
-        +setNotifications(notifications: List~NotificationEntity~): void
-        +addNotification(notification: NotificationEntity): void
-        +removeNotification(notification: NotificationEntity): void
-    }
-    
-    class AdminEntity {
-        -id: String
-        +getId(): String
-        +setId(id: String): void
-    }
-    
-    class TeachingAssistantEntity {
-        -id: String
-        -department: String
-        -totalProctoringInDepartment: int
-        -totalNonDepartmentProctoring: int
-        -totalWorkload: int
-        -isPHD: boolean
-        -approvedAbsence: boolean
-        -waitingAbsenceRequest: boolean
-        -isPartTime: boolean
-        -workload: List~WorkloadEntity~
-        -proctoring: List~ExamEntity~
-        -enrolledCourses: List~OfferingEntity~
-        -taCourses: List~CourseEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getDepartment(): String
-        +setDepartment(department: String): void
-        +getTotalProctoringInDepartment(): int
-        +setTotalProctoringInDepartment(total: int): void
-        +getTotalNonDepartmentProctoring(): int
-        +setTotalNonDepartmentProctoring(total: int): void
-        +getTotalWorkload(): int
-        +setTotalWorkload(total: int): void
-        +isPHD(): boolean
-        +setPHD(isPHD: boolean): void
-        +isApprovedAbsence(): boolean
-        +setApprovedAbsence(approved: boolean): void
-        +isWaitingAbsenceRequest(): boolean
-        +setWaitingAbsenceRequest(waiting: boolean): void
-        +isPartTime(): boolean
-        +setPartTime(isPartTime: boolean): void
-        +getWorkload(): List~WorkloadEntity~
-        +setWorkload(workload: List~WorkloadEntity~): void
-        +addWorkload(workload: WorkloadEntity): void
-        +removeWorkload(workload: WorkloadEntity): void
-        +getProctoring(): List~ExamEntity~
-        +setProctoring(proctoring: List~ExamEntity~): void
-        +addProctoring(exam: ExamEntity): void
-        +removeProctoring(exam: ExamEntity): void
-        +getEnrolledCourses(): List~OfferingEntity~
-        +setEnrolledCourses(offerings: List~OfferingEntity~): void
-        +addEnrolledCourse(offering: OfferingEntity): void
-        +removeEnrolledCourse(offering: OfferingEntity): void
-        +getTaCourses(): List~CourseEntity~
-        +setTaCourses(courses: List~CourseEntity~): void
-        +addTaCourse(course: CourseEntity): void
-        +removeTaCourse(course: CourseEntity): void
-    }
-    
-    class CourseInstructorEntity {
-        -id: String
-        -department: String
-        -courses: List~CourseEntity~
-        -offerings: List~OfferingEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getDepartment(): String
-        +setDepartment(department: String): void
-        +getCourses(): List~CourseEntity~
-        +setCourses(courses: List~CourseEntity~): void
-        +addCourse(course: CourseEntity): void
-        +removeCourse(course: CourseEntity): void
-        +getOfferings(): List~OfferingEntity~
-        +setOfferings(offerings: List~OfferingEntity~): void
-        +addOffering(offering: OfferingEntity): void
-        +removeOffering(offering: OfferingEntity): void
-    }
-    
-    class DepartmentChairEntity {
-        -id: String
-        -department: String
-        +getId(): String
-        +setId(id: String): void
-        +getDepartment(): String
-        +setDepartment(department: String): void
-    }
-    
-    class DeansOfficeEntity {
-        -id: String
-        +getId(): String
-        +setId(id: String): void
-    }
-    
-    class CourseEntity {
-        -id: String
-        -courseCode: String
-        -courseName: String
-        -department: String
-        -credit: int
-        -isGradCourse: bool
-        -exams: List~ExamEntity~
-        -offerings: List~OfferingEntity~
-        -tas: List~TeachingAssistantEntity~
-        -semester: SemesterEntity
-        +getId(): String
-        +setId(id: String): void
-        +getCourseCode(): String
-        +setCourseCode(code: String): void
-        +getCourseName(): String
-        +setCourseName(name: String): void
-        +getDepartment(): String
-        +setDepartment(department: String): void
-        +getCredit(): int
-        +setCredit(credit: int): void
-        +isGradCourse(): bool
-        +setGradCourse(isGrad: bool): void
-        +getExams(): List~ExamEntity~
-        +setExams(exams: List~ExamEntity~): void
-        +addExam(exam: ExamEntity): void
-        +removeExam(exam: ExamEntity): void
-        +getOfferings(): List~OfferingEntity~
-        +setOfferings(offerings: List~OfferingEntity~): void
-        +addOffering(offering: OfferingEntity): void
-        +removeOffering(offering: OfferingEntity): void
-        +getTAs(): List~TeachingAssistantEntity~
-        +setTAs(tas: List~TeachingAssistantEntity~): void
-        +addTA(ta: TeachingAssistantEntity): void
-        +removeTA(ta: TeachingAssistantEntity): void
-        +getSemester(): SemesterEntity
-        +setSemester(semester: SemesterEntity): void
-    }
-    
-    class OfferingEntity {
-        -id: String
-        -course: CourseEntity
-        -instructors: List~CourseInstructorEntity~
-        -studentTAs: List~TeachingAssistantEntity~
-        -students: List~StudentEntity~
-        -sectionNumber: int
-        -studentCount: int
-        -sectionTime: List~TimeSlotEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getCourse(): CourseEntity
-        +setCourse(course: CourseEntity): void
-        +getInstructors(): List~CourseInstructorEntity~
-        +setInstructors(instructors: List~CourseInstructorEntity~): void
-        +addInstructor(instructor: CourseInstructorEntity): void
-        +removeInstructor(instructor: CourseInstructorEntity): void
-        +getStudentTAs(): List~TeachingAssistantEntity~
-        +setStudentTAs(tas: List~TeachingAssistantEntity~): void
-        +addStudentTA(ta: TeachingAssistantEntity): void
-        +removeStudentTA(ta: TeachingAssistantEntity): void
-        +getStudents(): List~StudentEntity~
-        +setStudents(students: List~StudentEntity~): void
-        +addStudent(student: StudentEntity): void
-        +removeStudent(student: StudentEntity): void
-        +getSectionNumber(): int
-        +setSectionNumber(number: int): void
-        +getStudentCount(): int
-        +setStudentCount(count: int): void
-        +getSectionTime(): List~TimeSlotEntity~
-        +setSectionTime(timeSlots: List~TimeSlotEntity~): void
-        +addTimeSlot(timeSlot: TimeSlotEntity): void
-        +removeTimeSlot(timeSlot: TimeSlotEntity): void
-    }
-    
-    class ExamEntity {
-        -id: String
-        -isOutdated: boolean
-        -course: CourseEntity
-        -date: DateTime
-        -duration: int
-        -examType: String
-        -proctorNum: int
-        -manualAssignedTAs: int
-        -autoAssignedTAs: int    
-        -proctors: List~TeachingAssistantEntity~
-        -examRooms: List~ClassroomEntity~
-        +getId(): String
-        +setId(id: String): void
-        +isOutdated(): boolean
-        +setOutdated(outdated: boolean): void
-        +getCourse(): CourseEntity
-        +setCourse(course: CourseEntity): void
-        +getDate(): DateTime
-        +setDate(date: DateTime): void
-        +getDuration(): int
-        +setDuration(duration: int): void
-        +getExamType(): String
-        +setExamType(type: String): void
-        +getProctorNum(): int
-        +setProctorNum(num: int): void
-        +getManualAssignedTAs(): int
-        +setManualAssignedTAs(count: int): void
-        +getAutoAssignedTAs(): int
-        +setAutoAssignedTAs(count: int): void
-        +getProctors(): List~TeachingAssistantEntity~
-        +setProctors(proctors: List~TeachingAssistantEntity~): void
-        +addProctor(proctor: TeachingAssistantEntity): void
-        +removeProctor(proctor: TeachingAssistantEntity): void
-        +getExamRooms(): List~ClassroomEntity~
-        +setExamRooms(rooms: List~ClassroomEntity~): void
-        +addExamRoom(room: ClassroomEntity): void
-        +removeExamRoom(room: ClassroomEntity): void
-    }
-    
-    class ClassroomEntity {
-        -id: String
-        -name: String
-        -building: String
-        -capacity: int
-        -examSeatingCapacity: int
-        +getId(): String
-        +setId(id: String): void
-        +getName(): String
-        +setName(name: String): void
-        +getBuilding(): String
-        +setBuilding(building: String): void
-        +getCapacity(): int
-        +setCapacity(capacity: int): void
-        +getExamSeatingCapacity(): int
-        +setExamSeatingCapacity(capacity: int): void
-    }
-    
-    class StudentEntity {
-        -id: String
-        -name: String
-        -email: String
-        -department: String
-        -enrolledCourses: List~OfferingEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getName(): String
-        +setName(name: String): void
-        +getEmail(): String
-        +setEmail(email: String): void
-        +getDepartment(): String
-        +setDepartment(department: String): void
-        +getEnrolledCourses(): List~OfferingEntity~
-        +setEnrolledCourses(courses: List~OfferingEntity~): void
-        +addEnrolledCourse(course: OfferingEntity): void
-        +removeEnrolledCourse(course: OfferingEntity): void
-    }
-    
-    class TimeSlotEntity {
-        -id: String
-        -day: DayOfWeek
-        -startTime: DateTime
-        -endTime: DateTime
-        +getId(): String
-        +setId(id: String): void
-        +getDay(): DayOfWeek
-        +setDay(day: DayOfWeek): void
-        +getStartTime(): DateTime
-        +setStartTime(time: DateTime): void
-        +getEndTime(): DateTime
-        +setEndTime(time: DateTime): void
-        +getDuration(): int
-        +overlaps(other: TimeSlotEntity): boolean
-    }
-    
-    class ScheduleEntity {
-        -id: String
-        -timeSlots: List~TimeSlotEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getTimeSlots(): List~TimeSlotEntity~
-        +setTimeSlots(slots: List~TimeSlotEntity~): void
-        +addTimeSlot(slot: TimeSlotEntity): void
-        +removeTimeSlot(slot: TimeSlotEntity): void
-        +checkAvailability(slot: TimeSlotEntity): boolean
-    }
-    
-    class WorkloadEntity {
-        -id: String
-        -ta: TeachingAssistantEntity
-        -instructor: CourseInstructorEntity
-        -course: CourseEntity
-        -taskType: String
-        -date: DateTime
-        -duration: int
-        -isApproved: boolean
-        -rejectionReason: String
-        +getId(): String
-        +setId(id: String): void
-        +getTA(): TeachingAssistantEntity
-        +setTA(ta: TeachingAssistantEntity): void
-        +getInstructor(): CourseInstructorEntity
-        +setInstructor(instructor: CourseInstructorEntity): void
-        +getCourse(): CourseEntity
-        +setCourse(course: CourseEntity): void
-        +getTaskType(): String
-        +setTaskType(type: String): void
-        +getDate(): DateTime
-        +setDate(date: DateTime): void
-        +getDuration(): int
-        +setDuration(duration: int): void
-        +isApproved(): boolean
-        +setApproved(approved: boolean): void
-        +getRejectionReason(): String
-        +setRejectionReason(reason: String): void
-    }
-    
-    class LeaveRequestEntity {
-        -id: String
-        -ta: TeachingAssistantEntity
-        -reason: String
-        -startDate: DateTime
-        -endDate: DateTime
-        -isApproved: boolean
-        -rejectionReason: String
-        +getId(): String
-        +setId(id: String): void
-        +getTA(): TeachingAssistantEntity
-        +setTA(ta: TeachingAssistantEntity): void
-        +getReason(): String
-        +setReason(reason: String): void
-        +getStartDate(): DateTime
-        +setStartDate(date: DateTime): void
-        +getEndDate(): DateTime
-        +setEndDate(date: DateTime): void
-        +isApproved(): boolean
-        +setApproved(approved: boolean): void
-        +getRejectionReason(): String
-        +setRejectionReason(reason: String): void
-        +getDuration(): int
-    }
-    
-    class SwapRequestEntity {
-        -id: String
-        -requester: TeachingAssistantEntity
-        -recipient: TeachingAssistantEntity
-        -examToSwap: ExamEntity
-        -requestDate: DateTime
-        -isApproved: boolean
-        -isForumPost: boolean
-        +getId(): String
-        +setId(id: String): void
-        +getRequester(): TeachingAssistantEntity
-        +setRequester(ta: TeachingAssistantEntity): void
-        +getRecipient(): TeachingAssistantEntity
-        +setRecipient(ta: TeachingAssistantEntity): void
-        +getExamToSwap(): ExamEntity
-        +setExamToSwap(exam: ExamEntity): void
-        +getRequestDate(): DateTime
-        +setRequestDate(date: DateTime): void
-        +isApproved(): boolean
-        +setApproved(approved: boolean): void
-        +isForumPost(): boolean
-        +setForumPost(isForumPost: boolean): void
-    }
-    
-    class SemesterEntity {
-        -id: String
-        -year: int
-        -isFall: boolean
-        -offerings: List~OfferingEntity~
-        +getId(): String
-        +setId(id: String): void
-        +getYear(): int
-        +setYear(year: int): void
-        +isFall(): boolean
-        +setFall(isFall: boolean): void
-        +getOfferings(): List~OfferingEntity~
-        +setOfferings(offerings: List~OfferingEntity~): void
-        +addOffering(offering: OfferingEntity): void
-        +removeOffering(offering: OfferingEntity): void
-        +getSemesterCode(): String
-    }
-    
-    class LogEntity {
-        -id: String
-        -timestamp: DateTime
-        -user: UserEntity
-        -action: String
-        -details: String
-        +getId(): String
-        +setId(id: String): void
-        +getTimestamp(): DateTime
-        +setTimestamp(timestamp: DateTime): void
-        +getUser(): UserEntity
-        +setUser(user: UserEntity): void
-        +getAction(): String
-        +setAction(action: String): void
-        +getDetails(): String
-        +setDetails(details: String): void
-    }
-    
-    class ReportEntity {
-        -id: String
-        -isProctoring: boolean
-        -isWorkload: boolean
-        -timeSlot: TimeSlotEntity 
-        -details: String
-        +getId(): String
-        +setId(id: String): void
-        +isProctoring(): boolean
-        +setProctoring(isProctoring: boolean): void
-        +isWorkload(): boolean
-        +setWorkload(isWorkload: boolean): void
-        +getTimeSlot(): TimeSlotEntity
-        +setTimeSlot(timeSlot: TimeSlotEntity): void
-        +getDetails(): String
-        +setDetails(details: String): void
-    }
-    
-    class NotificationEntity {
-        -id: String
-        -subject: String
-        -message: String
-        -date: DateTime
-        -isRead: boolean
-        -recipient: UserEntity
-        +getId(): String
-        +setId(id: String): void
-        +getSubject(): String
-        +setSubject(subject: String): void
-        +getMessage(): String
-        +setMessage(message: String): void
-        +getDate(): DateTime
-        +setDate(date: DateTime): void
-        +isRead(): boolean
-        +setRead(read: boolean): void
-        +getRecipient(): UserEntity
-        +setRecipient(user: UserEntity): void
-    }
-    
-    %% CONTROLLERS/SERVICES
-    class AuthService {
+        -notifications: List~Notification~
         +login(email: String, password: String): boolean
         +logout(): boolean
-        +changePassword(userId: String, oldPassword: String, newPassword: String): boolean
-        +authenticateUser(token: String): UserEntity
+        +changePassword(oldPassword: String, newPassword: String): boolean
+        +viewNotification(): List~Notification~
     }
     
-    class UserService {
-        +getUserById(id: String): UserEntity
-        +createUser(user: UserEntity): UserEntity
-        +updateUser(id: String, updatedInfo: UserEntity): boolean
-        +deleteUser(id: String): boolean
-        +getUsersByType(userType: UserType): List~UserEntity~
-        +viewNotifications(userId: String): List~NotificationEntity~
-    }
-    
-    class AdminService {
-        +addUser(user: UserEntity): void
+    %% User subclasses
+    class Admin {
+        +addUser(user: User): void
         +deleteUser(userId: String): void
-        +editUser(userId: String, updatedInfo: UserEntity): boolean
-        +addStudent(student: StudentEntity): void
+        +editUser(userId: String, updatedInfo: User): boolean
+        +addStudent(student: Student): void
         +deleteStudent(studentId: String): void
-        +editStudent(studentId: String, updatedInfo: StudentEntity): boolean
-        +addCourse(course: CourseEntity): void
+        +editStudent(studentId: String, updatedInfo: Student): boolean
+        +addCourse(course: Course): void
         +deleteCourse(courseId: String): void
-        +editCourse(courseId: String, updatedInfo: CourseEntity): boolean
-        +addOffering(offering: OfferingEntity): void
+        +editCourse(courseId: String, updatedInfo: Course): boolean
+        +addOffering(offering: Offering): void
         +deleteOffering(offeringId: String): void
-        +editOffering(offeringId: String, updatedInfo: OfferingEntity): boolean
-        +addClassroom(classroom: ClassroomEntity): void
+        +editOffering(offeringId: String, updatedInfo: Offering): boolean
+        +addClassroom(classroom: Classroom): void
         +deleteClassroom(classroomId: String): void
-        +editClassroom(classroomId: String, updatedInfo: ClassroomEntity): boolean
-        +addSemester(semester: SemesterEntity): void
-        +viewPastSemesters(): List~SemesterEntity~
+        +editClassroom(classroomId: String, updatedInfo: Classroom): boolean
+        +addSemester(semester: Semester): void
+        +viewPastSemesters(): List~Semester~
         +importDataFromExcel(filePath: String, dataType: String): boolean
-        +viewLogs(startDate: DateTime, endDate: DateTime): List~LogEntity~
-        +downloadReport(report: ReportEntity, format: String, type: String): File
-        +downloadLogs(startDate: DateTime, endDate: DateTime, logType: String): List~LogEntity~
+        +viewLogs(startDate: DateTime, endDate: DateTime): List~Log~
+        +downloadReport(report: Report, format: String, type: String): File
+        +downloadLogs(startDate: DateTime, endDate: DateTime, logType: String): List~Log~
     }
     
-    class NotificationService {
-        +sendNotification(notification: NotificationEntity): boolean
-        +getUserNotifications(userId: String): List~NotificationEntity~
-        +markNotificationAsRead(notificationId: String): boolean
-        +notifyUsersByEmail(users: List~UserEntity~, subject: String, message: String): boolean
+    class TeachingAssistant {
+        +department: String
+        +totalProctoringinDepartment: int
+        +totalNonDepartmentProctoring: int
+        +totalWorkload: int
+        +isPHD: boolean
+        +approvedAbsence: boolean
+        +waitingAbsenceRequest: boolean
+        +isPartTime: boolean
+        -workload: List~Workload~
+        -proctoring: List~Exam~
+        -enrolledCourses: List~Offering~
+        -taCourses: List~Course~
+        +requestLeaveOfAbsence(startDate: DateTime, endDate: DateTime, reason: String): void
+        +viewSchedule(): Schedule
+        +viewCurrentProctoringAssignments(): List~Exam~
+        +addWorkload(course: Course, taskType: String, date: DateTime, duration: int): void
+        +viewPastWorkload(): List~Workload~
+        +requestPersonalSwap(exam: Exam, recipient: TeachingAssistant, availableTime: List~TimeSlot~): void
+        +publishOnSwapForum(exam: Exam, availableTime: List~TimeSlot~): void
+        +evaluateSwapRequest(request: SwapRequest, isAccepted: bool): void
+        +evaluateProctoringRequest(request: Exam, isAccepted: bool): void
     }
     
+    class CourseInstructor {
+        +department: String
+        -courses: List~Course~
+        -offerings: List~Offering~
+        +defineExam(course: Course, date: DateTime, duration: int, examType: String, proctorNum: int, manualChosenTAs: List~TeachingAssistant~): Exam
+        +evaluateTAWorkloadRequest(workload: Workload, isApproved: boolean, rejectionReason: String): void
+        +swapTAsManually(exam: Exam, ta1: TeachingAssistant, ta2: TeachingAssistant): void
+    }
+    
+    class DeansOffice {
+        +defineExam(course: Course, date: DateTime, duration: int, examType: String, proctorNum: int, departments: List~String~, departmentnums: List~int~): Exam
+    }
+
+    class DepartmentChair {
+        +evaluateTALeaveRequest(request: LeaveRequest, isApproved: boolean, rejectionReason: String): void 
+    }
+    
+    %% Other main classes
+    class Course {
+        +exams: List~Exam~
+        +offerings: List~Offering~
+        +tas: List~TeachingAssistant~
+        +semester: Semester
+        +courseCode: String
+        +courseName: String
+        +department: String
+        +credit: int
+        +isGradCourse: bool                
+    }
+    
+    class Offering {
+        +course: Course
+        +instructors: List~CourseInstructor~
+        +studentTAs: List~TeachingAssistant~
+        +students: List~Student~
+        +sectionNumber: int
+        +studentCount: int
+        +sectionTime: List~TimeSlot~
+    }
+    
+    class Exam {
+        +isOutdated: boolean
+        +course: Course
+        +date: DateTime
+        +duration: int
+        +examType: String
+        +proctorNum: int
+        +manualAssignedTAs: int
+        +autoAssignedTAs: int    
+        +proctors: List~TeachingAssistant~
+        +examRooms: List~Classroom~
+        +manualAssign(tas: List~TeachingAssistant~): void
+        +autoAssignTAs(numberOfTAs: int): void
+        +swapTAs(ta1: TeachingAssistant, ta2: TeachingAssistant): void
+        +printClassroomLists(): void
+        +notifyAssignedTAs(): void
+    }
+    
+    class Classroom {
+        +name: String
+        +building: String
+        +capacity: int
+        +examSeatingCapacity: int
+    }
+    
+    class Student {
+        +id: String
+        +name: String
+        +email: String
+        +department: String
+        +enrolledCourses: List~Offering~
+    }
+    
+    class TimeSlot {
+        +day: DayOfWeek
+        +startTime: DateTime
+        +endTime: DateTime
+    }
+    
+    class Schedule {
+        +timeSlots: List~TimeSlot~
+        +checkAvailability(anotherTimeSlot: TimeSlot): boolean
+    }
+    
+    class Workload {
+        +ta: TeachingAssistant
+        +instructor: CourseInstructor
+        +course: Course
+        +taskType: String
+        +date: DateTime
+        +duration: int
+        +isApproved: boolean
+        +rejectionReason: String
+        +notifyStatusChange(): void
+    }
+    
+    class LeaveRequest {
+        +ta: TeachingAssistant
+        +reason: String
+        +startDate: DateTime
+        +endDate: DateTime
+        +isApproved: boolean
+        +rejectionReason: String
+        +notifyStatusChange(): void
+    }
+    
+    class SwapRequest {
+        +requester: TeachingAssistant
+        +recipient: TeachingAssistant
+        +examToSwap: Exam
+        +requestDate: DateTime
+        +isApproved: boolean
+        +isForumPost: boolean
+        +notifyStatusChange(): void
+    }
+
+    class Semester {
+        +year: int
+        +isFall: boolean
+        +offerings: List~Offering~
+    }
+    
+    class Log {
+        +timestamp: DateTime
+        +user: User
+        +action: String
+        +details: String
+    }
+    
+    class Report {
+        +isProctoring: boolean
+        +isWorkload: boolean
+        +timeSlot: TimeSlot 
+        +details: String
+    }
+
+    %% For email and notifications
     class EmailService {
-        +sendEmail(recipient: UserEntity, subject: String, message: String): void
+        +sendEmail(recipient: User, subject: String, message: String): void
     }
     
-    class CourseService {
-        +createCourse(course: CourseEntity): CourseEntity
-        +getCourseById(id: String): CourseEntity
-        +updateCourse(id: String, updatedInfo: CourseEntity): boolean
-        +deleteCourse(id: String): boolean
-        +getCoursesForDepartment(department: String): List~CourseEntity~
-        +getAllCourses(): List~CourseEntity~
-        +getTAsForCourse(courseId: String): List~TeachingAssistantEntity~
-        +getExamsForCourse(courseId: String): List~ExamEntity~
-        +getOfferingsForCourse(courseId: String): List~OfferingEntity~
+    class Notification {
+        +id: int
+        +subject: String
+        +message: String
+        +date: DateTime
+        +isRead: boolean
+        +recipient: User
     }
+
+    %% Relationships
+    User <|-- Admin
+    User <|-- TeachingAssistant
+    User <|-- CourseInstructor
+    User <|-- DeansOffice
+    CourseInstructor <|-- DepartmentChair
+    Course "1" *-- "many" Offering : offers
+    Course "1" *-- "many" Exam : has
     
-    class OfferingService {
-        +createOffering(offering: OfferingEntity): OfferingEntity
-        +getOfferingById(id: String): OfferingEntity
-        +updateOffering(id: String, updatedInfo: OfferingEntity): boolean
-        +deleteOffering(id: String): boolean
-        +getOfferingsForCourse(courseId: String): List~OfferingEntity~
-        +getOfferingsForSemester(semesterId: String): List~OfferingEntity~
-        +addInstructorToOffering(offeringId: String, instructorId: String): boolean
-        +addTAToOffering(offeringId: String, taId: String): boolean
-        +addStudentToOffering(offeringId: String, studentId: String): boolean
-        +getInstructorsForOffering(offeringId: String): List~CourseInstructorEntity~
-        +getTAsForOffering(offeringId: String): List~TeachingAssistantEntity~
-        +getStudentsForOffering(offeringId: String): List~StudentEntity~
-        +getTimeSlots(offeringId: String): List~TimeSlotEntity~
-    }
+    Offering "many" o-- "many" CourseInstructor : taught by
+    Offering "many" o-- "many" TeachingAssistant : taken by
+    Course "many" o-- "many" TeachingAssistant : assisted by
+    Offering "many" o-- "many" Student : enrolled in
     
-    class ExamService {
-        +createExam(exam: ExamEntity): ExamEntity
-        +getExamById(id: String): ExamEntity
-        +updateExam(id: String, updatedInfo: ExamEntity): boolean
-        +deleteExam(id: String): boolean
-        +getExamsForCourse(courseId: String): List~ExamEntity~
-        +manualAssign(examId: String, taIds: List~String~): void
-        +autoAssignTAs(examId: String, numberOfTAs: int): void
-        +swapTAs(examId: String, ta1Id: String, ta2Id: String): void
-        +notifyAssignedTAs(examId: String): boolean
-        +assignClassrooms(examId: String, classroomIds: List~String~): boolean
-        +getProctorsForExam(examId: String): List~TeachingAssistantEntity~
-        +getClassroomsForExam(examId: String): List~ClassroomEntity~
-        +printClassroomLists(examId: String): void
-    }
+    Exam "many" o-- "many" Classroom : conducted in
     
-    class TeachingAssistantService {
-        +getTAById(id: String): TeachingAssistantEntity
-        +getAllTAs(): List~TeachingAssistantEntity~
-        +getTAsForDepartment(department: String): List~TeachingAssistantEntity~
-        +getScheduleForTA(taId: String): ScheduleEntity
-        +getCurrentProctoringAssignments(taId: String): List~ExamEntity~
-        +addWorkload(workload: WorkloadEntity): WorkloadEntity
-        +viewPastWorkload(taId: String): List~WorkloadEntity~
-        +requestLeaveOfAbsence(taId: String, startDate: DateTime, endDate: DateTime, reason: String): void
-        +requestPersonalSwap(requesterTaId: String, exam: ExamEntity, recipientTaId: String, availableTime: List~TimeSlotEntity~): void
-        +publishOnSwapForum(taId: String, exam: ExamEntity, availableTime: List~TimeSlotEntity~): void
-        +evaluateSwapRequest(taId: String, request: SwapRequestEntity, isAccepted: bool): void
-        +evaluateProctoringRequest(taId: String, request: ExamEntity, isAccepted: bool): void
-    }
+    TeachingAssistant "1" -- "1" Schedule : has
+    TeachingAssistant "1" -- "many" Workload : submits
+    TeachingAssistant "1" -- "1" LeaveRequest : requests
+    TeachingAssistant "1" -- "*" SwapRequest : initiates or receives
+    TeachingAssistant "many" -- "many" Exam : proctors
+    Schedule "1" *-- "many" TimeSlot : contains
     
-    class CourseInstructorService {
-        +getInstructorById(id: String): CourseInstructorEntity
-        +getInstructorCourses(instructorId: String): List~CourseEntity~
-        +getInstructorOfferings(instructorId: String): List~OfferingEntity~
-        +defineExam(instructorId: String, course: CourseEntity, date: DateTime, duration: int, examType: String, proctorNum: int, manualChosenTAs: List~TeachingAssistantEntity~): ExamEntity
-        +evaluateTAWorkloadRequest(instructorId: String, workload: WorkloadEntity, isApproved: boolean, rejectionReason: String): void
-        +swapTAsManually(instructorId: String, exam: ExamEntity, ta1: TeachingAssistantEntity, ta2: TeachingAssistantEntity): void
-    }
-    
-    class DepartmentChairService {
-        +evaluateTALeaveRequest(chairId: String, request: LeaveRequestEntity, isApproved: boolean, rejectionReason: String): void
-    }
-    
-    class DeansOfficeService {
-        +defineExam(deansOfficeId: String, course: CourseEntity, date: DateTime, duration: int, examType: String, proctorNum: int, departments: List~String~, departmentNums: List~int~): ExamEntity
-    }
-    
-    class ClassroomService {
-        +createClassroom(classroom: ClassroomEntity): ClassroomEntity
-        +getClassroomById(id: String): ClassroomEntity
-        +updateClassroom(id: String, updatedInfo: ClassroomEntity): boolean
-        +deleteClassroom(id: String): boolean
-        +getAllClassrooms(): List~ClassroomEntity~
-        +getAvailableClassrooms(dateTime: DateTime, duration: int): List~ClassroomEntity~
-    }
-    
-    class SemesterService {
-        +createSemester(semester: SemesterEntity): SemesterEntity
-        +getSemesterById(id: String): SemesterEntity
-        +getCurrentSemester(): SemesterEntity
-        +getAllSemesters(): List~SemesterEntity~
-        +getPastSemesters(): List~SemesterEntity~
-        +getOfferingsForSemester(semesterId: String): List~OfferingEntity~
-    }
-    
-    class ScheduleService {
-        +getScheduleForUser(userId: String): ScheduleEntity
-        +checkAvailability(scheduleId: String, timeSlot: TimeSlotEntity): boolean
-        +addTimeSlotToSchedule(scheduleId: String, timeSlot: TimeSlotEntity): boolean
-        +removeTimeSlotFromSchedule(scheduleId: String, timeSlot: TimeSlotEntity): boolean
-    }
-    
-    class LogService {
-        +createLog(log: LogEntity): LogEntity
-        +getLogsByDateRange(startDate: DateTime, endDate: DateTime): List~LogEntity~
-        +getLogsByUser(userId: String): List~LogEntity~
-        +getLogsByAction(action: String): List~LogEntity~
-    }
-    
-    class ReportService {
-        +generateReport(reportType: String, parameters: Map): ReportEntity
-        +exportReport(report: ReportEntity, format: String): File
-        +getProctoringReport(startDate: DateTime, endDate: DateTime): ReportEntity
-        +getWorkloadReport(startDate: DateTime, endDate: DateTime): ReportEntity
-    }
-    
-    class WorkloadService {
-        +createWorkload(workload: WorkloadEntity): WorkloadEntity
-        +getWorkloadById(id: String): WorkloadEntity
-        +getWorkloadForTA(taId: String): List~WorkloadEntity~
-        +getWorkloadForCourse(courseId: String): List~WorkloadEntity~
-        +approveWorkload(workloadId: String): boolean
-        +rejectWorkload(workloadId: String, reason: String): boolean
-        +notifyWorkloadStatusChange(workloadId: String): void
-    }
-    
-    class LeaveRequestService {
-        +createLeaveRequest(leaveRequest: LeaveRequestEntity): LeaveRequestEntity
-        +getLeaveRequestById(id: String): LeaveRequestEntity
-        +getLeaveRequestsForTA(taId: String): List~LeaveRequestEntity~
-        +approveLeaveRequest(requestId: String): boolean
-        +rejectLeaveRequest(requestId: String, reason: String): boolean
-        +notifyLeaveRequestStatusChange(requestId: String): void
-    }
-    
-    class SwapRequestService {
-        +createSwapRequest(swapRequest: SwapRequestEntity): SwapRequestEntity
-        +getSwapRequestById(id: String): SwapRequestEntity
-        +getSwapRequestsForTA(taId: String): List~SwapRequestEntity~
-        +getOpenForumRequests(): List~SwapRequestEntity~
-        +approveSwapRequest(requestId: String): boolean
-        +rejectSwapRequest(requestId: String): boolean
-        +notifySwapRequestStatusChange(requestId: String): void
-    }
-    
-    %% ENTITY RELATIONSHIPS
-    UserEntity <|-- AdminEntity
-    UserEntity <|-- TeachingAssistantEntity
-    UserEntity <|-- CourseInstructorEntity
-    UserEntity <|-- DeansOfficeEntity
-    CourseInstructorEntity <|-- DepartmentChairEntity
-    
-    CourseEntity "1" *-- "many" OfferingEntity : offers
-    CourseEntity "1" *-- "many" ExamEntity : has
-    
-    OfferingEntity "many" o-- "many" CourseInstructorEntity : taught by
-    OfferingEntity "many" o-- "many" TeachingAssistantEntity : taken by
-    CourseEntity "many" o-- "many" TeachingAssistantEntity : assisted by
-    OfferingEntity "many" o-- "many" StudentEntity : enrolled in
-    
-    ExamEntity "many" o-- "many" ClassroomEntity : conducted in
-    
-    TeachingAssistantEntity "1" -- "1" ScheduleEntity : has
-    TeachingAssistantEntity "1" -- "many" WorkloadEntity : submits
-    TeachingAssistantEntity "1" -- "1" LeaveRequestEntity : requests
-    TeachingAssistantEntity "1" -- "*" SwapRequestEntity : initiates or receives
-    TeachingAssistantEntity "many" -- "many" ExamEntity : proctors
-    ScheduleEntity "1" *-- "many" TimeSlotEntity : contains
-    
-    CourseInstructorEntity "1" -- "many" WorkloadEntity : evaluates
-    DepartmentChairEntity "1" -- "many" LeaveRequestEntity : processes
-    SemesterEntity "1" *-- "many" OfferingEntity : includes
-    LogEntity "many" -- "many" AdminEntity : records actions of
-    ReportEntity "1" -- "1" TimeSlotEntity : has
-    UserEntity "1" -- "many" NotificationEntity : receives
-    
-    %% SERVICE RELATIONSHIPS
-    UserEntity -- AuthService : authenticates
-    UserEntity -- UserService : manages
-    
-    NotificationEntity -- NotificationService : manages
-    NotificationEntity -- EmailService : delivers via
-    
-    CourseEntity -- CourseService : manages
-    OfferingEntity -- OfferingService : manages
-    ExamEntity -- ExamService : manages
-    ClassroomEntity -- ClassroomService : manages
-    SemesterEntity -- SemesterService : manages
-    ScheduleEntity -- ScheduleService : manages
-    LogEntity -- LogService : manages
-    ReportEntity -- ReportService : generates
-    
-    WorkloadEntity -- WorkloadService : manages
-    LeaveRequestEntity -- LeaveRequestService : manages
-    SwapRequestEntity -- SwapRequestService : manages
-    
-    TeachingAssistantEntity -- TeachingAssistantService : provides operations for
-    CourseInstructorEntity -- CourseInstructorService : provides operations for
-    DepartmentChairEntity -- DepartmentChairService : provides operations for
-    DeansOfficeEntity -- DeansOfficeService : provides operations for
-    AdminEntity -- AdminService : provides operations for
+    CourseInstructor "1" -- "many" Workload : evaluates
+    DepartmentChair "1" -- "many" LeaveRequest : processes
+    Semester "1" *-- "many" Offering : includes
+    Log "many" -- "many" Admin : records actions of
+    Report "1" -- "1" TimeSlot : has
+    User "1" -- "many" Notification : receives
+    EmailService -- User : sends emails to
