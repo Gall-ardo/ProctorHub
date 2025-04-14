@@ -13,12 +13,13 @@ import AdminOfferingPage from './pages/admin/Offering/AdminOfferingManagement';
 import AdminSemesterPage from './pages/admin/Semester/AdminSemesterManagement';
 import TAMainPage from './pages/ta/TAMainPage';
 import TAWorkloadPage from './pages/ta/TAWorkloadPage';
-import NavBar from './pages/ta/NavBar';
+import TANavBar from './pages/ta/TANavBar';
 import TAProctoringPage from './pages/ta/TAProctoringPage';
 import TALeaveOfAbsence from './pages/ta/TALeaveOfAbsence';
 import InstructorMainPage from './pages/instructor/InstructorMainPage';
 import InstructorTAWorkloadPage from './pages/instructor/InstructorTAWorkloadPage';
 import InstructorExamsPage from './pages/instructor/InstructorExamsPage';
+import TAExamForumPage from './pages/ta/TAExamForumPage';
 
 
 import './App.css';
@@ -37,11 +38,12 @@ function App() {
         <Route path="/admin/offering" element={<AdminOfferingPage />} />
         <Route path="/admin/classroom" element={<AdminClassroomPage />} />
         <Route path="/admin/semester" element={<AdminSemesterPage />} />
-        <Route path="/ta/tamainpage" element={<TAMainPage />} />
-        <Route path="/ta/taworkloadpage" element={<TAWorkloadPage />} />
-        <Route path="/ta/navbar" element={<NavBar />} />
-        <Route path="/ta/taproctoringpage" element={<TAProctoringPage />} />
+        <Route path="/ta/tamain" element={<TAMainPage />} />
+        <Route path="/ta/taworkload" element={<TAWorkloadPage />} />
+        <Route path="/ta/tanavbar" element={<TANavBar />} />
+        <Route path="/ta/taproctoring" element={<TAProctoringPage />} />
         <Route path="/ta/taleaveofabsence" element={<TALeaveOfAbsence />} />
+        <Route path="/ta/taforum" element={<TAExamForumPage />} />
         <Route path="/instructor/home" element={<InstructorMainPage />} />
         <Route path="/instructor/ta-workload" element={<InstructorTAWorkloadPage />} />
         <Route path="/instructor/exams" element={<InstructorExamsPage />} />

@@ -1,28 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './TAProctoringPage.css';
-
-const NavBar = () => {
-  return (
-    <div className="ta-proctoring-page-top-navbar">
-      <div className="ta-proctoring-page-nav-links">
-        <Link to="/ta/tamainpage">Home</Link>
-        <Link to="/ta/taworkloadpage">Workload</Link>
-        <Link to="/ta/taproctoringpage"><strong>Proctoring</strong></Link>
-        <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
-        <Link to="#">Swap</Link>
-      </div>
-      <div className="ta-proctoring-page-nav-icons">
-        <div className="ta-proctoring-page-notification-icon">
-          <img src="/notification.png" alt="Notifications" />
-        </div>
-        <div className="ta-proctoring-page-profile-icon">
-          <img src="/profile.png" alt="Profile" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import TANavBar from './TANavBar';
 
 const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message }) => {
   if (!isOpen) return null;
@@ -200,7 +179,7 @@ const TAProctoringPage = () => {
 
   return (
     <div className="ta-proctoring-page-main-page">
-      <NavBar />
+      <TANavBar />
       <main className="ta-proctoring-page-main-content ta-proctoring-page-proctoring-main">
         <div className="ta-proctoring-page-proctoring-stats-vertical">
           <div className="ta-proctoring-page-stat-container">

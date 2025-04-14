@@ -1,0 +1,205 @@
+/* TASubmitForumRequest.css */
+
+.ta-submit-forum-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .ta-submit-forum-modal {
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .ta-submit-forum-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .ta-submit-forum-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+  }
+  
+  .ta-submit-forum-close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  
+  .ta-submit-forum-content {
+    padding: 0;
+    flex: 1;
+  }
+  
+  .ta-submit-forum-section {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    background-color: white;
+    margin: 15px;
+    border-radius: 8px;
+  }
+  
+  .ta-submit-forum-label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  /* Date container styles */
+  .ta-submit-forum-date-container {
+    background-color: white;
+    border-radius: 4px;
+    width: 100%;
+  }
+  
+  .ta-submit-forum-date-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .ta-submit-forum-date-inputs {
+    margin-bottom: 15px;
+  }
+  
+  .ta-submit-forum-date-field {
+    flex: 1;
+  }
+  
+  .ta-submit-forum-date-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+  }
+  
+  .ta-submit-forum-date-fields {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .ta-submit-forum-input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  
+  .ta-submit-forum-input-with-icon input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* Ensure native calendar icon is visible on date inputs */
+  .ta-submit-forum-input-with-icon input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1;
+  }
+  
+  /* Exam selection styles */
+  .ta-submit-forum-exam-list {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .ta-submit-forum-exam-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .ta-submit-forum-exam-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .ta-submit-forum-exam-item.selected {
+    background-color: #f0f8ff;
+  }
+  
+  .ta-submit-forum-exam-info {
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .ta-submit-forum-exam-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .ta-submit-forum-exam-radio .radio-selected {
+    width: 12px;
+    height: 12px;
+    background-color: #000;
+    border-radius: 50%;
+  }
+  
+  .ta-submit-forum-footer {
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .ta-submit-forum-submit-button {
+    padding: 10px 16px;
+    background-color: #c62828;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .ta-submit-forum-submit-button:hover {
+    background-color: #b71c1c;
+  }
+  
+  .ta-submit-forum-submit-button:disabled {
+    background-color: #ddd;
+    color: #999;
+    cursor: not-allowed;
+  }

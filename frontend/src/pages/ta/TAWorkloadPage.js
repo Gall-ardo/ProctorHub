@@ -2,28 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './TAWorkloadPage.css';
 import AddWorkloadPopup from './AddWorkloadPopup';
-
-const NavBar = () => {
-  return (
-    <div className="ta-workload-page-top-navbar">
-      <div className="ta-workload-page-nav-links">
-        <Link to="/ta/tamainpage">Home</Link>
-        <Link to="/ta/taworkloadpage"><strong>Workload</strong></Link>
-        <Link to="/ta/taproctoringpage">Proctoring</Link>
-        <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
-        <Link to="#">Swap</Link>
-      </div>
-      <div className="ta-workload-page-nav-icons">
-        <div className="ta-workload-page-notification-icon">
-          <img src="/notification.png" alt="Notifications" />
-        </div>
-        <div className="ta-workload-page-profile-icon">
-          <img src="/profile.png" alt="Profile" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import TANavBar from './TANavBar';
 
 const TAWorkloadPage = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -222,7 +201,7 @@ const TAWorkloadPage = () => {
 
   return (
     <div className="ta-workload-page-ta-main-page">
-      <NavBar />
+      <TANavBar />
       <main className="ta-workload-page-main-content ta-workload-page-workload-main">
         <div className="ta-workload-page-workload-stats-vertical">
           <div className="ta-workload-page-stat-container">

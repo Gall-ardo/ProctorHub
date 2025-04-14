@@ -32,38 +32,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* Top Navbar styles */
-.ta-leave-of-absence-top-navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  height: 60px;
-  background-color: #c62828;
-  color: white;
-}
-
-.ta-leave-of-absence-nav-links {
-  display: flex;
-  gap: 30px;
-}
-
-.ta-leave-of-absence-nav-links a {
-  color: white;
-  text-decoration: none;
-  font-size: 16px;
-}
-
-.ta-leave-of-absence-nav-icons {
-  display: flex;
-  gap: 15px;
-}
-
-.ta-leave-of-absence-notification-icon img, .ta-leave-of-absence-profile-icon img {
-  height: 24px;
-  width: 24px;
-}
-
 /* Main content styles */
 .ta-leave-of-absence-main-content {
   padding: 20px;

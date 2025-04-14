@@ -6,43 +6,6 @@
     font-family: Arial, sans-serif;
   }
   
-  /* Top Navbar styles */
-  .ta-proctoring-page-top-navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    height: 60px;
-    background-color: #c62828;
-    color: white;
-  }
-  
-  .ta-proctoring-page-logo img {
-    height: 40px;
-    margin-right: 20px;
-  }
-  
-  .ta-proctoring-page-nav-links {
-    display: flex;
-    gap: 30px;
-  }
-  
-  .ta-proctoring-page-nav-links a {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-  }
-  
-  .ta-proctoring-page-nav-icons {
-    display: flex;
-    gap: 15px;
-  }
-  
-  .ta-proctoring-page-notification-icon img, .ta-proctoring-page-profile-icon img {
-    height: 24px;
-    width: 24px;
-  }
-  
   /* Main content styles */
   .ta-proctoring-page-main-content {
     flex: 1;

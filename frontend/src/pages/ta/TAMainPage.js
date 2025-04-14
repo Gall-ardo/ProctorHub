@@ -3,28 +3,8 @@ import { Link } from 'react-router-dom';
 import WeeklySchedule from './WeeklySchedule';
 import ProctorSwapForum from './ProctorSwapForum';
 import './TAMainPage.css';
+import TANavBar from './TANavBar';
 
-const NavBar = () => {
-  return (
-    <div className="ta-main-page-top-navbar">
-      <div className="ta-main-page-nav-links">
-        <Link to="/ta/tamainpage"><strong>Home</strong></Link>
-        <Link to="/ta/taworkloadpage">Workload</Link>
-        <Link to="/ta/taproctoringpage">Proctoring</Link>
-        <Link to="/ta/taleaveofabsence">Leave of Absence</Link>
-        <Link to="#">Swap</Link>
-      </div>
-      <div className="ta-main-page-nav-icons">
-        <div className="ta-main-page-notification-icon">
-          <img src="/notification.png" alt="Notifications" />
-        </div>
-        <div className="ta-main-page-profile-icon">
-          <img src="/profile.png" alt="Profile" />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const TAMainPage = () => {
   const [currentWeek, setCurrentWeek] = useState(getWeekDates());
@@ -237,7 +217,7 @@ const TAMainPage = () => {
 
   return (
     <div className="ta-main-page-main-page">
-      <NavBar />
+      <TANavBar />
       
       <main className="ta-main-page-main-content">
         <WeeklySchedule 

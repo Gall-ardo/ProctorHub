@@ -1,28 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './TALeaveOfAbsence.css';
-
-const NavBar = () => {
-  return (
-    <div className="ta-leave-of-absence-top-navbar">
-      <div className="ta-leave-of-absence-nav-links">
-        <Link to="/ta/tamainpage">Home</Link>
-        <Link to="/ta/taworkloadpage">Workload</Link>
-        <Link to="/ta/taproctoringpage">Proctoring</Link>
-        <Link to="/ta/taleaveofabsence"><strong>Leave of Absence</strong></Link>
-        <Link to="#">Swap</Link>
-      </div>
-      <div className="ta-leave-of-absence-nav-icons">
-        <div className="ta-leave-of-absence-notification-icon">
-          <img src="/notification.png" alt="Notifications" />
-        </div>
-        <div className="ta-leave-of-absence-profile-icon">
-          <img src="/profile.png" alt="Profile" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import TANavBar from './TANavBar';
 
 const TALeaveOfAbsence = () => {
   // This state simulates the different request statuses
@@ -268,7 +247,7 @@ const TALeaveOfAbsence = () => {
 
   return (
     <div className="ta-leave-of-absence-main-page">
-      <NavBar />
+      <TANavBar />
       <main className="ta-leave-of-absence-main-content">
         {renderLeaveOfAbsenceContent()}
         

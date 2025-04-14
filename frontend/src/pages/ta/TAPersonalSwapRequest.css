@@ -1,0 +1,221 @@
+.ta-personal-swap-date-inputs {
+    margin-bottom: 15px;
+  }/* TAPersonalSwapRequest.css */
+  
+  .ta-personal-swap-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .ta-personal-swap-modal {
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .ta-personal-swap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .ta-personal-swap-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+  }
+  
+  .ta-personal-swap-close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  
+  .ta-personal-swap-content {
+    padding: 0;
+    flex: 1;
+  }
+  
+  .ta-personal-swap-section {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    background-color: white;
+    margin: 15px;
+    border-radius: 8px;
+  }
+  
+  .ta-personal-swap-label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .ta-personal-swap-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* Date container styles */
+  .ta-personal-swap-date-container {
+    background-color: white;
+    border-radius: 4px;
+    width: 100%;
+  }
+  
+  .ta-personal-swap-date-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .ta-personal-swap-date-fields {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .ta-personal-swap-date-field {
+    flex: 1;
+  }
+  
+  .ta-personal-swap-date-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+  }
+  
+  .ta-personal-swap-input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  
+  .ta-personal-swap-input-with-icon input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* Ensure native calendar icon is visible on date inputs */
+  .ta-personal-swap-input-with-icon input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1;
+  }
+  
+  .ta-personal-swap-date-actions {
+    display: none;
+  }
+  
+  /* Exam selection styles */
+  .ta-personal-swap-exam-list {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .ta-personal-swap-exam-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .ta-personal-swap-exam-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .ta-personal-swap-exam-item.selected {
+    background-color: #f0f8ff;
+  }
+  
+  .ta-personal-swap-exam-info {
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .ta-personal-swap-exam-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .radio-unselected {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+  }
+  
+  .radio-selected {
+    width: 12px;
+    height: 12px;
+    background-color: #000;
+    border-radius: 50%;
+  }
+  
+  .ta-personal-swap-footer {
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .ta-personal-swap-submit-button {
+    padding: 10px 16px;
+    background-color: #c62828;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .ta-personal-swap-submit-button:hover {
+    background-color: #b71c1c;
+  }
+  
+  .ta-personal-swap-submit-button:disabled {
+    background-color: #ddd;
+    color: #999;
+    cursor: not-allowed;
+  }

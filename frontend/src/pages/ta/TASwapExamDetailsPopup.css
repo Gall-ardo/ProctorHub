@@ -1,0 +1,166 @@
+/* TAExamDetailsPopup.css */
+
+.ta-exam-details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .ta-exam-details-modal {
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  
+  .ta-exam-details-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+  }
+  
+  .ta-exam-details-close button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+  }
+  
+  .ta-exam-details-content {
+    padding: 20px;
+  }
+  
+  .ta-exam-details-info {
+    margin-bottom: 30px;
+  }
+  
+  .ta-exam-details-info h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .ta-exam-details-meta {
+    color: #333;
+  }
+  
+  .ta-exam-details-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .ta-exam-details-classroom {
+    margin-bottom: 10px;
+  }
+  
+  .ta-exam-details-requested-by {
+    margin-top: 20px;
+    color: #666;
+    font-style: italic;
+  }
+  
+  .ta-exam-details-possible-exams {
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .ta-exam-details-possible-exams h3 {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: normal;
+  }
+  
+  .ta-exam-details-exam-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .ta-exam-details-exam-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .ta-exam-details-exam-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .ta-exam-details-exam-item.selected {
+    background-color: #f0f8ff;
+  }
+  
+  .ta-exam-details-exam-info {
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .ta-exam-details-exam-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .ta-exam-details-exam-radio .radio-selected {
+    width: 12px;
+    height: 12px;
+    background-color: #000;
+    border-radius: 50%;
+  }
+  
+  .ta-exam-details-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .ta-exam-details-swap-button {
+    background-color: #c62828;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .ta-exam-details-swap-button:hover {
+    background-color: #b71c1c;
+  }
+  
+  .ta-exam-details-swap-button:disabled {
+    background-color: #ddd;
+    color: #999;
+    cursor: not-allowed;
+  }
