@@ -130,3 +130,76 @@
     background-color: #d00e00; /* Red for reject */
     color: #fff;
   }
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.close-modal-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.rejection-textarea {
+  width: 100%;
+  min-height: 80px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;  /* center the buttons horizontally */
+  gap: 10px;
+}
+
+/* Updated modal button styles */
+.button-row button {
+  background-color: #000;  /* black background */
+  color: #fff;             /* white text */
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;      /* increased padding for bigger buttons */
+  font-size: 1.1rem;       /* slightly larger text */
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.button-row button:hover {
+  opacity: 0.8;
+}
