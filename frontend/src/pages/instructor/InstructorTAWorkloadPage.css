@@ -122,11 +122,11 @@
 }
   
   .action-buttons button:first-of-type {
-    background-color: #f44336; /* Green for verify */
+    background-color: #039a00; /* Green for verify */
     color: #fff;
   }
   
   .action-buttons button:last-of-type {
-    background-color: #f44336; /* Red for reject */
+    background-color: #d00e00; /* Red for reject */
     color: #fff;
   }
