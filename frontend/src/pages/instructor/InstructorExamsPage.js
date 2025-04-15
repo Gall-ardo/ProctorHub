@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './InstructorExamsPage.css';
+import './InstructorMainPage.css';
+import InstructorNavBar from './InstructorNavBar';
 
 function InstructorExamsPage() {
   const [exams, setExams] = useState([]);
@@ -57,22 +59,7 @@ function InstructorExamsPage() {
   return (
     <div className="instructor-exams-page">
       {/* Top Navbar */}
-      <div className="top-navbar">
-        <div className="nav-links">
-          <Link to="/instructor/main"><strong>Home</strong></Link>
-          <Link to="/instructor/ta-workload">TA Workload</Link>
-          <Link to="/exams">Exams</Link>
-          <Link to="/ta/assign">TA Assign</Link>
-        </div>
-        <div className="nav-icons">
-          <div className="notification-icon">
-            <img src="/notification.png" alt="Notifications" />
-          </div>
-          <div className="profile-icon">
-            <img src="/profile.png" alt="Profile" />
-          </div>
-        </div>
-      </div>
+      <InstructorNavBar />
 
       {/* Main Content */}
       <main className="main-content">
