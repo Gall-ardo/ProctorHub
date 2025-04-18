@@ -1,3 +1,4 @@
+// models/TeachingAssistant.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const User = require("./User");
@@ -17,7 +18,6 @@ const TeachingAssistant = sequelize.define("TeachingAssistant", {
   isPartTime: DataTypes.BOOLEAN,
 });
 
-// Connect to User
 TeachingAssistant.belongsTo(User, { foreignKey: "id", as: "user" });
 
 module.exports = TeachingAssistant;
