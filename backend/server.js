@@ -1,25 +1,25 @@
 const express = require("express");
-require("dotenv").config();
+const sequelize = require("./config/db");
+
+// Import models
+const User = require("./models/User");
+const TeachingAssistant = require("./models/TeachingAssistant");
+// Add more models here as you create them
 
 const app = express();
-app.use(express.json()); // Middleware to handle JSON requests
+app.use(express.json());
 
+// Test route (optional)
 app.get("/", (req, res) => {
-  res.send("sude irem elif yunus arda");
+  res.send("🚀 ProctorHub Backend Running");
 });
 
-const examsRoutes = require('./api/exams/exams');
-const swapsRoutes = require('./api/swaps/swaps');
-const taWorkloadRoutes = require('./api/ta-workload/ta-workload');
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // or "*" for any origin
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  next();
+// Sync database
+sequelize.sync({ alter: true }).then(() => {
+  console.log("✅ DB synced");
 });
-app.use('/api/exams', examsRoutes);
-app.use('/api/swaps', swapsRoutes);
-app.use('/api/ta-workload', taWorkloadRoutes);
 
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
