@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "express": "^4.21.2",
     "mysql2": "^3.14.0",
     "sequelize": "^6.37.7"
