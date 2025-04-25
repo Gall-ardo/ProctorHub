@@ -107,6 +107,9 @@ const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
         case "dean":
             await DeansOffice.create({ id });
             break;
+        case "departmentChair":
+            await DepartmentChair.create({ id, department: getRandom(departments) });
+            break;
         }
     }
   

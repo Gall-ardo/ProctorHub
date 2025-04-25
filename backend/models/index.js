@@ -114,9 +114,8 @@ TimeSlot.hasMany(Report, { foreignKey: "timeSlotId" });
 Log.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Log, { foreignKey: "userId" });
 
-// Final sync (optional here)
-sequelize.sync({ alter: true }).then(() => {
-  console.log("✅ All models and relationships synced.");
-});
+// Course ↔ Instructor
+Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "courses" });
+Instructor.belongsToMany(Course, { through: "InstructorCourses", as: "courses" });
 
 module.exports = sequelize;

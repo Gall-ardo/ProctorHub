@@ -10,6 +10,4 @@ const Admin = sequelize.define("Admin", {
   },
 });
 
-Admin.belongsTo(User, { foreignKey: "id", as: "user" });
-
 module.exports = Admin;
