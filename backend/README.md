@@ -11,6 +11,7 @@ backend/
 ├── routes/    # Defines API endpoints (URLs)
 ├── middleware/ # Auth, logging, error handling
 ├── utils/     # Helpers (notifications, email, etc.)
+├── scripts/   # Additional functions used when creating the App
 └── server.js  # Entry point – starts the app
 ```
 
