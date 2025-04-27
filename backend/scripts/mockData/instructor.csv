@@ -1,0 +1,21 @@
+id,name,email,password,userType,department
+ins001,Tiffany Bright,tiffany.bright@bilkent.edu.tr,1234,instructor,CS
+ins002,Amy Cameron,amy.cameron@bilkent.edu.tr,1234,instructor,CS
+ins003,Simone Biles,simone.biles@bilkent.edu.tr,1234,instructor,ME
+ins004,Ryan Gonzales,ryan.gonzales@bilkent.edu.tr,1234,instructor,CS
+ins005,Theresa Cox,theresa.cox@bilkent.edu.tr,1234,instructor,CS
+ins006,Eric Neal,eric.neal@bilkent.edu.tr,1234,instructor,EE
+ins007,Anna Graham,anna.graham@bilkent.edu.tr,1234,instructor,IE
+ins008,Sarah Preston,sarah.preston@bilkent.edu.tr,1234,instructor,EE
+ins009,Alan Roberts,alan.roberts@bilkent.edu.tr,1234,instructor,IE
+ins010,Deborah Calderon,deborah.calderon@bilkent.edu.tr,1234,instructor,ME
+ins011,Marisa Collins,marisa.collins@bilkent.edu.tr,1234,instructor,EE
+ins012,Parker Herrera,parker.herrera@bilkent.edu.tr,1234,instructor,CS
+ins013,Madison Schmidt,madison.schmidt@bilkent.edu.tr,1234,instructor,CS
+ins014,Misty Taylor,misty.taylor@bilkent.edu.tr,1234,instructor,ME
+ins015,Mrs. Amy Oliver,mrs.amy.oliver@bilkent.edu.tr,1234,instructor,IE
+ins016,Ashley Oconnor,ashley.oconnor@bilkent.edu.tr,1234,instructor,IE
+ins017,Mohamed Salah,mohamed.salah@bilkent.edu.tr,1234,instructor,IE
+ins018,Lisa Matthews,lisa.matthews@bilkent.edu.tr,1234,instructor,ME
+ins019,Mr. William Conrad Jr.,mr.william.conrad.jr@bilkent.edu.tr,1234,instructor,EE
+ins020,Dr. Carol Wolf,dr.carol.wolf@bilkent.edu.tr,1234,instructor,EE

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import './InstructorMainPage.css';
 import InstructorNavBar from './InstructorNavBar';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
 function InstructorMainPage() {
   const [upcomingExams, setUpcomingExams] = useState([]);
   const [latestSwaps, setLatestSwaps] = useState([]);
@@ -21,7 +23,7 @@ function InstructorMainPage() {
 
   useEffect(() => {
     // Fetch upcoming exams
-    fetch('http://localhost:5001/api/exams/upcoming')
+    fetch(`${API}/api/exams/upcoming`)
       .then(async response => {
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
@@ -34,7 +36,7 @@ function InstructorMainPage() {
       .catch(err => console.error("Error fetching upcoming exams:", err));
 
     // Fetch latest swaps
-    fetch('http://localhost:5001/api/swaps/latest')
+    fetch(`${API}/api/swaps/latest`)
       .then(response => response.json())
       .then(data => setLatestSwaps(data))
       .catch(err => console.error('Error fetching latest swaps:', err));
