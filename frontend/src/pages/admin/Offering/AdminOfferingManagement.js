@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
 import styles from './AdminOfferingManagement.module.css';
+import axios from "axios"; // Make sure you import it at the top
+
 
 const AdminOfferingManagement = () => {
   const navigate = useNavigate();
@@ -42,27 +44,51 @@ const AdminOfferingManagement = () => {
     }
   };
 
-  const handleFormSubmit = (event) => {
+
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
     
-    // Handle different form submissions based on active view
-    switch(activeView) {
+    switch (activeView) {
       case 'add':
         console.log('Adding offering:', { instructor, courseCode, sectionId, semester });
-        // Add API call here
+        
+        try {
+          console.log('Sending data:', { 
+            instructor, 
+            courseCode, 
+            sectionId, 
+            semester, 
+            studentCount: 0 
+          });
+          
+          const response = await axios.post("http://localhost:5050/api/admin/offerings", {
+            instructor: instructor,
+            courseCode: courseCode,
+            sectionId: sectionId,
+            semester: semester,
+            studentCount: 0
+          });
+          console.log('Offering created successfully:', response.data);
+          alert('Offering Created Successfully!');
+        } catch (error) {
+          console.error('Error creating offering:', error.response?.data || error.message);
+          alert(`Error creating offering: ${JSON.stringify(error.response?.data || error.message)}`);
+        }
         break;
+  
       case 'delete':
         console.log('Finding offering to delete:', { courseCode, sectionId });
-        // Delete API call here
         break;
+  
       case 'edit':
         console.log('Finding offering to edit:', { courseCode, sectionId });
-        // Edit API call here
         break;
+  
       default:
         break;
     }
   };
+  
 
   const handleFileUpload = () => {
     if (selectedFile) {

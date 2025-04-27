@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors');  // Add this line
 require('dotenv').config();
 const sequelize = require("./config/db");
 
@@ -7,7 +8,10 @@ require("./models");
 const { User } = sequelize.models;
 
 const app = express();
+app.use(cors());  // Add this line
 app.use(express.json());
+
+app.use("/api/admin/offerings", require("./routes/Admin/offeringRoutes"));
 
 
 // Test route
@@ -20,6 +24,7 @@ sequelize.sync({ alter: true }).then(() => {
   console.log("✅ DB synced");
 });
 
+/*
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.findAll();           // SELECT * FROM Users
@@ -48,7 +53,7 @@ app.post('/api/users', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-});
+});*/
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
