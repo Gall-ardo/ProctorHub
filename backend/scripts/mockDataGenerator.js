@@ -80,7 +80,8 @@ async function safeFindOrCreate(model, options, description) {
     const LeaveRequestRows = await loadCsv("leave_request.csv");
     const logRows        = await loadCsv("log.csv");
     const notificationRows = await loadCsv("notifications.csv");
-    const offeringRows   = await loadCsv("offerings.csv");
+    const offeringRows   = await loadCsv("offering.csv");
+    const semesterRows   = await loadCsv("semester.csv");
     const studentRows    = await loadCsv("student.csv");
     const taRows         = await loadCsv("ta.csv");
     const timeslotRows   = await loadCsv("timeslots.csv");
@@ -158,7 +159,8 @@ async function safeFindOrCreate(model, options, description) {
           examType:          row.examType,
           proctorNum:        parseValue(row.proctorNum),
           manualAssignedTAs: parseValue(row.manualAssignedTAs),
-          autoAssignedTAs:   parseValue(row.autoAssignedTAs)
+          autoAssignedTAs:   parseValue(row.autoAssignedTAs),
+          courseId:         row.courseId,
         }
       }, `Exam ${row.id}`);
     }
@@ -250,8 +252,22 @@ async function safeFindOrCreate(model, options, description) {
         defaults: {
           sectionNumber: row.sectionNumber,
           studentCount:  parseValue(row.studentCount),
+          courseId:    row.courseId,
+          semesterId: row.semesterId,
         }
       }, `Offering ${row.id}`);
+    }
+
+    // Seed Semesters
+    for (const row of semesterRows) {
+      await safeFindOrCreate(Semester, {
+        where: { id: row.id },
+        defaults: {
+          id:       row.id,
+          year:     parseValue(row.year),
+          isFall:   parseValue(row.isFall)
+        }
+      }, `Semester ${row.id}`);
     }
 
     // Seed Students
