@@ -1,0 +1,151 @@
+id,subject,message,date,isRead,recipientId
+notif001,Assignment Deadline,Assignment deadline is approaching.,2025-02-02 12:00:00,False,adm001
+notif002,Grade Posted,Your grade has been posted.,2025-03-03 12:00:00,True,stu112
+notif003,New Message,You have a new message in your inbox.,2025-04-04 12:00:00,False,stu086
+notif004,Schedule Update,Your schedule has been updated.,2025-05-05 12:00:00,True,stu066
+notif005,Leave Request Approved,Your leave request has been approved.,2025-06-06 12:00:00,False,ins012
+notif006,New Message,You have a new message in your inbox.,2025-07-07 12:00:00,True,stu059
+notif007,Swap Request Received,You have received a swap request.,2025-08-08 12:00:00,False,stu022
+notif008,Schedule Update,Your schedule has been updated.,2025-09-09 12:00:00,True,stu171
+notif009,New Message,You have a new message in your inbox.,2025-10-10 12:00:00,False,ins014
+notif010,New Course Offering,A new course offering is available.,2025-11-11 12:00:00,True,stu062
+notif011,Assignment Deadline,Assignment deadline is approaching.,2025-12-12 12:00:00,False,dea005
+notif012,Schedule Update,Your schedule has been updated.,2025-01-13 12:00:00,True,stu062
+notif013,Assignment Deadline,Assignment deadline is approaching.,2025-02-14 12:00:00,False,ins003
+notif014,Swap Request Received,You have received a swap request.,2025-03-15 12:00:00,True,stu033
+notif015,System Maintenance,System maintenance on weekend.,2025-04-16 12:00:00,False,stu084
+notif016,Schedule Update,Your schedule has been updated.,2025-05-17 12:00:00,True,adm001
+notif017,Assignment Deadline,Assignment deadline is approaching.,2025-06-18 12:00:00,False,ins010
+notif018,New Message,You have a new message in your inbox.,2025-07-19 12:00:00,True,stu054
+notif019,Assignment Deadline,Assignment deadline is approaching.,2025-08-20 12:00:00,False,stu076
+notif020,New Course Offering,A new course offering is available.,2025-09-21 12:00:00,True,stu010
+notif021,Swap Request Received,You have received a swap request.,2025-10-22 12:00:00,False,dea004
+notif022,Grade Posted,Your grade has been posted.,2025-11-23 12:00:00,True,stu080
+notif023,Assignment Deadline,Assignment deadline is approaching.,2025-12-24 12:00:00,False,stu013
+notif024,Schedule Update,Your schedule has been updated.,2025-01-25 12:00:00,True,stu101
+notif025,Leave Request Approved,Your leave request has been approved.,2025-02-26 12:00:00,False,ins002
+notif026,Grade Posted,Your grade has been posted.,2025-03-27 12:00:00,True,stu011
+notif027,New Message,You have a new message in your inbox.,2025-04-28 12:00:00,False,stu187
+notif028,Swap Request Received,You have received a swap request.,2025-05-01 12:00:00,True,stu038
+notif029,Assignment Deadline,Assignment deadline is approaching.,2025-06-02 12:00:00,False,ins009
+notif030,System Maintenance,System maintenance on weekend.,2025-07-03 12:00:00,True,stu144
+notif031,Assignment Deadline,Assignment deadline is approaching.,2025-08-04 12:00:00,False,adm001
+notif032,Schedule Update,Your schedule has been updated.,2025-09-05 12:00:00,True,stu111
+notif033,New Message,You have a new message in your inbox.,2025-10-06 12:00:00,False,ins003
+notif034,Grade Posted,Your grade has been posted.,2025-11-07 12:00:00,True,stu106
+notif035,Swap Request Received,You have received a swap request.,2025-12-08 12:00:00,False,stu160
+notif036,Schedule Update,Your schedule has been updated.,2025-01-09 12:00:00,True,stu085
+notif037,Assignment Deadline,Assignment deadline is approaching.,2025-02-10 12:00:00,False,ins005
+notif038,Grade Posted,Your grade has been posted.,2025-03-11 12:00:00,True,stu096
+notif039,New Message,You have a new message in your inbox.,2025-04-12 12:00:00,False,stu027
+notif040,New Course Offering,A new course offering is available.,2025-05-13 12:00:00,True,stu096
+notif041,Assignment Deadline,Assignment deadline is approaching.,2025-06-14 12:00:00,False,dea005
+notif042,Swap Request Received,You have received a swap request.,2025-07-15 12:00:00,True,stu190
+notif043,Assignment Deadline,Assignment deadline is approaching.,2025-08-16 12:00:00,False,stu099
+notif044,Schedule Update,Your schedule has been updated.,2025-09-17 12:00:00,True,stu177
+notif045,System Maintenance,System maintenance on weekend.,2025-10-18 12:00:00,False,ins007
+notif046,Grade Posted,Your grade has been posted.,2025-11-19 12:00:00,True,adm001
+notif047,Assignment Deadline,Assignment deadline is approaching.,2025-12-20 12:00:00,False,stu182
+notif048,Schedule Update,Your schedule has been updated.,2025-01-21 12:00:00,True,stu104
+notif049,Swap Request Received,You have received a swap request.,2025-02-22 12:00:00,False,ins005
+notif050,New Course Offering,A new course offering is available.,2025-03-23 12:00:00,True,stu157
+notif051,New Message,You have a new message in your inbox.,2025-04-24 12:00:00,False,dea003
+notif052,Schedule Update,Your schedule has been updated.,2025-05-25 12:00:00,True,stu145
+notif053,Assignment Deadline,Assignment deadline is approaching.,2025-06-26 12:00:00,False,ins005
+notif054,New Message,You have a new message in your inbox.,2025-07-27 12:00:00,True,stu092
+notif055,Leave Request Approved,Your leave request has been approved.,2025-08-28 12:00:00,False,stu102
+notif056,Swap Request Received,You have received a swap request.,2025-09-01 12:00:00,True,stu092
+notif057,New Message,You have a new message in your inbox.,2025-10-02 12:00:00,False,ins006
+notif058,Grade Posted,Your grade has been posted.,2025-11-03 12:00:00,True,stu161
+notif059,Assignment Deadline,Assignment deadline is approaching.,2025-12-04 12:00:00,False,stu154
+notif060,System Maintenance,System maintenance on weekend.,2025-01-05 12:00:00,True,stu112
+notif061,Assignment Deadline,Assignment deadline is approaching.,2025-02-06 12:00:00,False,adm001
+notif062,Grade Posted,Your grade has been posted.,2025-03-07 12:00:00,True,stu178
+notif063,Swap Request Received,You have received a swap request.,2025-04-08 12:00:00,False,stu108
+notif064,Schedule Update,Your schedule has been updated.,2025-05-09 12:00:00,True,stu153
+notif065,Leave Request Approved,Your leave request has been approved.,2025-06-10 12:00:00,False,ins018
+notif066,New Message,You have a new message in your inbox.,2025-07-11 12:00:00,True,stu121
+notif067,Assignment Deadline,Assignment deadline is approaching.,2025-08-12 12:00:00,False,stu166
+notif068,Schedule Update,Your schedule has been updated.,2025-09-13 12:00:00,True,stu117
+notif069,New Message,You have a new message in your inbox.,2025-10-14 12:00:00,False,ins004
+notif070,New Course Offering,A new course offering is available.,2025-11-15 12:00:00,True,stu050
+notif071,Assignment Deadline,Assignment deadline is approaching.,2025-12-16 12:00:00,False,dea005
+notif072,Schedule Update,Your schedule has been updated.,2025-01-17 12:00:00,True,stu102
+notif073,Assignment Deadline,Assignment deadline is approaching.,2025-02-18 12:00:00,False,ins017
+notif074,Grade Posted,Your grade has been posted.,2025-03-19 12:00:00,True,stu180
+notif075,System Maintenance,System maintenance on weekend.,2025-04-20 12:00:00,False,stu011
+notif076,Schedule Update,Your schedule has been updated.,2025-05-21 12:00:00,True,adm001
+notif077,Swap Request Received,You have received a swap request.,2025-06-22 12:00:00,False,ins012
+notif078,New Message,You have a new message in your inbox.,2025-07-23 12:00:00,True,stu146
+notif079,Assignment Deadline,Assignment deadline is approaching.,2025-08-24 12:00:00,False,stu110
+notif080,New Course Offering,A new course offering is available.,2025-09-25 12:00:00,True,stu147
+notif081,New Message,You have a new message in your inbox.,2025-10-26 12:00:00,False,dea003
+notif082,Grade Posted,Your grade has been posted.,2025-11-27 12:00:00,True,stu157
+notif083,Assignment Deadline,Assignment deadline is approaching.,2025-12-28 12:00:00,False,stu058
+notif084,Swap Request Received,You have received a swap request.,2025-01-01 12:00:00,True,stu091
+notif085,Leave Request Approved,Your leave request has been approved.,2025-02-02 12:00:00,False,ins001
+notif086,Grade Posted,Your grade has been posted.,2025-03-03 12:00:00,True,stu200
+notif087,New Message,You have a new message in your inbox.,2025-04-04 12:00:00,False,stu014
+notif088,Schedule Update,Your schedule has been updated.,2025-05-05 12:00:00,True,stu015
+notif089,Assignment Deadline,Assignment deadline is approaching.,2025-06-06 12:00:00,False,ins013
+notif090,System Maintenance,System maintenance on weekend.,2025-07-07 12:00:00,True,stu101
+notif091,Swap Request Received,You have received a swap request.,2025-08-08 12:00:00,False,adm001
+notif092,Schedule Update,Your schedule has been updated.,2025-09-09 12:00:00,True,stu049
+notif093,New Message,You have a new message in your inbox.,2025-10-10 12:00:00,False,ins009
+notif094,Grade Posted,Your grade has been posted.,2025-11-11 12:00:00,True,stu138
+notif095,Leave Request Approved,Your leave request has been approved.,2025-12-12 12:00:00,False,stu146
+notif096,Schedule Update,Your schedule has been updated.,2025-01-13 12:00:00,True,stu129
+notif097,Assignment Deadline,Assignment deadline is approaching.,2025-02-14 12:00:00,False,ins005
+notif098,Swap Request Received,You have received a swap request.,2025-03-15 12:00:00,True,stu117
+notif099,New Message,You have a new message in your inbox.,2025-04-16 12:00:00,False,stu088
+notif100,New Course Offering,A new course offering is available.,2025-05-17 12:00:00,True,stu085
+notif101,Assignment Deadline,Assignment deadline is approaching.,2025-06-18 12:00:00,False,dea002
+notif102,New Message,You have a new message in your inbox.,2025-07-19 12:00:00,True,stu059
+notif103,Assignment Deadline,Assignment deadline is approaching.,2025-08-20 12:00:00,False,stu047
+notif104,Schedule Update,Your schedule has been updated.,2025-09-21 12:00:00,True,stu149
+notif105,System Maintenance,System maintenance on weekend.,2025-10-22 12:00:00,False,ins001
+notif106,Grade Posted,Your grade has been posted.,2025-11-23 12:00:00,True,adm001
+notif107,Assignment Deadline,Assignment deadline is approaching.,2025-12-24 12:00:00,False,stu120
+notif108,Schedule Update,Your schedule has been updated.,2025-01-25 12:00:00,True,stu003
+notif109,Assignment Deadline,Assignment deadline is approaching.,2025-02-26 12:00:00,False,ins017
+notif110,New Course Offering,A new course offering is available.,2025-03-27 12:00:00,True,stu014
+notif111,New Message,You have a new message in your inbox.,2025-04-28 12:00:00,False,dea001
+notif112,Swap Request Received,You have received a swap request.,2025-05-01 12:00:00,True,stu193
+notif113,Assignment Deadline,Assignment deadline is approaching.,2025-06-02 12:00:00,False,ins008
+notif114,New Message,You have a new message in your inbox.,2025-07-03 12:00:00,True,stu010
+notif115,Leave Request Approved,Your leave request has been approved.,2025-08-04 12:00:00,False,stu106
+notif116,Schedule Update,Your schedule has been updated.,2025-09-05 12:00:00,True,stu105
+notif117,New Message,You have a new message in your inbox.,2025-10-06 12:00:00,False,ins014
+notif118,Grade Posted,Your grade has been posted.,2025-11-07 12:00:00,True,stu095
+notif119,Swap Request Received,You have received a swap request.,2025-12-08 12:00:00,False,stu039
+notif120,System Maintenance,System maintenance on weekend.,2025-01-09 12:00:00,True,stu099
+notif121,Assignment Deadline,Assignment deadline is approaching.,2025-02-10 12:00:00,False,adm001
+notif122,Grade Posted,Your grade has been posted.,2025-03-11 12:00:00,True,stu023
+notif123,New Message,You have a new message in your inbox.,2025-04-12 12:00:00,False,stu147
+notif124,Schedule Update,Your schedule has been updated.,2025-05-13 12:00:00,True,stu183
+notif125,Leave Request Approved,Your leave request has been approved.,2025-06-14 12:00:00,False,ins018
+notif126,Swap Request Received,You have received a swap request.,2025-07-15 12:00:00,True,stu164
+notif127,Assignment Deadline,Assignment deadline is approaching.,2025-08-16 12:00:00,False,stu194
+notif128,Schedule Update,Your schedule has been updated.,2025-09-17 12:00:00,True,stu131
+notif129,New Message,You have a new message in your inbox.,2025-10-18 12:00:00,False,ins002
+notif130,New Course Offering,A new course offering is available.,2025-11-19 12:00:00,True,stu060
+notif131,Assignment Deadline,Assignment deadline is approaching.,2025-12-20 12:00:00,False,dea003
+notif132,Schedule Update,Your schedule has been updated.,2025-01-21 12:00:00,True,stu072
+notif133,Swap Request Received,You have received a swap request.,2025-02-22 12:00:00,False,ins006
+notif134,Grade Posted,Your grade has been posted.,2025-03-23 12:00:00,True,stu106
+notif135,System Maintenance,System maintenance on weekend.,2025-04-24 12:00:00,False,stu020
+notif136,Schedule Update,Your schedule has been updated.,2025-05-25 12:00:00,True,adm001
+notif137,Assignment Deadline,Assignment deadline is approaching.,2025-06-26 12:00:00,False,ins014
+notif138,New Message,You have a new message in your inbox.,2025-07-27 12:00:00,True,stu132
+notif139,Assignment Deadline,Assignment deadline is approaching.,2025-08-28 12:00:00,False,stu015
+notif140,New Course Offering,A new course offering is available.,2025-09-01 12:00:00,True,stu033
+notif141,New Message,You have a new message in your inbox.,2025-10-02 12:00:00,False,dea003
+notif142,Grade Posted,Your grade has been posted.,2025-11-03 12:00:00,True,stu187
+notif143,Assignment Deadline,Assignment deadline is approaching.,2025-12-04 12:00:00,False,stu027
+notif144,Schedule Update,Your schedule has been updated.,2025-01-05 12:00:00,True,stu101
+notif145,Leave Request Approved,Your leave request has been approved.,2025-02-06 12:00:00,False,ins011
+notif146,Grade Posted,Your grade has been posted.,2025-03-07 12:00:00,True,stu169
+notif147,Swap Request Received,You have received a swap request.,2025-04-08 12:00:00,False,stu112
+notif148,Schedule Update,Your schedule has been updated.,2025-05-09 12:00:00,True,stu172
+notif149,Assignment Deadline,Assignment deadline is approaching.,2025-06-10 12:00:00,False,ins012
+notif150,System Maintenance,System maintenance on weekend.,2025-07-11 12:00:00,True,stu127

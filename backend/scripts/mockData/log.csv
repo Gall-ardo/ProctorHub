@@ -1,0 +1,301 @@
+id,timestamp,action,details
+log001,2025-03-09 14:50:37,Exam Deleted,Exam Deleted exam030
+log002,2025-04-12 07:28:04,Exam Deleted,Exam Deleted exam058
+log003,2025-03-26 09:34:19,User Logged Out,User Logged Out user085
+log004,2025-01-20 16:43:04,User Updated,User Updated user023
+log005,2025-03-30 16:31:48,Leave Request Approved,Leave Request Approved lr053
+log006,2025-03-04 13:47:27,User Logged In,User Logged In user003
+log007,2025-01-08 15:25:09,Exam Deleted,Exam Deleted exam001
+log008,2025-04-01 16:01:40,TA Assigned,TA Assigned ta095 for exam017
+log009,2025-04-12 06:32:43,Leave Request Approved,Leave Request Approved lr015
+log010,2025-03-06 14:04:05,Leave Request Submitted,Leave Request Submitted lr034
+log011,2025-03-08 22:58:02,TA Removed,TA Removed ta051 for exam019
+log012,2025-02-07 05:44:09,Leave Request Rejected,Leave Request Rejected lr098
+log013,2025-03-11 11:39:42,Exam Created,Exam Created exam046
+log014,2025-01-02 12:01:22,Leave Request Rejected,Leave Request Rejected lr086
+log015,2025-03-19 08:03:50,Exam Updated,Exam Updated exam094
+log016,2025-01-03 00:46:53,TA Assigned,TA Assigned ta094 for exam004
+log017,2025-02-04 12:52:02,Exam Updated,Exam Updated exam064
+log018,2025-04-05 07:29:19,TA Removed,TA Removed ta093 for exam078
+log019,2025-04-25 20:33:01,User Logged Out,User Logged Out user017
+log020,2025-03-05 13:36:12,User Updated,User Updated user027
+log021,2025-02-11 15:34:38,User Updated,User Updated user032
+log022,2025-04-12 11:04:08,TA Removed,TA Removed ta042 for exam078
+log023,2025-02-05 02:08:19,TA Assigned,TA Assigned ta013 for exam082
+log024,2025-04-17 02:30:03,Leave Request Rejected,Leave Request Rejected lr014
+log025,2025-01-13 13:21:11,TA Removed,TA Removed ta023 for exam048
+log026,2025-04-26 03:16:16,Exam Created,Exam Created exam043
+log027,2025-01-29 15:29:47,Leave Request Rejected,Leave Request Rejected lr074
+log028,2025-02-06 08:24:33,TA Assigned,TA Assigned ta072 for exam064
+log029,2025-01-29 06:43:37,Leave Request Rejected,Leave Request Rejected lr051
+log030,2025-01-11 08:06:55,User Updated,User Updated user013
+log031,2025-03-12 07:08:48,Leave Request Approved,Leave Request Approved lr069
+log032,2025-01-26 00:03:56,Exam Deleted,Exam Deleted exam054
+log033,2025-02-05 03:43:57,TA Assigned,TA Assigned ta037 for exam085
+log034,2025-01-04 10:15:19,User Logged In,User Logged In user003
+log035,2025-01-01 07:50:01,Leave Request Rejected,Leave Request Rejected lr008
+log036,2025-03-28 16:02:40,Leave Request Approved,Leave Request Approved lr011
+log037,2025-01-02 02:20:18,TA Removed,TA Removed ta040 for exam045
+log038,2025-02-26 17:04:47,User Logged In,User Logged In user099
+log039,2025-01-15 23:00:07,User Deleted,User Deleted user096
+log040,2025-01-29 23:17:30,User Created,User Created user011
+log041,2025-04-23 14:16:01,Exam Deleted,Exam Deleted exam087
+log042,2025-03-27 13:39:14,User Created,User Created user048
+log043,2025-04-18 14:14:41,User Updated,User Updated user095
+log044,2025-02-17 16:27:41,Leave Request Approved,Leave Request Approved lr075
+log045,2025-04-01 08:56:27,TA Assigned,TA Assigned ta068 for exam047
+log046,2025-04-18 09:53:09,Leave Request Submitted,Leave Request Submitted lr014
+log047,2025-01-07 11:43:44,Exam Updated,Exam Updated exam080
+log048,2025-01-04 17:56:33,User Created,User Created user064
+log049,2025-01-11 20:56:23,TA Removed,TA Removed ta066 for exam093
+log050,2025-02-09 16:46:03,Leave Request Approved,Leave Request Approved lr073
+log051,2025-03-01 15:09:10,Leave Request Approved,Leave Request Approved lr027
+log052,2025-03-26 17:40:42,Exam Deleted,Exam Deleted exam019
+log053,2025-03-25 16:09:46,User Logged Out,User Logged Out user091
+log054,2025-01-01 21:28:30,Exam Updated,Exam Updated exam059
+log055,2025-01-24 21:05:36,User Updated,User Updated user077
+log056,2025-02-25 07:51:58,Exam Deleted,Exam Deleted exam098
+log057,2025-04-18 21:41:20,User Logged Out,User Logged Out user016
+log058,2025-02-23 17:26:07,Leave Request Approved,Leave Request Approved lr081
+log059,2025-01-02 05:56:00,User Updated,User Updated user088
+log060,2025-04-03 02:34:19,Exam Created,Exam Created exam001
+log061,2025-04-13 15:16:22,Exam Created,Exam Created exam065
+log062,2025-02-24 22:31:05,TA Removed,TA Removed ta023 for exam041
+log063,2025-03-15 07:49:55,Leave Request Rejected,Leave Request Rejected lr097
+log064,2025-02-04 02:37:44,User Created,User Created user092
+log065,2025-01-17 08:45:22,User Logged In,User Logged In user093
+log066,2025-03-03 05:20:53,Exam Created,Exam Created exam028
+log067,2025-04-15 15:01:23,User Deleted,User Deleted user061
+log068,2025-02-04 17:37:41,User Created,User Created user010
+log069,2025-02-12 05:32:45,TA Removed,TA Removed ta054 for exam016
+log070,2025-03-06 20:14:54,User Deleted,User Deleted user042
+log071,2025-04-13 21:53:41,User Created,User Created user012
+log072,2025-03-25 13:53:27,TA Removed,TA Removed ta042 for exam062
+log073,2025-01-28 06:23:20,User Deleted,User Deleted user047
+log074,2025-03-30 07:18:56,User Updated,User Updated user034
+log075,2025-02-06 03:04:40,Exam Deleted,Exam Deleted exam072
+log076,2025-01-11 17:58:50,TA Removed,TA Removed ta070 for exam014
+log077,2025-04-05 04:59:09,Leave Request Approved,Leave Request Approved lr096
+log078,2025-01-15 09:50:27,User Updated,User Updated user032
+log079,2025-04-14 16:52:49,Exam Updated,Exam Updated exam095
+log080,2025-01-18 23:22:22,Exam Created,Exam Created exam030
+log081,2025-03-12 23:08:17,User Updated,User Updated user054
+log082,2025-01-12 23:17:28,Exam Deleted,Exam Deleted exam043
+log083,2025-04-16 04:26:25,User Created,User Created user049
+log084,2025-01-16 09:59:14,Exam Created,Exam Created exam062
+log085,2025-03-17 07:23:43,Leave Request Rejected,Leave Request Rejected lr078
+log086,2025-04-13 04:12:32,Leave Request Submitted,Leave Request Submitted lr022
+log087,2025-02-12 20:39:23,User Updated,User Updated user034
+log088,2025-02-06 22:56:10,Leave Request Approved,Leave Request Approved lr017
+log089,2025-04-24 00:25:27,Exam Created,Exam Created exam099
+log090,2025-03-10 17:51:25,Exam Created,Exam Created exam008
+log091,2025-04-09 23:00:27,User Updated,User Updated user091
+log092,2025-03-23 15:02:01,Exam Deleted,Exam Deleted exam063
+log093,2025-01-21 21:10:36,Leave Request Approved,Leave Request Approved lr022
+log094,2025-01-23 00:05:02,Leave Request Rejected,Leave Request Rejected lr011
+log095,2025-01-21 09:04:09,Leave Request Submitted,Leave Request Submitted lr042
+log096,2025-03-03 22:00:48,User Deleted,User Deleted user086
+log097,2025-02-22 20:35:10,Leave Request Rejected,Leave Request Rejected lr056
+log098,2025-03-25 08:21:24,TA Removed,TA Removed ta059 for exam026
+log099,2025-01-20 18:44:52,Leave Request Approved,Leave Request Approved lr045
+log100,2025-01-03 07:04:41,Exam Updated,Exam Updated exam034
+log101,2025-03-23 21:27:45,User Updated,User Updated user081
+log102,2025-01-23 10:50:53,Exam Deleted,Exam Deleted exam030
+log103,2025-02-17 20:43:24,User Logged In,User Logged In user098
+log104,2025-01-14 09:11:56,TA Assigned,TA Assigned ta068 for exam047
+log105,2025-03-27 12:34:54,User Logged Out,User Logged Out user082
+log106,2025-04-18 16:53:52,Exam Deleted,Exam Deleted exam046
+log107,2025-04-06 14:23:38,Leave Request Approved,Leave Request Approved lr077
+log108,2025-03-19 08:11:36,Leave Request Rejected,Leave Request Rejected lr002
+log109,2025-03-11 04:42:04,Exam Updated,Exam Updated exam057
+log110,2025-03-02 04:58:41,Exam Created,Exam Created exam017
+log111,2025-03-12 00:37:51,User Deleted,User Deleted user090
+log112,2025-01-17 19:01:01,User Logged Out,User Logged Out user031
+log113,2025-02-02 16:19:19,Exam Created,Exam Created exam087
+log114,2025-03-05 20:10:09,Exam Created,Exam Created exam011
+log115,2025-02-08 17:45:39,User Logged Out,User Logged Out user096
+log116,2025-03-31 16:13:01,User Deleted,User Deleted user029
+log117,2025-04-24 07:36:53,Exam Deleted,Exam Deleted exam005
+log118,2025-03-28 00:12:50,User Logged Out,User Logged Out user073
+log119,2025-04-15 05:03:55,Leave Request Rejected,Leave Request Rejected lr044
+log120,2025-02-12 12:18:35,User Created,User Created user016
+log121,2025-04-11 23:53:13,Leave Request Rejected,Leave Request Rejected lr036
+log122,2025-02-08 12:06:57,Exam Deleted,Exam Deleted exam036
+log123,2025-04-21 18:28:46,Leave Request Approved,Leave Request Approved lr093
+log124,2025-03-12 19:02:05,User Deleted,User Deleted user058
+log125,2025-01-13 15:36:09,Exam Deleted,Exam Deleted exam072
+log126,2025-02-20 20:43:01,TA Assigned,TA Assigned ta049 for exam085
+log127,2025-03-24 19:23:39,Leave Request Submitted,Leave Request Submitted lr094
+log128,2025-01-23 01:23:55,Leave Request Approved,Leave Request Approved lr001
+log129,2025-02-26 06:28:05,Exam Created,Exam Created exam082
+log130,2025-03-04 04:08:50,User Logged Out,User Logged Out user081
+log131,2025-02-04 21:28:05,User Updated,User Updated user023
+log132,2025-04-18 09:24:43,User Created,User Created user090
+log133,2025-03-17 15:25:11,TA Assigned,TA Assigned ta040 for exam035
+log134,2025-04-01 06:02:43,User Created,User Created user056
+log135,2025-04-23 23:57:15,Exam Updated,Exam Updated exam030
+log136,2025-04-15 17:55:28,Leave Request Approved,Leave Request Approved lr026
+log137,2025-02-17 22:41:54,User Deleted,User Deleted user092
+log138,2025-04-14 19:20:50,User Logged In,User Logged In user083
+log139,2025-02-11 05:04:04,User Deleted,User Deleted user010
+log140,2025-03-01 09:12:21,Exam Created,Exam Created exam090
+log141,2025-03-17 01:54:46,Exam Deleted,Exam Deleted exam092
+log142,2025-03-06 11:35:59,Exam Deleted,Exam Deleted exam088
+log143,2025-03-29 23:39:50,Leave Request Rejected,Leave Request Rejected lr071
+log144,2025-04-15 23:29:53,Leave Request Rejected,Leave Request Rejected lr077
+log145,2025-04-12 20:09:34,Leave Request Approved,Leave Request Approved lr005
+log146,2025-03-24 03:30:03,User Updated,User Updated user021
+log147,2025-01-24 04:45:03,Exam Created,Exam Created exam026
+log148,2025-01-18 03:14:09,User Logged In,User Logged In user065
+log149,2025-01-06 08:39:58,TA Assigned,TA Assigned ta048 for exam009
+log150,2025-01-25 11:21:15,User Logged Out,User Logged Out user055
+log151,2025-01-21 13:38:46,Exam Created,Exam Created exam002
+log152,2025-04-01 18:34:00,User Created,User Created user085
+log153,2025-02-26 01:06:41,User Logged Out,User Logged Out user063
+log154,2025-01-04 11:07:25,Leave Request Approved,Leave Request Approved lr095
+log155,2025-01-25 17:16:26,Exam Created,Exam Created exam032
+log156,2025-01-08 17:25:26,User Created,User Created user008
+log157,2025-01-02 19:05:33,Exam Created,Exam Created exam096
+log158,2025-03-22 00:50:17,Leave Request Rejected,Leave Request Rejected lr037
+log159,2025-04-14 04:25:39,TA Removed,TA Removed ta037 for exam079
+log160,2025-02-05 14:23:26,User Updated,User Updated user037
+log161,2025-02-14 01:04:42,Leave Request Submitted,Leave Request Submitted lr069
+log162,2025-01-11 17:03:21,Exam Created,Exam Created exam100
+log163,2025-02-12 09:13:20,User Logged In,User Logged In user051
+log164,2025-01-29 18:54:09,TA Assigned,TA Assigned ta041 for exam065
+log165,2025-02-20 11:51:03,Leave Request Submitted,Leave Request Submitted lr038
+log166,2025-01-15 09:04:31,User Logged In,User Logged In user095
+log167,2025-01-01 06:12:00,Leave Request Submitted,Leave Request Submitted lr043
+log168,2025-02-24 01:05:22,Leave Request Approved,Leave Request Approved lr075
+log169,2025-04-24 22:16:01,Leave Request Approved,Leave Request Approved lr052
+log170,2025-01-27 15:02:30,User Created,User Created user062
+log171,2025-01-04 16:05:13,User Updated,User Updated user035
+log172,2025-03-29 10:34:43,User Updated,User Updated user052
+log173,2025-01-26 23:36:57,Exam Deleted,Exam Deleted exam007
+log174,2025-02-04 19:28:27,Leave Request Rejected,Leave Request Rejected lr024
+log175,2025-03-26 01:01:43,Leave Request Submitted,Leave Request Submitted lr074
+log176,2025-04-21 18:08:13,Exam Updated,Exam Updated exam018
+log177,2025-03-30 14:32:15,Leave Request Submitted,Leave Request Submitted lr010
+log178,2025-04-08 22:12:49,Exam Deleted,Exam Deleted exam018
+log179,2025-02-21 12:53:01,User Logged Out,User Logged Out user042
+log180,2025-02-06 06:08:48,User Deleted,User Deleted user006
+log181,2025-04-23 13:02:25,Leave Request Rejected,Leave Request Rejected lr057
+log182,2025-01-18 12:00:28,Exam Deleted,Exam Deleted exam011
+log183,2025-02-13 19:35:28,Leave Request Approved,Leave Request Approved lr082
+log184,2025-04-11 03:41:29,User Logged Out,User Logged Out user061
+log185,2025-01-14 17:06:36,User Created,User Created user081
+log186,2025-02-17 04:18:49,TA Removed,TA Removed ta092 for exam094
+log187,2025-04-20 19:05:01,Leave Request Approved,Leave Request Approved lr028
+log188,2025-02-07 12:02:58,User Deleted,User Deleted user046
+log189,2025-01-13 04:17:35,User Updated,User Updated user090
+log190,2025-03-28 01:40:12,Exam Updated,Exam Updated exam032
+log191,2025-04-07 18:21:47,Leave Request Approved,Leave Request Approved lr022
+log192,2025-03-13 10:43:05,User Deleted,User Deleted user097
+log193,2025-02-24 12:33:28,Leave Request Submitted,Leave Request Submitted lr045
+log194,2025-01-21 11:49:29,User Logged In,User Logged In user033
+log195,2025-01-25 22:54:20,TA Assigned,TA Assigned ta036 for exam088
+log196,2025-02-11 04:21:14,Exam Created,Exam Created exam089
+log197,2025-04-03 23:57:27,TA Assigned,TA Assigned ta025 for exam051
+log198,2025-03-29 12:05:23,TA Assigned,TA Assigned ta007 for exam081
+log199,2025-04-02 11:32:08,Leave Request Submitted,Leave Request Submitted lr080
+log200,2025-03-24 07:33:55,Exam Created,Exam Created exam040
+log201,2025-02-11 03:25:42,User Created,User Created user033
+log202,2025-01-24 05:58:02,TA Removed,TA Removed ta053 for exam083
+log203,2025-01-12 22:12:48,Leave Request Submitted,Leave Request Submitted lr016
+log204,2025-03-11 18:06:21,User Logged Out,User Logged Out user043
+log205,2025-01-19 09:36:09,Exam Created,Exam Created exam039
+log206,2025-02-21 01:05:30,TA Assigned,TA Assigned ta081 for exam025
+log207,2025-01-11 09:12:01,User Logged Out,User Logged Out user033
+log208,2025-04-21 13:37:29,Exam Deleted,Exam Deleted exam033
+log209,2025-02-13 06:52:16,User Updated,User Updated user080
+log210,2025-01-01 21:47:18,User Logged In,User Logged In user052
+log211,2025-03-31 05:50:41,TA Assigned,TA Assigned ta048 for exam010
+log212,2025-03-03 19:42:48,TA Removed,TA Removed ta047 for exam064
+log213,2025-03-19 16:44:54,Leave Request Rejected,Leave Request Rejected lr041
+log214,2025-02-19 15:48:28,User Deleted,User Deleted user085
+log215,2025-01-29 12:36:31,User Deleted,User Deleted user001
+log216,2025-02-28 14:47:38,Exam Deleted,Exam Deleted exam034
+log217,2025-01-28 16:13:55,TA Removed,TA Removed ta039 for exam056
+log218,2025-02-06 00:06:36,User Logged Out,User Logged Out user050
+log219,2025-02-24 22:27:36,Exam Updated,Exam Updated exam080
+log220,2025-04-05 22:41:36,Leave Request Approved,Leave Request Approved lr030
+log221,2025-01-16 05:08:56,Exam Deleted,Exam Deleted exam019
+log222,2025-01-06 02:31:31,TA Assigned,TA Assigned ta034 for exam079
+log223,2025-03-08 22:35:10,Exam Deleted,Exam Deleted exam039
+log224,2025-03-03 11:41:48,User Created,User Created user071
+log225,2025-03-30 09:30:17,User Deleted,User Deleted user034
+log226,2025-01-29 21:24:57,Exam Created,Exam Created exam049
+log227,2025-04-20 10:37:10,Exam Created,Exam Created exam014
+log228,2025-04-11 16:06:21,TA Removed,TA Removed ta042 for exam002
+log229,2025-02-22 18:54:32,Leave Request Rejected,Leave Request Rejected lr033
+log230,2025-04-20 20:22:22,Exam Created,Exam Created exam017
+log231,2025-03-27 09:18:34,User Deleted,User Deleted user037
+log232,2025-01-19 21:27:58,Leave Request Submitted,Leave Request Submitted lr005
+log233,2025-01-14 21:21:15,Exam Created,Exam Created exam006
+log234,2025-03-29 14:42:15,User Logged Out,User Logged Out user096
+log235,2025-03-11 20:32:44,User Logged Out,User Logged Out user074
+log236,2025-01-09 13:10:30,User Created,User Created user069
+log237,2025-04-05 03:37:47,User Logged Out,User Logged Out user020
+log238,2025-02-01 15:11:00,TA Removed,TA Removed ta089 for exam010
+log239,2025-01-16 05:29:04,Leave Request Submitted,Leave Request Submitted lr003
+log240,2025-02-01 12:06:07,TA Assigned,TA Assigned ta042 for exam004
+log241,2025-02-05 04:28:14,User Logged Out,User Logged Out user058
+log242,2025-01-12 10:06:29,TA Removed,TA Removed ta002 for exam067
+log243,2025-01-10 09:31:01,User Updated,User Updated user033
+log244,2025-01-13 22:21:58,TA Removed,TA Removed ta042 for exam035
+log245,2025-01-20 08:08:14,User Updated,User Updated user051
+log246,2025-03-20 02:48:54,User Created,User Created user054
+log247,2025-04-26 07:01:01,User Deleted,User Deleted user020
+log248,2025-03-11 18:45:31,TA Removed,TA Removed ta067 for exam086
+log249,2025-01-10 17:11:48,Exam Updated,Exam Updated exam003
+log250,2025-02-16 23:11:08,TA Assigned,TA Assigned ta014 for exam032
+log251,2025-01-11 03:36:59,Exam Created,Exam Created exam034
+log252,2025-03-23 20:13:45,TA Assigned,TA Assigned ta030 for exam100
+log253,2025-02-09 13:10:59,Exam Deleted,Exam Deleted exam064
+log254,2025-04-01 05:23:47,User Updated,User Updated user051
+log255,2025-02-22 08:07:37,Exam Updated,Exam Updated exam093
+log256,2025-04-11 15:45:15,Exam Deleted,Exam Deleted exam098
+log257,2025-01-02 03:39:20,Exam Created,Exam Created exam099
+log258,2025-01-05 20:02:31,User Created,User Created user003
+log259,2025-02-11 03:54:12,User Deleted,User Deleted user087
+log260,2025-04-05 13:30:00,TA Removed,TA Removed ta065 for exam046
+log261,2025-03-12 19:57:03,Exam Created,Exam Created exam031
+log262,2025-02-20 03:46:50,TA Assigned,TA Assigned ta028 for exam067
+log263,2025-02-16 11:47:14,Exam Created,Exam Created exam080
+log264,2025-04-13 14:55:37,Exam Created,Exam Created exam008
+log265,2025-01-22 14:52:28,User Created,User Created user086
+log266,2025-04-11 16:12:40,Leave Request Submitted,Leave Request Submitted lr088
+log267,2025-03-01 01:16:05,User Logged In,User Logged In user010
+log268,2025-02-09 06:35:37,User Logged In,User Logged In user029
+log269,2025-02-01 21:19:13,User Created,User Created user047
+log270,2025-03-29 10:01:01,User Logged Out,User Logged Out user059
+log271,2025-03-07 22:07:13,User Updated,User Updated user086
+log272,2025-02-28 22:37:28,User Created,User Created user028
+log273,2025-01-12 14:28:37,User Logged In,User Logged In user020
+log274,2025-03-09 05:07:41,User Deleted,User Deleted user096
+log275,2025-04-18 21:58:40,User Deleted,User Deleted user039
+log276,2025-04-13 06:30:18,Exam Created,Exam Created exam055
+log277,2025-04-04 21:01:59,Leave Request Approved,Leave Request Approved lr038
+log278,2025-01-25 19:07:01,Exam Deleted,Exam Deleted exam017
+log279,2025-01-27 18:21:56,Leave Request Approved,Leave Request Approved lr079
+log280,2025-03-30 02:32:35,User Created,User Created user042
+log281,2025-02-16 04:38:50,Exam Updated,Exam Updated exam085
+log282,2025-04-06 21:32:37,TA Removed,TA Removed ta092 for exam002
+log283,2025-03-24 10:50:35,User Updated,User Updated user051
+log284,2025-04-16 20:44:43,Leave Request Rejected,Leave Request Rejected lr088
+log285,2025-03-01 20:02:55,User Logged Out,User Logged Out user072
+log286,2025-02-13 20:21:16,User Deleted,User Deleted user040
+log287,2025-01-30 12:29:49,Exam Updated,Exam Updated exam074
+log288,2025-03-25 22:03:08,User Deleted,User Deleted user080
+log289,2025-01-13 09:36:06,User Deleted,User Deleted user077
+log290,2025-01-27 17:10:35,User Created,User Created user094
+log291,2025-01-11 19:11:18,Leave Request Rejected,Leave Request Rejected lr069
+log292,2025-03-26 11:48:16,Exam Updated,Exam Updated exam094
+log293,2025-03-07 03:16:50,TA Removed,TA Removed ta050 for exam077
+log294,2025-04-23 06:45:04,Exam Updated,Exam Updated exam015
+log295,2025-04-25 12:06:52,User Created,User Created user006
+log296,2025-01-26 16:55:41,User Deleted,User Deleted user032
+log297,2025-01-26 15:01:52,Leave Request Rejected,Leave Request Rejected lr080
+log298,2025-04-14 04:32:03,Exam Deleted,Exam Deleted exam020
+log299,2025-03-28 15:20:57,Leave Request Approved,Leave Request Approved lr050
+log300,2025-02-17 22:54:00,TA Assigned,TA Assigned ta031 for exam051
