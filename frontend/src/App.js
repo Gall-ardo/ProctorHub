@@ -20,7 +20,15 @@ import InstructorMainPage from './pages/instructor/InstructorMainPage';
 import InstructorTAWorkloadPage from './pages/instructor/InstructorTAWorkloadPage';
 import InstructorExamsPage from './pages/instructor/InstructorExamsPage';
 import TAExamForumPage from './pages/ta/TAExamForumPage';
-
+import DepartmentChairMainPage from "./pages/departmentchair/DepartmentChairMainPage";
+import DepartmentChairExamsPage from "./pages/departmentchair/DepartmentChairExamsPage";
+import DepartmentChairTAWorkloadPage from "./pages/departmentchair/DepartmentChairTAWorkloadPage";
+import DepartmentChairLeaveRequestPage from "./pages/departmentchair/DepartmentChairLeaveRequestPage";
+import DepartmentChairAssignPage from "./pages/departmentchair/DepartmentChairAssignPage";
+import InstructorAssignPage from "./pages/instructor/InstructorAssignPage";
+import DeansOfficeMainPage from "./pages/deansoffice/DeansOfficeMainPage";
+import DeansOfficeExamsPage from "./pages/deansoffice/DeansOfficeExamsPage";
+import DeansOfficeLeaveRequestPage from "./pages/deansoffice/DeansOfficeLeaveRequestPage";
 
 import './App.css';
 
@@ -47,6 +55,16 @@ function App() {
         <Route path="/instructor/home" element={<InstructorMainPage />} />
         <Route path="/instructor/ta-workload" element={<InstructorTAWorkloadPage />} />
         <Route path="/instructor/exams" element={<InstructorExamsPage />} />
+        <Route path="/instructor/assign" element={<InstructorAssignPage />} />
+        <Route path="/departmentchair/home" element={<DepartmentChairMainPage />} />
+        <Route path="/departmentchair/ta-workload" element={<DepartmentChairTAWorkloadPage />} />
+        <Route path="/departmentchair/exams" element={<DepartmentChairExamsPage />} />
+        <Route path="/departmentchair/leaverequest" element={<DepartmentChairLeaveRequestPage />} />
+        <Route path="/departmentchair/assign" element={<DepartmentChairAssignPage />} />
+        <Route path="/deansoffice/home" element={<DeansOfficeMainPage />} />
+        <Route path="/deansoffice/exams" element={<DeansOfficeExamsPage />} />
+        <Route path="/deansoffice/leaverequest" element={<DeansOfficeLeaveRequestPage />} />
+
         {/* Add more routes as needed */}
          <Route path="*" element={<Navigate to="/" />} />
       </Routes>

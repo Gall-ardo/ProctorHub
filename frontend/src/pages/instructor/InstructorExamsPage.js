@@ -17,12 +17,33 @@ function InstructorExamsPage() {
   // Example: selected exam data
   const [selectedExam, setSelectedExam] = useState(null);
 
-  // Fetch exam data from your backend
+  // Mock exam data since we're not using the fetch call in this example
   useEffect(() => {
-    fetch('http://localhost:5001/api/exams') // or '/api/exams'
-      .then((res) => res.json())
-      .then((data) => setExams(data))
-      .catch((err) => console.error('Error fetching exams:', err));
+    const mockExams = [
+      {
+        id: 1,
+        title: "CS202 Midterm",
+        proctors: ["Sude Ergün", "Rıdvan Yılmaz"],
+        classrooms: ["B-201", "B-202"],
+        startTime: "04:00",
+        endTime: "17:00",
+        date: "22/04/2025",
+        swapCount: 2,
+        type: "Midterm"
+      },
+      {
+        id: 2,
+        title: "CS101 Final",
+        proctors: ["Ziya Özgül"],
+        classrooms: ["EA-409", "EA-410", "EA-411"],
+        startTime: "13:00",
+        endTime: "16:00",
+        date: "28/04/2025",
+        swapCount: 0,
+        type: "Final"
+      }
+    ];
+    setExams(mockExams);
   }, []);
 
   // Handlers for opening modals
@@ -37,8 +58,7 @@ function InstructorExamsPage() {
     setSelectedExam(exam);
     setIsSwapHistoryOpen(true);
   };
-  const handleOpenSelectProctors = (exam) => {
-    setSelectedExam(exam);
+  const handleOpenSelectProctors = () => {
     setIsSelectProctorsOpen(true);
   };
   const handleOpenSwapTAs = (exam) => {
@@ -56,308 +76,336 @@ function InstructorExamsPage() {
     setSelectedExam(null);
   };
 
+  // Close select proctors but keep change exam open
+  const closeSelectProctors = () => {
+    setIsSelectProctorsOpen(false);
+  };
+
   return (
-    <div className="instructor-exams-page">
-      {/* Top Navbar */}
-      <InstructorNavBar />
+      <div className="instructor-exams-page">
+        {/* Top Navbar */}
+        <InstructorNavBar />
 
-      {/* Main Content */}
-      <main className="main-content">
-        <div className="exams-container">
-          <div className="exams-header">
-            <h2>Exams</h2>
-            <button className="add-exam-btn" onClick={handleOpenAddExam}>
-              Add New Exam
-            </button>
+        {/* Main Content */}
+        <main className="main-content">
+          <div className="exams-container">
+            <div className="exams-header">
+              <h2>Exams</h2>
+              <button className="add-exam-btn" onClick={handleOpenAddExam}>
+                Add New Exam
+              </button>
+            </div>
+
+            <div className="cards-container">
+              {exams.map((exam) => (
+                  <div className="exam-card" key={exam.id}>
+                    <h3>{exam.title}</h3>
+                    <p>Current Proctor(s): {exam.proctors.join(', ')}</p>
+                    <p>Classroom(s): {exam.classrooms.join(', ')}</p>
+                    <p>Time: {exam.startTime} - {exam.endTime}</p>
+                    <p>Swap Count: {exam.swapCount}</p>
+                    <p>Exam Type: {exam.type}</p>
+                    <div className="card-buttons">
+                      <button onClick={() => handleOpenSwapTAs(exam)}>Swap TA</button>
+                      <button onClick={() => handleOpenSwapHistory(exam)}>View Swap History</button>
+                      <button onClick={() => handleOpenChangeExam(exam)}>Change Exam Information</button>
+                    </div>
+                  </div>
+              ))}
+            </div>
           </div>
+        </main>
 
-          <div className="cards-container">
-            {exams.map((exam) => (
-              <div className="exam-card" key={exam.id}>
-                <h3>{exam.title}</h3>
-                <p>Current Proctor(s): {exam.proctors.join(', ')}</p>
-                <p>Classroom(s): {exam.classrooms.join(', ')}</p>
-                <p>Time: {exam.startTime} - {exam.endTime}</p>
-                <p>Swap Count: {exam.swapCount}</p>
-                <p>Exam Type: {exam.type}</p>
-                <div className="card-buttons">
-                  <button onClick={() => handleOpenSwapTAs(exam)}>Swap TA</button>
-                  <button onClick={() => handleOpenSwapHistory(exam)}>View Swap History</button>
-                  <button onClick={() => handleOpenChangeExam(exam)}>Change Exam Information</button>
+        {/* Add Exam Modal - Updated to match design */}
+        {isAddExamOpen && (
+            <div className="modal-overlay">
+              <div className="large-modal-content">
+                <h2>Add Exam</h2>
+                <div className="modern-form">
+                  <div className="form-row dropdown-row">
+                    <label>Exam type:</label>
+                    <div className="custom-dropdown">
+                      <div className="dropdown-selected">
+                        <span>Select exam type</span>
+                        <span className="dropdown-arrow">▼</span>
+                      </div>
+                      <div className="dropdown-options">
+                        <div className="dropdown-option">Midterm</div>
+                        <div className="dropdown-option">Final</div>
+                        <div className="dropdown-option">Quiz</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-row dropdown-row">
+                    <label>Exam course:</label>
+                    <div className="custom-dropdown">
+                      <div className="dropdown-selected">
+                        <span>Select course</span>
+                        <span className="dropdown-arrow">▼</span>
+                      </div>
+                      <div className="dropdown-options">
+                        <div className="dropdown-option">CS201</div>
+                        <div className="dropdown-option">CS464</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Date:</label>
+                    <div className="date-input-container">
+                      <input type="text" placeholder="mm/dd/yyyy" />
+                      <span className="calendar-icon">📅</span>
+                    </div>
+                  </div>
+
+                  <div className="form-row time-row">
+                    <div className="time-container">
+                      <label>Start time:</label>
+                      <div className="time-input-group">
+                        <input type="text" value="04" className="time-input" />
+                        <span className="time-separator">:</span>
+                        <input type="text" value="00" className="time-input" />
+                      </div>
+                    </div>
+                    <div className="time-container">
+                      <label>End time:</label>
+                      <div className="time-input-group">
+                        <input type="text" value="17" className="time-input" />
+                        <span className="time-separator">:</span>
+                        <input type="text" value="00" className="time-input" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Classroom(s):</label>
+                    <div className="classroom-container">
+                      <input type="text" placeholder="Add classroom" />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Automatic Proctor Number:</label>
+                    <input type="number" placeholder="Enter number" />
+                  </div>
+
+                  <div className="form-row checkbox-row">
+                    <label className="checkbox-container">
+                      <input type="checkbox" />
+                      <span className="checkmark"></span>
+                      Prioritize assistants of selected course
+                    </label>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="proctor-selection-row">
+                      <button className="select-proctor-btn" onClick={handleOpenSelectProctors}>
+                        Select Proctor(s)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="button-row">
+                    <button className="primary-btn" onClick={closeAllModals}>ADD</button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      {/* Modals */}
-      {isAddExamOpen && <AddExamModal onClose={closeAllModals} />}
-      {isChangeExamOpen && (
-        <ChangeExamModal exam={selectedExam} onClose={closeAllModals} onSelectProctors={handleOpenSelectProctors} />
-      )}
-      {isSwapHistoryOpen && <SwapHistoryModal exam={selectedExam} onClose={closeAllModals} />}
-      {isSelectProctorsOpen && <SelectProctorsModal exam={selectedExam} onClose={closeAllModals} />}
-      {isSwapTAsOpen && <SwapTAsModal exam={selectedExam} onClose={closeAllModals} />}
-    </div>
-  );
-}
-
-/* ===================
-   ADD EXAM MODAL
-=================== */
-function AddExamModal({ onClose }) {
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Add Exam</h2>
-        <div className="form-row">
-          <label>Exam type:</label>
-          <select>
-            <option>Midterm</option>
-            <option>Final</option>
-            <option>Quiz</option>
-          </select>
-        </div>
-        <div className="form-row">
-          <label>Exam Course:</label>
-          <input type="text" placeholder="e.g. CS202" />
-        </div>
-        <div className="form-row">
-          <label>Date:</label>
-          <input type="date" />
-        </div>
-        <div className="form-row">
-          <label>Start time:</label>
-          <input type="time" />
-          <label>End time:</label>
-          <input type="time" />
-        </div>
-        <div className="form-row">
-          <label>Classroom(s):</label>
-          <input type="text" placeholder="e.g. B-201, B-202" />
-        </div>
-        <div className="form-row">
-          <label>Automatic Proctor Number:</label>
-          <input type="number" />
-        </div>
-        <div className="form-row">
-          <label>Prioritize assistants of selected course</label>
-          <input type="checkbox" />
-        </div>
-        <div className="form-row">
-          <label>Manual Proctor Number:</label>
-          <input type="number" />
-        </div>
-        <div className="button-row">
-          <button className="primary-btn">ADD</button>
-          <button className="close-btn" onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===================
-   CHANGE EXAM MODAL
-=================== */
-function ChangeExamModal({ exam, onClose, onSelectProctors }) {
-  if (!exam) return null; // safety check
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Change Exam</h2>
-        <div className="form-row">
-          <label>Exam type:</label>
-          <select defaultValue={exam.type}>
-            <option>Midterm</option>
-            <option>Final</option>
-            <option>Quiz</option>
-          </select>
-        </div>
-        <div className="form-row">
-          <label>Exam Course:</label>
-          <input type="text" defaultValue={exam.title} />
-        </div>
-        <div className="form-row">
-          <label>Date:</label>
-          <input type="date" />
-        </div>
-        <div className="form-row">
-          <label>Start time:</label>
-          <input type="time" defaultValue="17:00" />
-          <label>End time:</label>
-          <input type="time" defaultValue="19:00" />
-        </div>
-        <div className="form-row">
-          <label>Classroom(s):</label>
-          <input type="text" placeholder="e.g. B-201, B-202" defaultValue="B-201, B-202" />
-        </div>
-        <div className="form-row">
-          <label>Automatic Proctor Number:</label>
-          <input type="number" defaultValue={1} />
-        </div>
-        <div className="form-row">
-          <label>Prioritize assistants of selected course</label>
-          <input type="checkbox" defaultChecked />
-        </div>
-        <div className="form-row">
-          <label>Manual Proctor Number:</label>
-          <input type="number" defaultValue={2} />
-          <button className="select-proctor-btn" onClick={() => onSelectProctors(exam)}>
-            Select Proctor(s)
-          </button>
-        </div>
-        <div className="button-row">
-          <button className="primary-btn">UPDATE</button>
-          <button className="close-btn" onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===================
-   SWAP HISTORY MODAL
-=================== */
-function SwapHistoryModal({ exam, onClose }) {
-  if (!exam) return null;
-  // Mock swap history
-  const swapHistory = [
-    {
-      from: 'Y. Elnouby',
-      to: 'S. Ergun',
-      exam: 'CS202 Midterm',
-      date: '16.03.2025',
-      time: '13:00-16:00',
-    },
-    {
-      from: 'Z. Özgül',
-      to: 'S. Ergun',
-      exam: 'CS202 Midterm',
-      date: '16.03.2025',
-      time: '18:00-20:00',
-    },
-  ];
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Swap History for {exam.title}</h2>
-        <div className="swap-history-container">
-          {swapHistory.map((swap, index) => (
-            <div className="swap-history-card" key={index}>
-              <p>{swap.from} → {swap.to} – {swap.exam}</p>
-              <p>{swap.date} {swap.time}</p>
             </div>
-          ))}
-        </div>
-        <div className="button-row">
-          <button className="close-btn" onClick={onClose}>Close</button>
-        </div>
+        )}
+
+        {/* Change Exam Modal - Updated to match design */}
+        {isChangeExamOpen && selectedExam && (
+            <div className="modal-overlay">
+              <div className="large-modal-content">
+                <h2>Change Exam</h2>
+                <div className="modern-form">
+                  <div className="form-row dropdown-row">
+                    <label>Exam type:</label>
+                    <div className="custom-dropdown">
+                      <div className="dropdown-selected">
+                        <span>{selectedExam.type}</span>
+                        <span className="dropdown-arrow">▼</span>
+                      </div>
+                      <div className="dropdown-options">
+                        <div className="dropdown-option">Midterm</div>
+                        <div className="dropdown-option">Final</div>
+                        <div className="dropdown-option">Quiz</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-row dropdown-row">
+                    <label>Exam course:</label>
+                    <div className="custom-dropdown">
+                      <div className="dropdown-selected">
+                        <span>{selectedExam.title.split(" ")[0]}</span>
+                        <span className="dropdown-arrow">▼</span>
+                      </div>
+                      <div className="dropdown-options">
+                        <div className="dropdown-option">CS201</div>
+                        <div className="dropdown-option">CS464</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Date:</label>
+                    <div className="date-input-container">
+                      <input type="text" value={selectedExam.date || "22/04/2025"} />
+                      <span className="calendar-icon">📅</span>
+                    </div>
+                  </div>
+
+                  <div className="form-row time-row">
+                    <div className="time-container">
+                      <label>Start time:</label>
+                      <div className="time-input-group">
+                        <input type="text" defaultValue={selectedExam.startTime.split(":")[0]} className="time-input" />
+                        <span className="time-separator">:</span>
+                        <input type="text" defaultValue={selectedExam.startTime.split(":")[1]} className="time-input" />
+                      </div>
+                    </div>
+                    <div className="time-container">
+                      <label>End time:</label>
+                      <div className="time-input-group">
+                        <input type="text" defaultValue={selectedExam.endTime.split(":")[0]} className="time-input" />
+                        <span className="time-separator">:</span>
+                        <input type="text" defaultValue={selectedExam.endTime.split(":")[1]} className="time-input" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Classroom(s):</label>
+                    <div className="classroom-container">
+                      <input type="text" placeholder="Add classroom" />
+                      {selectedExam.classrooms.map((classroom, idx) => (
+                          <div key={idx} className="classroom-tag">
+                            {classroom} <span className="remove-tag">×</span>
+                          </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Automatic Proctor Number:</label>
+                    <input type="number" defaultValue="1" />
+                  </div>
+
+                  <div className="form-row checkbox-row">
+                    <label className="checkbox-container">
+                      <input type="checkbox" defaultChecked />
+                      <span className="checkmark"></span>
+                      Prioritize assistants of selected course
+                    </label>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="proctor-selection-row">
+                      <button className="select-proctor-btn" onClick={handleOpenSelectProctors}>
+                        Select Proctor(s)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="button-row">
+                    <button className="primary-btn" onClick={closeAllModals}>UPDATE</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {/* Select Proctors Modal - Updated to match design */}
+        {isSelectProctorsOpen && (
+            <div className="modal-overlay select-proctors-overlay">
+              <div className="select-proctors-modal">
+                <div className="modal-header">
+                  <h3>Select Proctor(s)</h3>
+                  <button className="close-modal-btn" onClick={closeSelectProctors}>×</button>
+                </div>
+                <div className="search-container">
+                  <input
+                      type="text"
+                      placeholder="Search TA..."
+                      className="proctor-search-input"
+                  />
+                </div>
+                <div className="ta-list">
+                  <div className="ta-option">
+                    <span>Yahya Elnouby</span>
+                  </div>
+                  <div className="ta-option">
+                    <span>Rıdvan Yılmaz</span>
+                  </div>
+                </div>
+                <div className="selected-proctors">
+                  <div className="selected-ta-tag">
+                    Sude Ergün <span className="remove-tag">×</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {/* Swap History Modal */}
+        {isSwapHistoryOpen && selectedExam && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h2>Swap History for {selectedExam.title}</h2>
+                <div className="swap-history-container">
+                  <div className="swap-history-card">
+                    <p>Y. Elnouby → S. Ergun – {selectedExam.title}</p>
+                    <p>16.03.2025 13:00-16:00</p>
+                  </div>
+                  <div className="swap-history-card">
+                    <p>Z. Özgül → S. Ergun – {selectedExam.title}</p>
+                    <p>16.03.2025 18:00-20:00</p>
+                  </div>
+                </div>
+                <div className="button-row">
+                  <button className="close-btn" onClick={closeAllModals}>Close</button>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {/* Swap TAs Modal */}
+        {isSwapTAsOpen && selectedExam && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h2>Swap TAs for {selectedExam.title}</h2>
+                <p>Current Proctor(s): {selectedExam.proctors.join(', ')}</p>
+                <div className="form-row">
+                  <label>Proctor To Swap:</label>
+                  <select>
+                    <option value="">Select Proctor</option>
+                    {selectedExam.proctors.map((p, i) => (
+                        <option key={i} value={p}>
+                          {p}
+                        </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-row">
+                  <label>New Proctor:</label>
+                  <input
+                      type="text"
+                      placeholder="Enter new TA"
+                  />
+                </div>
+                <div className="button-row">
+                  <button className="primary-btn">Swap</button>
+                  <button className="close-btn" onClick={closeAllModals}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
       </div>
-    </div>
   );
 }
-
-/* ===================
-   SELECT PROCTORS MODAL
-=================== */
-function SelectProctorsModal({ exam, onClose }) {
-    // Always call hooks at the top
-    const [proctors, setProctors] = useState(['Sude Ergün']);
-    const [newProctor, setNewProctor] = useState('');
-  
-    if (!exam) return null;
-  
-    const handleAddProctor = () => {
-      if (newProctor.trim()) {
-        setProctors([...proctors, newProctor]);
-        setNewProctor('');
-      }
-    };
-  
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Select Proctor(s)</h2>
-          <div className="form-row">
-            <label>Proctor:</label>
-            <input
-              type="text"
-              value={newProctor}
-              onChange={(e) => setNewProctor(e.target.value)}
-              placeholder="Enter TA name"
-            />
-            <button className="primary-btn" onClick={handleAddProctor}>
-              Add
-            </button>
-          </div>
-          <div className="proctors-list">
-            {proctors.map((p, index) => (
-              <div key={index} className="proctor-tag">
-                {p}
-              </div>
-            ))}
-          </div>
-          <div className="button-row">
-            <button className="close-btn" onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-/* ===================
-   SWAP TAs MODAL
-=================== */
-function SwapTAsModal({ exam, onClose }) {
-    // Always call hooks at the top
-    const [proctorToSwap, setProctorToSwap] = useState('');
-    const [newProctor, setNewProctor] = useState('');
-  
-    if (!exam) return null;
-  
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Swap TAs for {exam.title}</h2>
-          <p>Current Proctor(s): {exam.proctors.join(', ')}</p>
-          <div className="form-row">
-            <label>Proctor To Swap:</label>
-            <select
-              value={proctorToSwap}
-              onChange={(e) => setProctorToSwap(e.target.value)}
-            >
-              <option value="">Select Proctor</option>
-              {exam.proctors.map((p, i) => (
-                <option key={i} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-row">
-            <label>New Proctor:</label>
-            <input
-              type="text"
-              placeholder="Enter new TA"
-              value={newProctor}
-              onChange={(e) => setNewProctor(e.target.value)}
-            />
-          </div>
-          <div className="button-row">
-            <button className="primary-btn">Swap</button>
-            <button className="close-btn" onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
 export default InstructorExamsPage;

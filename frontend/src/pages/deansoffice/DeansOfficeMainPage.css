@@ -1,0 +1,276 @@
+/* DeansOfficeMainPage.css */
+
+:root {
+    --primary-color: #c1272d; /* Red color from the header */
+    --secondary-color: #ffffff;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --text-color: #333;
+    --background-color: #f5f5f5;
+    --blue-event: #00a1e0;
+    --purple-event: #8e44ad;
+    --red-event: #c1272d;
+    --grid-line-color: #e9e9e9;
+    --today-highlight: #1a73e8;
+}
+
+.deansoffice-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header Styles */
+.dean-header {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1.5rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.university-logo {
+    height: 40px;
+    width: auto;
+}
+
+.main-nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2rem;
+}
+
+.main-nav li {
+    font-size: 1rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    position: relative;
+}
+
+.main-nav li.active {
+    font-weight: 600;
+}
+
+.main-nav li.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--secondary-color);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.notification-btn, .profile-btn {
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* Main Content Styles */
+.dean-main-content {
+    flex: 1;
+    padding: 1.5rem;
+    background-color: var(--secondary-color);
+}
+
+.dean-main-content h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Calendar Styles */
+.calendar-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px var(--shadow-color);
+    overflow: hidden;
+    border: 1px solid var(--blue-event);
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    border-bottom: 1px solid var(--grid-line-color);
+}
+
+.calendar-day {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1px solid var(--grid-line-color);
+}
+
+.calendar-day:last-child {
+    border-right: none;
+}
+
+.calendar-day.today .day-number {
+    background-color: var(--today-highlight);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #666;
+}
+
+.day-number {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-top: 0.2rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-grid {
+    display: flex;
+    height: 500px;
+    position: relative;
+}
+
+.time-labels {
+    width: 60px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--grid-line-color);
+    position: relative;
+}
+
+.hour-label {
+    position: absolute;
+    font-size: 0.75rem;
+    color: #666;
+    right: 8px;
+    transform: translateY(-50%);
+}
+
+.hour-label:nth-child(1) { top: 0; }
+.hour-label:nth-child(2) { top: 7.69%; }
+.hour-label:nth-child(3) { top: 15.38%; }
+.hour-label:nth-child(4) { top: 23.07%; }
+.hour-label:nth-child(5) { top: 30.76%; }
+.hour-label:nth-child(6) { top: 38.45%; }
+.hour-label:nth-child(7) { top: 46.14%; }
+.hour-label:nth-child(8) { top: 53.83%; }
+.hour-label:nth-child(9) { top: 61.52%; }
+.hour-label:nth-child(10) { top: 69.21%; }
+.hour-label:nth-child(11) { top: 76.9%; }
+.hour-label:nth-child(12) { top: 84.59%; }
+.hour-label:nth-child(13) { top: 92.28%; }
+.hour-label:nth-child(14) { top: 100%; }
+
+.calendar-cells {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(56, 1fr); /* 4 rows per hour, 14 hours */
+    position: relative;
+}
+
+.hour-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--grid-line-color);
+}
+
+.hour-line:nth-child(1) { top: 0; }
+.hour-line:nth-child(2) { top: 7.69%; }
+.hour-line:nth-child(3) { top: 15.38%; }
+.hour-line:nth-child(4) { top: 23.07%; }
+.hour-line:nth-child(5) { top: 30.76%; }
+.hour-line:nth-child(6) { top: 38.45%; }
+.hour-line:nth-child(7) { top: 46.14%; }
+.hour-line:nth-child(8) { top: 53.83%; }
+.hour-line:nth-child(9) { top: 61.52%; }
+.hour-line:nth-child(10) { top: 69.21%; }
+.hour-line:nth-child(11) { top: 76.9%; }
+.hour-line:nth-child(12) { top: 84.59%; }
+.hour-line:nth-child(13) { top: 92.28%; }
+.hour-line:nth-child(14) { top: 100%; }
+
+.day-column {
+    border-right: 1px solid var(--grid-line-color);
+    grid-row: 1 / span 56;
+}
+
+.day-column:last-child {
+    border-right: none;
+}
+
+.exam-event {
+    position: absolute;
+    margin: 2px;
+    padding: 6px;
+    border-radius: 4px;
+    color: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.event-title {
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+}
+
+.event-time {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dean-header {
+        padding: 0.5rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    .main-nav ul {
+        gap: 1rem;
+    }
+
+    .calendar-container {
+        overflow-x: auto;
+    }
+
+    .hour-label {
+        font-size: 0.7rem;
+        right: 5px;
+    }
+}

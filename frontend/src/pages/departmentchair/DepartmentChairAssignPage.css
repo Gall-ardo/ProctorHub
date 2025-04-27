@@ -1,0 +1,578 @@
+/* DepartmentChairAssignPage.css */
+
+:root {
+    --primary-color: #c1272d; /* Red color from header */
+    --secondary-color: #ffffff;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --text-color: #333;
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --accent-color: #c1272d;
+    --border-radius: 4px;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --selected-color: #f8e5e5;
+    --hover-color: #f9f9f9;
+}
+
+.departmentchair-assign-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.assign-content-container {
+    flex: 1;
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+/* Instructor Selection Panel */
+.instructor-selection-panel {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.current-instructor {
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.instructor-info h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.instructor-info p {
+    margin: 0.5rem 0;
+    color: #666;
+}
+
+.change-instructor-btn, .select-instructor-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.7rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.select-instructor-btn {
+    height: 100px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Selected TAs Panel */
+.selected-tas-panel {
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.selected-tas-panel h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.selected-tas-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.selected-ta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.remove-ta-btn {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 50%;
+}
+
+.remove-ta-btn:hover {
+    background-color: #ffecec;
+}
+
+.no-tas-selected {
+    color: #999;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.selection-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: auto;
+}
+
+.view-preferences-btn {
+    background-color: #fff;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.view-preferences-btn:hover {
+    background-color: #f8f8f8;
+}
+
+.confirm-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.confirm-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Available TAs Panel */
+.available-tas-panel {
+    flex: 1;
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-container {
+    margin-bottom: 1.5rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.tas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+.ta-card {
+    position: relative;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 1.2rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.ta-card:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.ta-card.selected {
+    background-color: var(--selected-color);
+    border-color: var(--primary-color);
+}
+
+.ta-card.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.selection-indicator {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.ta-info h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.ta-info p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal, .confirmation-modal {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal h3, .confirmation-modal h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+}
+
+.instructors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.instructor-option {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.instructor-option:hover {
+    background-color: var(--hover-color);
+}
+
+.instructor-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.instructor-courses {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+.tas-assigned {
+    font-size: 0.9rem;
+    color: var(--primary-color);
+}
+
+/* Confirmation Modal Styles */
+.confirmation-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.confirmation-list {
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 0;
+    list-style-position: inside;
+}
+
+.confirmation-list li {
+    padding: 0.3rem 0;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+}
+
+.cancel-btn, .finalize-btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.cancel-btn {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.finalize-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Preferences modal styles */
+.preferences-modal {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    position: relative;
+    overflow: auto;
+}
+
+.preferences-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.preferences-table {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.preferences-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 4fr 1fr;
+    background-color: #f5f5f5;
+    padding: 0.8rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preference-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 4fr 1fr;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.preference-row:last-child {
+    border-bottom: none;
+}
+
+.row-priority {
+    font-weight: 500;
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    text-align: center;
+    width: fit-content;
+}
+
+.priority-high {
+    background-color: #ffecec;
+    color: var(--danger-color);
+}
+
+.priority-medium {
+    background-color: #fff8e1;
+    color: #f9a825;
+}
+
+.priority-low {
+    background-color: #e8f5e9;
+    color: var(--success-color);
+}
+
+.status-assigned {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.assign-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.preferences-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.assign-all-btn, .close-preferences-btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.assign-all-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.close-preferences-btn {
+    background-color: #f5f5f5;
+    color: #666;
+    border: none;
+}
+
+/* Instructor selection modal styles */
+.instructor-modal {
+    max-width: 700px;
+    max-height: 80vh;
+    overflow: auto;
+}
+
+.instructor-preferences {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.preferences-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.preferences-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.preference-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.preference-name {
+    font-weight: 500;
+}
+
+.preference-priority {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.preference-reason {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    width: 100%;
+    margin-top: 0.3rem;
+    padding-left: 1rem;
+}
+
+/* Confirmation list styles */
+.preferred-ta {
+    position: relative;
+    padding: 0.3rem 0.5rem;
+    background-color: #fff8e9;
+    border-left: 3px solid var(--primary-color);
+}
+
+.preferred-badge {
+    font-size: 0.7rem;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+    .assign-content-container {
+        flex-direction: column;
+    }
+
+    .instructor-selection-panel {
+        width: 100%;
+    }
+
+    .selected-tas-panel {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .confirmation-actions {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .cancel-btn, .finalize-btn {
+        width: 100%;
+    }
+}
