@@ -1,0 +1,700 @@
+/* InstructorAssignPage.css */
+
+:root {
+    --primary-color: #c1272d; /* Red color from header */
+    --secondary-color: #ffffff;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --text-color: #333;
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --accent-color: #c1272d;
+    --border-radius: 4px;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --high-priority: #ffecec;
+    --medium-priority: #fff8e1;
+    --low-priority: #e8f5e9;
+}
+
+.instructor-assign-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.instructor-content-container {
+    flex: 1;
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+/* Preferences Panel */
+.preferences-panel {
+    width: 60%;
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.panel-header h2 {
+    margin: 0;
+}
+
+.filter-options {
+    display: flex;
+    align-items: center;
+}
+
+.priority-filter {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: white;
+    font-size: 0.9rem;
+}
+
+.courses-preferences {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+}
+
+.course-preferences-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.course-header {
+    font-size: 1.1rem;
+    margin: 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preferences-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.preference-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.preference-card.priority-high {
+    background-color: var(--high-priority);
+    border-left-color: var(--danger-color);
+}
+
+.preference-card.priority-medium {
+    background-color: var(--medium-priority);
+    border-left-color: var(--warning-color);
+}
+
+.preference-card.priority-low {
+    background-color: var(--low-priority);
+    border-left-color: var(--success-color);
+}
+
+.preference-info {
+    flex: 1;
+}
+
+.preference-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.preference-details {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.priority-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.priority-badge.high {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.priority-badge.medium {
+    background-color: var(--warning-color);
+    color: #333;
+}
+
+.priority-badge.low {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status-badge.new,
+.status-badge.updated {
+    background-color: #e0e0e0;
+    color: #666;
+}
+
+.status-badge.submitted {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.preference-reason {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+.preference-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+}
+
+.remove-btn:hover {
+    background-color: #ffecec;
+}
+
+.no-preferences {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-style: italic;
+}
+
+.preferences-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.add-preference-btn,
+.submit-preferences-btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.add-preference-btn {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.submit-preferences-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.submit-preferences-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Courses Panel */
+.courses-panel {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.courses-panel h2 {
+    margin: 0 0 1rem 0;
+}
+
+.courses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+.course-card {
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.course-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.course-info p {
+    margin: 0.3rem 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.ta-count {
+    margin-top: 0.5rem !important;
+    font-weight: 500;
+    color: var(--primary-color) !important;
+}
+
+.course-preferences-summary {
+    margin-top: 0.5rem;
+    min-height: 2.5rem;
+}
+
+.preferences-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.preference-chip {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 16px;
+    white-space: nowrap;
+}
+
+.preference-chip.priority-high {
+    background-color: var(--high-priority);
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+}
+
+.preference-chip.priority-medium {
+    background-color: var(--medium-priority);
+    border: 1px solid var(--warning-color);
+    color: #996600;
+}
+
+.preference-chip.priority-low {
+    background-color: var(--low-priority);
+    border: 1px solid var(--success-color);
+    color: var(--success-color);
+}
+
+.no-preferences-text {
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.add-for-course-btn {
+    align-self: flex-end;
+    background-color: white;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.add-for-course-btn:hover {
+    background-color: #f9f9f9;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: white;
+    border-radius: 8px;
+    position: relative;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal h3 {
+    margin: 0;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1.3rem;
+}
+
+/* TA Selection Modal */
+.ta-selection-modal {
+    width: 90%;
+    max-width: 600px;
+}
+
+.modal-form {
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.search-input {
+    margin-bottom: 0.8rem;
+}
+
+.tas-selection-list {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.ta-selection-option {
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ta-selection-option:last-child {
+    border-bottom: none;
+}
+
+.ta-selection-option:hover {
+    background-color: #f9f9f9;
+}
+
+.ta-selection-option.selected {
+    background-color: #f0f8ff;
+}
+
+.ta-option-info {
+    flex: 1;
+}
+
+.ta-option-name {
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+}
+
+.ta-option-details {
+    font-size: 0.8rem;
+    color: #666;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.ta-option-select {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.priority-selection {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.priority-option {
+    flex: 1;
+    padding: 0.8rem;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    border: 2px solid transparent;
+}
+
+.priority-option.high {
+    background-color: var(--high-priority);
+    color: var(--danger-color);
+}
+
+.priority-option.medium {
+    background-color: var(--medium-priority);
+    color: #996600;
+}
+
+.priority-option.low {
+    background-color: var(--low-priority);
+    color: var(--success-color);
+}
+
+.priority-option.selected {
+    border-color: currentColor;
+}
+
+.no-tas-found {
+    padding: 1rem;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.cancel-btn,
+.add-btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.cancel-btn {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.add-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.add-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Confirmation Modal */
+.confirm-modal {
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.submit-preferences-summary {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.submit-course-group {
+    margin-bottom: 1rem;
+}
+
+.submit-course-group h4 {
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.submit-preference-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.submit-preference-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.3rem;
+    border-radius: 4px;
+}
+
+.submit-preference-item.priority-high {
+    background-color: var(--high-priority);
+}
+
+.submit-preference-item.priority-medium {
+    background-color: var(--medium-priority);
+}
+
+.submit-preference-item.priority-low {
+    background-color: var(--low-priority);
+}
+
+.preference-ta-name {
+    font-weight: 500;
+}
+
+.preference-priority-badge {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.submission-note {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f0f8ff;
+    border-left: 3px solid #4a90e2;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+}
+
+.cancel-submit-btn,
+.confirm-submit-btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.cancel-submit-btn {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.confirm-submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+    .instructor-content-container {
+        flex-direction: column-reverse;
+    }
+
+    .preferences-panel,
+    .courses-panel {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .preference-card {
+        flex-direction: column;
+    }
+
+    .preference-actions {
+        align-self: flex-end;
+        margin-top: 0.5rem;
+    }
+
+    .preferences-actions {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .add-preference-btn,
+    .submit-preferences-btn {
+        width: 100%;
+    }
+
+    .priority-selection {
+        flex-direction: column;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .cancel-submit-btn,
+    .confirm-submit-btn {
+        width: 100%;
+    }
+}
