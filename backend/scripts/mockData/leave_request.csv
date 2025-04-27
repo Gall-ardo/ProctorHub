@@ -1,0 +1,51 @@
+id,reason,startDate,endDate,isApproved,rejectionReason
+lr001,Vacation,2025-01-27,2025-02-01,True,
+lr002,Family Emergency,2025-09-11,2025-09-23,False,Insufficient coverage
+lr003,Medical,2025-04-12,2025-04-19,True,
+lr004,Vacation,2025-04-29,2025-05-12,True,
+lr005,Research,2025-04-16,2025-04-17,False,Insufficient coverage
+lr006,Personal,2025-11-04,2025-11-14,False,Late submission
+lr007,Conference,2025-05-11,2025-05-12,False,Insufficient coverage
+lr008,Family Emergency,2025-11-10,2025-11-20,False,Insufficient coverage
+lr009,Personal,2025-02-10,2025-02-17,False,Insufficient coverage
+lr010,Family Emergency,2025-03-15,2025-03-21,False,Incomplete documentation
+lr011,Vacation,2025-04-13,2025-04-25,False,Incomplete documentation
+lr012,Research,2025-03-16,2025-03-20,True,
+lr013,Personal,2025-07-12,2025-07-17,False,Insufficient coverage
+lr014,Vacation,2025-06-04,2025-06-15,True,
+lr015,Medical,2025-03-12,2025-03-18,False,Insufficient coverage
+lr016,Vacation,2025-06-18,2025-06-20,True,
+lr017,Family Emergency,2025-11-12,2025-11-25,True,
+lr018,Personal,2025-01-05,2025-01-12,False,Insufficient coverage
+lr019,Personal,2025-07-31,2025-08-03,True,
+lr020,Medical,2025-01-09,2025-01-21,False,Late submission
+lr021,Family Emergency,2025-06-01,2025-06-14,False,Late submission
+lr022,Vacation,2025-01-23,2025-01-25,True,
+lr023,Conference,2025-10-15,2025-10-22,True,
+lr024,Vacation,2025-02-13,2025-02-20,True,
+lr025,Vacation,2025-01-18,2025-01-29,False,Late submission
+lr026,Personal,2025-11-02,2025-11-08,False,Late submission
+lr027,Research,2025-07-25,2025-07-27,False,Incomplete documentation
+lr028,Personal,2025-02-19,2025-02-28,False,Insufficient coverage
+lr029,Medical,2025-04-11,2025-04-20,False,Incomplete documentation
+lr030,Personal,2025-04-26,2025-04-27,False,Incomplete documentation
+lr031,Research,2025-04-07,2025-04-16,False,Insufficient coverage
+lr032,Research,2025-10-27,2025-11-10,False,Late submission
+lr033,Medical,2025-05-20,2025-05-29,True,
+lr034,Vacation,2025-11-28,2025-11-29,False,Insufficient coverage
+lr035,Personal,2025-08-11,2025-08-24,False,Insufficient coverage
+lr036,Research,2025-03-06,2025-03-07,False,Incomplete documentation
+lr037,Vacation,2025-06-01,2025-06-10,True,
+lr038,Conference,2025-02-17,2025-02-21,True,
+lr039,Conference,2025-07-02,2025-07-09,True,
+lr040,Vacation,2025-03-25,2025-04-04,False,Late submission
+lr041,Personal,2025-02-27,2025-03-11,True,
+lr042,Conference,2025-01-14,2025-01-27,True,
+lr043,Medical,2025-11-12,2025-11-13,False,Late submission
+lr044,Family Emergency,2025-05-03,2025-05-17,False,Insufficient coverage
+lr045,Conference,2025-08-24,2025-08-26,True,
+lr046,Vacation,2025-02-27,2025-03-07,False,Incomplete documentation
+lr047,Vacation,2025-10-30,2025-11-07,True,
+lr048,Conference,2025-04-18,2025-04-22,True,
+lr049,Conference,2025-06-17,2025-06-21,False,Late submission
+lr050,Medical,2025-03-28,2025-03-30,False,Insufficient coverage
