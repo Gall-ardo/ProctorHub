@@ -99,6 +99,14 @@
   color: #777;
 }
 
+.uploadNote {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.5rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
 .selectFileBtn {
   background-color: #c42626;
   color: white;
@@ -159,6 +167,19 @@
   font-weight: 500;
   margin-bottom: 0.5rem;
   color: #555;
+}
+
+.requiredField {
+  color: #c42626;
+  margin-left: 3px;
+}
+
+.formNote {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0.5rem 0 1rem;
+  line-height: 1.4;
+  font-style: italic;
 }
 
 .formGroup input[type="text"],
@@ -233,6 +254,44 @@
   font-weight: bold;
   font-size: 1rem;
   margin-top: 1rem;
+}
+
+/* Button group for multiple buttons */
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Reset password button */
+.resetBtn {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.resetBtn:hover {
+  background-color: #e68a00;
+}
+
+.resetPasswordBtn {
+  flex: 1;
+  background-color: #ff9800;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.resetPasswordBtn:hover {
+  background-color: #e68a00;
 }
 
 /* Selected assistants display */
@@ -332,4 +391,123 @@
   .formContainer {
     width: 100%;
   }
+}
+
+/* Additional styles for AdminUserManagement */
+
+/* Search Results */
+.searchResults {
+  margin-top: 1.5rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.searchResults h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.resultsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resultItem {
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resultInfo {
+  flex: 1;
+}
+
+.resultInfo div {
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.deleteBtn, .editBtn {
+  background-color: #c42626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.editBtn {
+  background-color: #4CAF50;
+}
+
+.formButtonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelBtn {
+  flex: 1;
+  background-color: #ccc;
+  color: #333;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.successMessage {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 300px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .formButtonGroup {
+    flex-direction: column;
+  }
+  
+  .buttonGroup {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .buttonGroup button {
+    flex: 1;
+  }
+}
+
+/* For read-only inputs */
+input.readOnly {
+  background-color: #f9f9f9;
+  cursor: not-allowed;
 }

@@ -30,7 +30,6 @@ DepartmentChair.belongsTo(User, { foreignKey: "id", as: "chairUser" });
 DeansOffice.belongsTo(User, { foreignKey: "id", as: "deanUser" });
 Student.belongsTo(User, { foreignKey: "id", as: "studentUser" });
 
-
 // Notifications
 Notification.belongsTo(User, { as: "recipient", foreignKey: "recipientId" });
 User.hasMany(Notification, { as: "notifications", foreignKey: "recipientId" });

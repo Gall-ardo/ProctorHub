@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './AdminUserManagement.module.css';
+import AdminNavBar from '../AdminNavBar';
+import ConfirmationPopup from '../ConfirmationPopup';
 import ErrorPopup from '../ErrorPopup';
-import AdminUserDeleteConfirmation from './AdminUserDeleteConfirmation';
-import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
+import styles from './AdminUserManagement.module.css';
+import axios from 'axios';
+
+// Define API URL with fallback for development
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const AdminUserManagement = () => {
   const navigate = useNavigate();
@@ -11,44 +15,49 @@ const AdminUserManagement = () => {
   
   // Form states
   const [userId, setUserId] = useState('');
-  const [nameSurname, setNameSurname] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [userType, setUserType] = useState('');
+  const [department, setDepartment] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
-  const [userToEdit, setUserToEdit] = useState(null);
-  
-  // Popup states
+
+  // Status states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [confirmationData, setConfirmationData] = useState(null);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  // Mock user database for demonstration
-  const mockUsers = [
-    {
-      id: '12345678',
-      nameSurname: 'Sude Ergün',
-      email: 'sude.ergun@bilkent.edu.tr',
-      phoneNumber: '05123456789',
-      userType: 'master-part'
-    },
-    {
-      id: '87654321',
-      nameSurname: 'Ahmet Yılmaz',
-      email: 'ahmet.yilmaz@bilkent.edu.tr',
-      phoneNumber: '05556667788',
-      userType: 'phd-full'
-    }
-  ];
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const [resetPasswordUserId, setResetPasswordUserId] = useState(null);
 
   // User type options
   const userTypeOptions = [
-    { label: 'PhD - part time', value: 'phd-part' },
-    { label: 'PhD - full time', value: 'phd-full' },
-    { label: 'Master - part time', value: 'master-part' },
-    { label: 'Master - full time', value: 'master-full' }
+    { label: 'Admin', value: 'admin' },
+    { label: 'Instructor', value: 'instructor' },
+    { label: 'Department Chair', value: 'chair' },
+    { label: 'Dean\'s Office', value: 'dean' },
+    { label: 'Teaching Assistant', value: 'ta' },
+    { label: 'Student', value: 'student' }
   ];
+
+  // Department options
+  const departmentOptions = [
+    { label: 'CS', value: 'CS' },
+    { label: 'IE', value: 'IE' },
+    { label: 'EEE', value: 'EEE' }
+  ];
+
+  const clearForm = () => {
+    setUserId('');
+    setName('');
+    setEmail('');
+    setUserType('');
+    setDepartment('');
+    setSearchResults([]);
+  };
 
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -65,107 +74,304 @@ const AdminUserManagement = () => {
     }
   };
 
-  const findUser = (id, emailToFind) => {
-    // In a real app, this would be an API call
-    return mockUsers.find(user => 
-      (id && user.id === id) || 
-      (emailToFind && user.email === emailToFind)
-    );
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    clearForm();
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleFormSubmit = (event) => {
+  const validateForm = () => {
+    // Basic validation
+    if (activeView === 'add') {
+      if (!userId || !name || !email || !userType) {
+        setErrorMessage('Please fill all required fields');
+        setShowError(true);
+        return false;
+      }
+      
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setErrorMessage('Please enter a valid email address');
+        setShowError(true);
+        return false;
+      }
+      
+      // Department validation for instructor and chair
+      if ((userType === 'instructor' || userType === 'chair') && !department) {
+        setErrorMessage('Department is required for instructors and chairs');
+        setShowError(true);
+        return false;
+      }
+    } else if (activeView === 'delete' || activeView === 'edit') {
+      if (!userId && !email) {
+        setErrorMessage('Please enter either ID or email to search');
+        setShowError(true);
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const handleAddUser = async (event) => {
     event.preventDefault();
     
-    // Handle different form submissions based on active view
-    switch(activeView) {
-      case 'add':
-        console.log('Adding user:', { 
-          userId, 
-          nameSurname, 
-          email, 
-          phoneNumber,
-          userType 
-        });
-        // Add API call here
-        break;
-      case 'delete':
-        const userFound = findUser(userId, email);
-        if (userFound) {
-          setUserToDelete(userFound);
-          setShowConfirmation(true);
-        } else {
-          setErrorMessage("This user doesn't exist.");
-          setShowError(true);
-        }
-        break;
-      case 'edit':
-        if (userToEdit) {
-          console.log('Editing user:', {
-            userId,
-            nameSurname,
-            email,
-            phoneNumber,
-            userType
-          });
-          // Update API call here
-        } else {
-          const userFound = findUser(userId, email);
-          if (userFound) {
-            setUserToEdit(userFound);
-            
-            // Update form fields with found user data
-            setUserId(userFound.id);
-            setNameSurname(userFound.nameSurname);
-            setEmail(userFound.email);
-            setPhoneNumber(userFound.phoneNumber);
-            setUserType(userFound.userType);
-          } else {
-            setErrorMessage("This user doesn't exist.");
-            setShowError(true);
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const userData = {
+        id: userId,
+        name,
+        email,
+        userType
+      };
+      
+      // Add department for instructor and chair
+      if (userType === 'instructor' || userType === 'chair') {
+        userData.department = department;
+      }
+      
+      console.log('Sending user data:', userData);
+      
+      // Use the defined API_URL constant instead of process.env directly
+      const response = await axios.post(`${API_URL}/api/admin/users`, userData);
+      
+      console.log('Response:', response.data);
+      
+      setSuccess(response.data.message || 'User added successfully. A welcome email with login credentials has been sent.');
+      clearForm();
+    } catch (err) {
+      console.error('Error adding user:', err);
+      
+      // Improved error handling
+      if (err.response) {
+        console.error('Response data:', err.response.data);
+        console.error('Status code:', err.response.status);
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to add user`);
+      } else if (err.request) {
+        // Request was made but no response received
+        console.error('No response received:', err.request);
+        setErrorMessage('Server not responding. Please check your connection.');
+      } else {
+        // Something else caused the error
+        setErrorMessage(`Error: ${err.message}`);
+      }
+      
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchUser = async (event) => {
+    event.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const params = {};
+      if (userId) params.id = userId;
+      if (email) params.email = email;
+      
+      const response = await axios.get(`${API_URL}/api/admin/users`, { params });
+      
+      setSearchResults(response.data);
+      
+      if (response.data.length === 0) {
+        setErrorMessage('No users found');
+        setShowError(true);
+      }
+    } catch (err) {
+      console.error('Error searching users:', err);
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to search users`);
+      } else if (err.request) {
+        setErrorMessage('Server not responding. Please check your connection.');
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+      }
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteConfirmation = (user) => {
+    const userForPopup = {
+      id: user.id,
+      nameSurname: user.name,  // Assuming 'name' in your backend maps to 'nameSurname' in your UI
+      email: user.email,
+      phoneNumber: user.phoneNumber || 'N/A'  // Add a default if phoneNumber isn't available
+    };
+    
+    setConfirmationData(userForPopup);
+    setShowConfirmation(true);
+  };
+
+  const handleResetPasswordConfirmation = (userId) => {
+    setResetPasswordUserId(userId);
+    setShowResetConfirmation(true);
+  };
+
+  const handleResetPassword = async () => {
+    setShowResetConfirmation(false);
+    setLoading(true);
+    
+    try {
+      const response = await axios.post(`${API_URL}/api/admin/users/${resetPasswordUserId}/reset-password`);
+      
+      setSuccess(response.data.message || 'Password reset successfully. A new password has been sent to the user\'s email.');
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to reset password`);
+      } else if (err.request) {
+        setErrorMessage('Server not responding. Please check your connection.');
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+      }
+      setShowError(true);
+    } finally {
+      setLoading(false);
+      setResetPasswordUserId(null);
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    setShowConfirmation(false);
+    setLoading(true);
+    
+    try {
+      await axios.delete(`${API_URL}/api/admin/users/${id}`);
+      
+      setSuccess('User deleted successfully');
+      setSearchResults(searchResults.filter(user => user.id !== id));
+      
+      if (searchResults.length === 1) {
+        clearForm();
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to delete user`);
+      } else if (err.request) {
+        setErrorMessage('Server not responding. Please check your connection.');
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+      }
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditUser = (user) => {
+    setUserId(user.id);
+    setName(user.name);
+    setEmail(user.email);
+    setUserType(user.userType);
+    
+    // If user is instructor or chair, set department
+    if (user.userType === 'instructor' || user.userType === 'chair') {
+      // You would need to fetch department from the respective model
+      // This is a placeholder
+      setDepartment(user.department || '');
+    }
+    
+    setActiveView('edit');
+    setSearchResults([]);
+  };
+
+  const handleUpdateUser = async (event) => {
+    event.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const userData = {
+        name,
+        email,
+        userType
+      };
+      
+      // Add department for instructor and chair
+      if (userType === 'instructor' || userType === 'chair') {
+        userData.department = department;
+      }
+      
+      await axios.put(`${API_URL}/api/admin/users/${userId}`, userData);
+      
+      setSuccess('User updated successfully');
+    } catch (err) {
+      console.error('Error updating user:', err);
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to update user`);
+      } else if (err.request) {
+        setErrorMessage('Server not responding. Please check your connection.');
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+      }
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      setErrorMessage('Please select a file first');
+      setShowError(true);
+      return;
+    }
+    
+    if (selectedFile.type !== 'text/csv') {
+      setErrorMessage('Only CSV files are allowed');
+      setShowError(true);
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      
+      const response = await axios.post(
+        `${API_URL}/api/admin/users/upload`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
         }
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleFileUpload = () => {
-    if (selectedFile) {
-      console.log('Uploading file:', selectedFile);
-      // File upload API call here
-    } else {
-      setErrorMessage("Please select a file first.");
+      );
+      
+      setSuccess(response.data.message || `File uploaded successfully. ${response.data.usersCreated} users created.`);
+      setSelectedFile(null);
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to upload file`);
+      } else if (err.request) {
+        setErrorMessage('Server not responding. Please check your connection.');
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+      }
       setShowError(true);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setUserId('');
-    setNameSurname('');
-    setEmail('');
-    setPhoneNumber('');
-    setUserType('');
-    setUserToEdit(null);
-  };
-
-  const handleDeleteConfirm = () => {
-    console.log('Deleting user:', userToDelete);
-    // API call to delete user
-    setShowConfirmation(false);
-    setUserToDelete(null);
-    resetForm();
-    // Show success message or redirect
-  };
-
-  const handleDeleteCancel = () => {
-    setShowConfirmation(false);
-    setUserToDelete(null);
-  };
-
-  const handleErrorClose = () => {
-    setShowError(false);
-    setErrorMessage('');
   };
 
   return (
@@ -179,10 +385,7 @@ const AdminUserManagement = () => {
           <div className={styles.actionButtons}>
             <div 
               className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
-              onClick={() => {
-                setActiveView('add');
-                resetForm();
-              }}
+              onClick={() => handleViewChange('add')}
             >
               <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
                 <span>+</span>
@@ -192,10 +395,7 @@ const AdminUserManagement = () => {
             
             <div 
               className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
-              onClick={() => {
-                setActiveView('delete');
-                resetForm();
-              }}
+              onClick={() => handleViewChange('delete')}
             >
               <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
                 <span>-</span>
@@ -205,10 +405,7 @@ const AdminUserManagement = () => {
             
             <div 
               className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
-              onClick={() => {
-                setActiveView('edit');
-                resetForm();
-              }}
+              onClick={() => handleViewChange('edit')}
             >
               <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
                 <span>✎</span>
@@ -231,6 +428,7 @@ const AdminUserManagement = () => {
               Select file
               <input 
                 type="file" 
+                accept=".csv"
                 hidden 
                 onChange={handleFileSelect}
               />
@@ -239,9 +437,15 @@ const AdminUserManagement = () => {
             <button 
               className={styles.uploadFileBtn}
               onClick={handleFileUpload}
+              disabled={loading}
             >
-              Upload File
+              {loading ? 'Uploading...' : 'Upload File'}
             </button>
+            <div className={styles.uploadNote}>
+              Note: CSV should contain columns for ID, Name, Email, UserType, and Department (if applicable).
+              <br />
+              Users will receive emails with auto-generated passwords.
+            </div>
           </div>
         </div>
 
@@ -251,9 +455,9 @@ const AdminUserManagement = () => {
             {activeView === 'add' && (
               <>
                 <h2 className={styles.formTitle}>Enter User Information</h2>
-                <form onSubmit={handleFormSubmit}>
+                <form onSubmit={handleAddUser}>
                   <div className={styles.formGroup}>
-                    <label>ID</label>
+                    <label>ID <span className={styles.requiredField}>*</span></label>
                     <input 
                       type="text" 
                       placeholder="Enter ID" 
@@ -262,34 +466,25 @@ const AdminUserManagement = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Name Surname</label>
+                    <label>Name <span className={styles.requiredField}>*</span></label>
                     <input 
                       type="text" 
-                      placeholder="Enter name surname" 
-                      value={nameSurname}
-                      onChange={(e) => setNameSurname(e.target.value)}
+                      placeholder="Enter name" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Mail</label>
+                    <label>Email <span className={styles.requiredField}>*</span></label>
                     <input 
                       type="email" 
-                      placeholder="Enter mail" 
+                      placeholder="Enter email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Phone Number</label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter phone number" 
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Type</label>
+                    <label>User Type <span className={styles.requiredField}>*</span></label>
                     <div className={styles.selectionList}>
                       {userTypeOptions.map((type) => (
                         <div 
@@ -303,15 +498,45 @@ const AdminUserManagement = () => {
                       ))}
                     </div>
                   </div>
-                  <button type="submit" className={styles.formSubmitBtn}>Add User</button>
+                  
+                  {/* Only show department for instructor and chair */}
+                  {(userType === 'instructor' || userType === 'chair') && (
+                    <div className={styles.formGroup}>
+                      <label>Department <span className={styles.requiredField}>*</span></label>
+                      <div className={styles.selectionList}>
+                        {departmentOptions.map((dept) => (
+                          <div 
+                            key={dept.value} 
+                            className={`${styles.selectionItem} ${department === dept.value ? styles.selected : ''}`}
+                            onClick={() => setDepartment(dept.value)}
+                          >
+                            {dept.label}
+                            <span className={styles.optionIndicator}></span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className={styles.formNote}>
+                    Note: A random password will be generated and sent to the user's email.
+                  </div>
+                  
+                  <button 
+                    type="submit" 
+                    className={styles.formSubmitBtn}
+                    disabled={loading}
+                  >
+                    {loading ? 'Adding...' : 'Add User'}
+                  </button>
                 </form>
               </>
             )}
 
             {activeView === 'delete' && (
               <>
-                <h2 className={styles.formTitle}>Enter ID or mail to find User</h2>
-                <form onSubmit={handleFormSubmit}>
+                <h2 className={styles.formTitle}>Enter ID or email to find User</h2>
+                <form onSubmit={handleSearchUser}>
                   <div className={styles.formGroup}>
                     <label>ID</label>
                     <input 
@@ -322,25 +547,56 @@ const AdminUserManagement = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Mail</label>
+                    <label>Email</label>
                     <input 
                       type="email" 
-                      placeholder="Enter mail" 
+                      placeholder="Enter email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  <button type="submit" className={styles.formSubmitBtn}>Find User to Delete</button>
+                  <button 
+                    type="submit" 
+                    className={styles.formSubmitBtn}
+                    disabled={loading}
+                  >
+                    {loading ? 'Searching...' : 'Find User'}
+                  </button>
                 </form>
+                
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <div className={styles.searchResults}>
+                    <h3>Search Results</h3>
+                    <ul className={styles.resultsList}>
+                      {searchResults.map(user => (
+                        <li key={user.id} className={styles.resultItem}>
+                          <div className={styles.resultInfo}>
+                            <div><strong>ID:</strong> {user.id}</div>
+                            <div><strong>Name:</strong> {user.name}</div>
+                            <div><strong>Email:</strong> {user.email}</div>
+                            <div><strong>Type:</strong> {user.userType}</div>
+                          </div>
+                          <button 
+                            onClick={() => handleDeleteConfirmation(user)}
+                            className={styles.deleteBtn}
+                          >
+                            Delete
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </>
             )}
 
             {activeView === 'edit' && (
               <>
-                {!userToEdit ? (
+                {!userId ? (
                   <>
-                    <h2 className={styles.formTitle}>Enter ID or mail to find User</h2>
-                    <form onSubmit={handleFormSubmit}>
+                    <h2 className={styles.formTitle}>Enter ID or email to find User</h2>
+                    <form onSubmit={handleSearchUser}>
                       <div className={styles.formGroup}>
                         <label>ID</label>
                         <input 
@@ -351,21 +607,60 @@ const AdminUserManagement = () => {
                         />
                       </div>
                       <div className={styles.formGroup}>
-                        <label>Mail</label>
+                        <label>Email</label>
                         <input 
                           type="email" 
-                          placeholder="Enter mail" 
+                          placeholder="Enter email" 
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
-                      <button type="submit" className={styles.formSubmitBtn}>Find User to Edit</button>
+                      <button 
+                        type="submit" 
+                        className={styles.formSubmitBtn}
+                        disabled={loading}
+                      >
+                        {loading ? 'Searching...' : 'Find User to Edit'}
+                      </button>
                     </form>
+                    
+                    {/* Search Results */}
+                    {searchResults.length > 0 && (
+                      <div className={styles.searchResults}>
+                        <h3>Search Results</h3>
+                        <ul className={styles.resultsList}>
+                          {searchResults.map(user => (
+                            <li key={user.id} className={styles.resultItem}>
+                              <div className={styles.resultInfo}>
+                                <div><strong>ID:</strong> {user.id}</div>
+                                <div><strong>Name:</strong> {user.name}</div>
+                                <div><strong>Email:</strong> {user.email}</div>
+                                <div><strong>Type:</strong> {user.userType}</div>
+                              </div>
+                              <div className={styles.buttonGroup}>
+                                <button 
+                                  onClick={() => handleResetPasswordConfirmation(user.id)}
+                                  className={styles.resetBtn}
+                                >
+                                  Reset Password
+                                </button>
+                                <button 
+                                  onClick={() => handleEditUser(user)}
+                                  className={styles.editBtn}
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
                     <h2 className={styles.formTitle}>Edit User Information</h2>
-                    <form onSubmit={handleFormSubmit}>
+                    <form onSubmit={handleUpdateUser}>
                       <div className={styles.formGroup}>
                         <label>ID</label>
                         <input 
@@ -376,31 +671,25 @@ const AdminUserManagement = () => {
                         />
                       </div>
                       <div className={styles.formGroup}>
-                        <label>Name Surname</label>
+                        <label>Name</label>
                         <input 
                           type="text" 
-                          value={nameSurname}
-                          onChange={(e) => setNameSurname(e.target.value)}
+                          placeholder="Enter name" 
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
                         />
                       </div>
                       <div className={styles.formGroup}>
-                        <label>Mail</label>
+                        <label>Email</label>
                         <input 
                           type="email" 
+                          placeholder="Enter email" 
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
                       <div className={styles.formGroup}>
-                        <label>Phone Number</label>
-                        <input 
-                          type="text" 
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Type</label>
+                        <label>User Type</label>
                         <div className={styles.selectionList}>
                           {userTypeOptions.map((type) => (
                             <div 
@@ -414,7 +703,52 @@ const AdminUserManagement = () => {
                           ))}
                         </div>
                       </div>
-                      <button type="submit" className={styles.formSubmitBtn}>Edit User</button>
+                      
+                      {/* Only show department for instructor and chair */}
+                      {(userType === 'instructor' || userType === 'chair') && (
+                        <div className={styles.formGroup}>
+                          <label>Department</label>
+                          <div className={styles.selectionList}>
+                            {departmentOptions.map((dept) => (
+                              <div 
+                                key={dept.value} 
+                                className={`${styles.selectionItem} ${department === dept.value ? styles.selected : ''}`}
+                                onClick={() => setDepartment(dept.value)}
+                              >
+                                {dept.label}
+                                <span className={styles.optionIndicator}></span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className={styles.formButtonGroup}>
+                        <button 
+                          type="button" 
+                          className={styles.cancelBtn}
+                          onClick={() => {
+                            clearForm();
+                            setActiveView('edit');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="button" 
+                          className={styles.resetPasswordBtn}
+                          onClick={() => handleResetPasswordConfirmation(userId)}
+                        >
+                          Reset Password
+                        </button>
+                        <button 
+                          type="submit" 
+                          className={styles.formSubmitBtn}
+                          disabled={loading}
+                        >
+                          {loading ? 'Updating...' : 'Update User'}
+                        </button>
+                      </div>
                     </form>
                   </>
                 )}
@@ -424,21 +758,46 @@ const AdminUserManagement = () => {
         </div>
       </div>
 
-      {/* Confirmation Popup */}
-      {showConfirmation && userToDelete && (
-        <AdminUserDeleteConfirmation
-          user={userToDelete}
-          onCancel={handleDeleteCancel}
-          onConfirm={handleDeleteConfirm}
+      {/* Confirmation Popup for Delete */}
+      {showConfirmation && (
+        <ConfirmationPopup
+          user={confirmationData}
+          title="Confirm User Deletion"
+          message="Are you sure you want to delete this user? This action cannot be undone."
+          confirmText="Delete User"
+          onCancel={() => setShowConfirmation(false)}
+          onConfirm={() => handleDeleteUser(confirmationData.id)}
+        />
+      )}
+
+      {/* Confirmation Popup for Password Reset */}
+      {showResetConfirmation && (
+        <ConfirmationPopup
+          title="Confirm Password Reset"
+          message="Are you sure you want to reset this user's password? A new password will be generated and sent to their email."
+          confirmText="Reset Password"
+          onCancel={() => {
+            setShowResetConfirmation(false);
+            setResetPasswordUserId(null);
+          }}
+          onConfirm={handleResetPassword}
         />
       )}
 
       {/* Error Popup */}
       {showError && (
-        <ErrorPopup 
+        <ErrorPopup
           message={errorMessage}
-          onClose={handleErrorClose}
+          onClose={() => setShowError(false)}
         />
+      )}
+
+      {/* Success Message */}
+      {success && (
+        <div className={styles.successMessage}>
+          {success}
+          <button onClick={() => setSuccess(null)} className={styles.closeBtn}>×</button>
+        </div>
       )}
     </div>
   );

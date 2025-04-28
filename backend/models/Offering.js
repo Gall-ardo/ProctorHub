@@ -7,8 +7,23 @@ const Offering = sequelize.define("Offering", {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  sectionNumber: DataTypes.INTEGER,
-  studentCount: DataTypes.INTEGER,
+  sectionId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  studentCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  // Add courseId and semesterId for relationships
+  courseId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  semesterId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  }
 });
 
 module.exports = Offering;

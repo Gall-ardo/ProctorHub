@@ -1,7 +1,5 @@
-// models/Instructor.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const User = require("./User");
 
 const Instructor = sequelize.define("Instructor", {
   id: {
@@ -9,8 +7,9 @@ const Instructor = sequelize.define("Instructor", {
     primaryKey: true,
   },
   department: DataTypes.STRING,
+  // Remove userId field since we're using id as the foreign key
 });
 
-Instructor.belongsTo(User, { foreignKey: "id", as: "user" });
+// Remove any association here - it's defined in index.js
 
 module.exports = Instructor;
