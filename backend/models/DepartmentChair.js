@@ -1,7 +1,5 @@
-// models/DepartmentChair.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const User = require("./User");
 
 const DepartmentChair = sequelize.define("DepartmentChair", {
   id: {
@@ -11,6 +9,6 @@ const DepartmentChair = sequelize.define("DepartmentChair", {
   department: DataTypes.STRING,
 });
 
-DepartmentChair.belongsTo(User, { foreignKey: "id", as: "user" });
+// Remove any association here - it's defined in index.js
 
 module.exports = DepartmentChair;

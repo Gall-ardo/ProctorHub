@@ -1,7 +1,5 @@
-// models/TeachingAssistant.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const User = require("./User");
 
 const TeachingAssistant = sequelize.define("TeachingAssistant", {
   id: {
@@ -18,6 +16,6 @@ const TeachingAssistant = sequelize.define("TeachingAssistant", {
   isPartTime: DataTypes.BOOLEAN,
 });
 
-TeachingAssistant.belongsTo(User, { foreignKey: "id", as: "user" });
+// Remove any association here - it's defined in index.js
 
 module.exports = TeachingAssistant;

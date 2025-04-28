@@ -9,29 +9,23 @@ const Offering = sequelize.define("Offering", {
     primaryKey: true,
     allowNull: false
   },
-  instructor: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  courseCode: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
   sectionId: {
     type: DataTypes.STRING,
-    allowNull: false
-  },
-  semester: {
-    type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
   },
   studentCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0
+  },
+  // Add courseId and semesterId for relationships
+  courseId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  semesterId: {
+    type: DataTypes.STRING,
+    allowNull: false,
   }
-}, {
-  tableName: 'Offerings',  // Explicitly set table name to match your DB
-  timestamps: true
 });
 
 module.exports = Offering;
