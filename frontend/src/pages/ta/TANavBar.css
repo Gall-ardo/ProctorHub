@@ -91,6 +91,75 @@
   border-bottom: 1px solid #eee;
 }
 
+/* NOTIFICATION DROPDOWN STYLES */
+.ta-nav-notification-container {
+  position: relative;
+}
+
+.ta-nav-notification-dropdown {
+  position: absolute;
+  top: 40px;
+  right: -50px; /* Adjusted from -100px to -50px to move left */
+  width: 380px;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.notification-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+}
+
+.notification-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: flex-start;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f9f9f9;
+}
+
+.notification-icon {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-text {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.notification-meta {
+  color: #888;
+  text-align: right;
+  font-size: 12px;
+}
+
+.no-notifications {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
 /* Password Modal Styles */
 .password-modal-overlay {
   position: fixed;

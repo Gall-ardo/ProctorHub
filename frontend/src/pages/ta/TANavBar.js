@@ -10,13 +10,83 @@ const TANavBar = () => {
   const location = useLocation();
   const path = location.pathname;
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const dropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
+  const notificationDropdownRef = useRef(null);
   const modalRef = useRef(null);
+
+  // Sample notifications data - this would come from your backend in a real app
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: 'workload',
+      icon: '👍',
+      text: 'Uğur Güdükbay has accepted your workload request.',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 2,
+      type: 'workload',
+      icon: '👎',
+      text: 'Can Alkan has rejected your workload request :(. Reason: Duration is invalid.',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 3,
+      type: 'personal',
+      icon: '↩',
+      text: 'Şebnem Ferah has accepted your personal request. Check your proctorings!',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 4,
+      type: 'swap',
+      icon: '💬',
+      text: 'Fatma Turgut has accepted your swap request on forum. Check your proctorings!',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 5,
+      type: 'proctoring',
+      icon: '💬',
+      text: 'You have 2 pending proctoring requests. Check your proctorings!',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 6,
+      type: 'leave',
+      icon: '📅',
+      text: 'Your Leave of Absence request has been accepted.',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 7,
+      type: 'leave',
+      icon: '📅',
+      text: 'Your Leave of Absence request has been rejected :(.',
+      date: '07.03.2025',
+      time: '15:30'
+    },
+    {
+      id: 8,
+      type: 'swap',
+      icon: '↩',
+      text: 'Sezen Aksu send you a personal swap request. Exam: CS224 - 02.04.2025 13.30-16.30',
+      date: '07.03.2025',
+      time: '15:30'
+    }
+  ]);
 
   // Determine active tab based on current path
   const isActive = (navPath) => {
@@ -28,9 +98,18 @@ const TANavBar = () => {
     return false;
   };
 
-  // Toggle dropdown visibility
+  // Toggle profile dropdown visibility
   const toggleProfileDropdown = () => {
     setShowProfileDropdown(!showProfileDropdown);
+    // Close notification dropdown if it's open
+    if (showNotificationDropdown) setShowNotificationDropdown(false);
+  };
+
+  // Toggle notification dropdown visibility
+  const toggleNotificationDropdown = () => {
+    setShowNotificationDropdown(!showNotificationDropdown);
+    // Close profile dropdown if it's open
+    if (showProfileDropdown) setShowProfileDropdown(false);
   };
 
   // Open password change modal
@@ -161,11 +240,33 @@ const TANavBar = () => {
     closePasswordModal();
   };
 
-  // Close dropdown when clicking outside
+  // Function to get the appropriate icon for each notification type
+  // Note: This is a placeholder and would ideally be replaced with actual icons
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'workload':
+        return '👍';
+      case 'personal':
+        return '↩';
+      case 'swap':
+        return '💬';
+      case 'proctoring':
+        return '💬';
+      case 'leave':
+        return '📅';
+      default:
+        return '📣';
+    }
+  };
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setShowProfileDropdown(false);
+      }
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target)) {
+        setShowNotificationDropdown(false);
       }
     };
 
@@ -188,10 +289,34 @@ const TANavBar = () => {
         <Link to="/ta/taforum" className={isActive('/ta/taforum') ? 'active' : ''}>Swap</Link>
       </div>
       <div style={{ marginLeft: 'auto' }} className="ta-nav-icons">
-        <div className="ta-nav-notification-icon">
-          <img src={notificationIcon} alt="Notifications" />
+        <div className="ta-nav-notification-container" ref={notificationDropdownRef}>
+          <div className="ta-nav-notification-icon" onClick={toggleNotificationDropdown}>
+            <img src={notificationIcon} alt="Notifications" />
+          </div>
+          {showNotificationDropdown && (
+            <div className="ta-nav-notification-dropdown">
+              <div className="notification-header">Notifications</div>
+              {notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <div key={notification.id} className="notification-item">
+                    <div className="notification-icon">
+                      {notification.icon}
+                    </div>
+                    <div className="notification-content">
+                      <p className="notification-text">{notification.text}</p>
+                      <div className="notification-meta">
+                        {notification.date} {notification.time}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="no-notifications">No notifications to display</div>
+              )}
+            </div>
+          )}
         </div>
-        <div className="ta-nav-profile-container" ref={dropdownRef}>
+        <div className="ta-nav-profile-container" ref={profileDropdownRef}>
           <div className="ta-nav-profile-icon" onClick={toggleProfileDropdown}>
             <img src={userIcon} alt="Profile" />
           </div>

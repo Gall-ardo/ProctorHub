@@ -1,96 +1,96 @@
-Department,Course Code,Course Name,Credit,Is Undergrad
-CS,101,Algorithms and Programming I,4,True
-ENG,101,English and Composition I,3,True
-GE,100,Orientation,1,True
-MATH,101,Calculus I,4,True
-MBG,110,Introduction to Modern Biology,3,True
-TURK,101,Turkish I,2,True
-CS,102,Algorithms and Programming II,4,True
-ENG,102,English and Composition II,3,True
-MATH,102,Calculus II,4,True
-MATH,132,Discrete and Combinatorial Mathematics,3,True
-TURK,102,Turkish II,2,True
-CS,201,Fundamental Structures of Computer Science I,3,True
-CS,223,Digital Design,4,True
-HIST,200,History of Turkey,4,True
-HUM,111,Cultures Civilizations and Ideas I,3,True
-PHYS,101,General Physics I,4,True
-CS,202,Fundamental Structures of Computer Science II,3,True
-CS,224,Computer Organization,4,True
-GE,251,Collegiate Activities Program II,1,True
-HUM,112,Cultures Civilizations and Ideas II,3,True
-MATH,225,Linear Algebra and Differential Equations,4,True
-PHYS,102,General Physics II,4,True
-CS,315,Programming Languages,3,True
-CS,319,Object-Oriented Software Engineering,4,True
-ENG,401,Technical Report Writing and Presentation,3,True
-MATH,230,Probability and Statistics for Engineers,3,True
-CS,342,Operating Systems,4,True
-CS,353,Database Systems,3,True
-CS,473,Algorithms I,3,True
-GE,301,Science Technology and Society,2,True
-IE,400,Principles of Engineering Management,3,True
-CS,476,Automata Theory and Formal Languages,3,True
-CS,491,Senior Design Project I,3,True
-CS,492,Senior Design Project II,3,True
-GE,401,Innovative Design and Entrepreneurship I,3,True
-GE,402,Innovative Design and Entrepreneurship II,3,True
-CS,411,Software Architecture Design,3,True
-CS,413,Software Engineering Project Management,3,True
-CS,421,Computer Networks,3,True
-CS,423,Computer Architecture,3,True
-CS,426,Parallel Computing,3,True
-CS,429,Dynamic and Social Network Analysis,3,True
-CS,433,Information Retrieval Systems,3,True
-CS,437,Software Design Patterns,3,True
-CS,439,Automated Program Repair,3,True
-CS,443,Cloud Computing,3,True
-CS,449,Learning for Robotics,3,True
-CS,453,Application Lifecycle Management,3,True
-CS,458,Software Verification and Validation,3,True
-CS,461,Artificial Intelligence,3,True
-CS,464,Introduction to Machine Learning,3,True
-CS,465,Computer Graphics I,3,True
-CS,474,Algorithms II,3,True
-CS,475,Data Privacy,3,True
-CS,478,Computational Geometry,3,True
-CS,481,Bioinformatics Algorithms,3,True
-CS,484,Introduction to Computer Vision,3,True
-CS,485,Deep Generative Networks,3,True
-CS,489,Teaching Project in Computer Engineering,3,True
-CS,490,Senior Research Project,3,True
-EEE,361,Linear Algebra in Data Analysis and Machine Learning,3,True
-EEE,431,Digital Communications,3,True
-EEE,443,Neural Networks,3,True
-EEE,447,Introduction to Robotics,3,True
-EEE,448,Reinforcement Learning and Dynamic Programming,3,True
-EEE,485,Statistical Learning and Data Analytics,3,True
-EEE,486,Statistical Foundations of Natural Language Processing,3,True
-GE,461,Introduction to Data Science,3,True
-IE,303,Modeling and Methods in Optimization,3,True
-IE,325,Stochastic Models,3,True
-IE,411,Introduction to Nonlinear Optimization,3,True
-IE,423,Forecasting Methods and Applications,3,True
-IE,451,Applied Data Analysis,3,True
-IE,452,Algebraic and Geometric Methods in Data Analysis,3,True
-IE,456,Reinforcement Learning and Dynamic Programming,3,True
-IE,486,Computational Optimization,3,True
-MATH,202,Complex Analysis,3,True
-MATH,213,Advanced Calculus I,4,True
-MATH,224,Linear Algebra II,3,True
-MATH,240,Differential Equations,3,True
-MATH,253,Introduction to Number Theory,3,True
-MATH,260,Introduction to Statistics,3,True
-MATH,313,Real Analysis I,3,True
-MATH,314,Real Analysis II,3,True
-MATH,323,Algebra I,3,True
-MATH,324,Algebra II,3,True
-MATH,421,Introduction to Quantum Computation,3,True
-MATH,422,Topics in Quantum Information Theory,3,True
-MATH,465,Mathematical Foundations of Data Science,3,True
-MBG,209,Principles of Genetics,3,True
-MBG,222,Fundamentals of Molecular Genetics,3,True
-MBG,326,Introduction to Bioinformatics,3,True
-ME,473,Flexible Robotics,3,True
-ME,474,Mobile Robots,3,True
-ME,489,Fundamentals of Design for Reliability,3,True
+id,Department,Course Code,Course Name,Credit,Is Undergrad
+CS101,CS,101,Algorithms and Programming I,4,True
+ENG101,ENG,101,English and Composition I,3,True
+GE100,GE,100,Orientation,1,True
+MATH101,MATH,101,Calculus I,4,True
+MBG110,MBG,110,Introduction to Modern Biology,3,True
+TURK101,TURK,101,Turkish I,2,True
+CS102,CS,102,Algorithms and Programming II,4,True
+ENG102,ENG,102,English and Composition II,3,True
+MATH102,MATH,102,Calculus II,4,True
+MATH132,MATH,132,Discrete and Combinatorial Mathematics,3,True
+TURK102,TURK,102,Turkish II,2,True
+CS201,CS,201,Fundamental Structures of Computer Science I,3,True
+CS223,CS,223,Digital Design,4,True
+HIST200,HIST,200,History of Turkey,4,True
+HUM111,HUM,111,Cultures Civilizations and Ideas I,3,True
+PHYS101,PHYS,101,General Physics I,4,True
+CS202,CS,202,Fundamental Structures of Computer Science II,3,True
+CS224,CS,224,Computer Organization,4,True
+GE251,GE,251,Collegiate Activities Program II,1,True
+HUM112,HUM,112,Cultures Civilizations and Ideas II,3,True
+MATH225,MATH,225,Linear Algebra and Differential Equations,4,True
+PHYS102,PHYS,102,General Physics II,4,True
+CS315,CS,315,Programming Languages,3,True
+CS319,CS,319,Object-Oriented Software Engineering,4,True
+ENG401,ENG,401,Technical Report Writing and Presentation,3,True
+MATH230,MATH,230,Probability and Statistics for Engineers,3,True
+CS342,CS,342,Operating Systems,4,True
+CS353,CS,353,Database Systems,3,True
+CS473,CS,473,Algorithms I,3,True
+GE301,GE,301,Science Technology and Society,2,True
+IE400,IE,400,Principles of Engineering Management,3,True
+CS476,CS,476,Automata Theory and Formal Languages,3,True
+CS491,CS,491,Senior Design Project I,3,True
+CS492,CS,492,Senior Design Project II,3,True
+GE401,GE,401,Innovative Design and Entrepreneurship I,3,True
+GE402,GE,402,Innovative Design and Entrepreneurship II,3,True
+CS411,CS,411,Software Architecture Design,3,True
+CS413,CS,413,Software Engineering Project Management,3,True
+CS421,CS,421,Computer Networks,3,True
+CS423,CS,423,Computer Architecture,3,True
+CS426,CS,426,Parallel Computing,3,True
+CS429,CS,429,Dynamic and Social Network Analysis,3,True
+CS433,CS,433,Information Retrieval Systems,3,True
+CS437,CS,437,Software Design Patterns,3,True
+CS439,CS,439,Automated Program Repair,3,True
+CS443,CS,443,Cloud Computing,3,True
+CS449,CS,449,Learning for Robotics,3,True
+CS453,CS,453,Application Lifecycle Management,3,True
+CS458,CS,458,Software Verification and Validation,3,True
+CS461,CS,461,Artificial Intelligence,3,True
+CS464,CS,464,Introduction to Machine Learning,3,True
+CS465,CS,465,Computer Graphics I,3,True
+CS474,CS,474,Algorithms II,3,True
+CS475,CS,475,Data Privacy,3,True
+CS478,CS,478,Computational Geometry,3,True
+CS481,CS,481,Bioinformatics Algorithms,3,True
+CS484,CS,484,Introduction to Computer Vision,3,True
+CS485,CS,485,Deep Generative Networks,3,True
+CS489,CS,489,Teaching Project in Computer Engineering,3,True
+CS490,CS,490,Senior Research Project,3,True
+EEE361,EEE,361,Linear Algebra in Data Analysis and Machine Learning,3,True
+EEE431,EEE,431,Digital Communications,3,True
+EEE443,EEE,443,Neural Networks,3,True
+EEE447,EEE,447,Introduction to Robotics,3,True
+EEE448,EEE,448,Reinforcement Learning and Dynamic Programming,3,True
+EEE485,EEE,485,Statistical Learning and Data Analytics,3,True
+EEE486,EEE,486,Statistical Foundations of Natural Language Processing,3,True
+GE461,GE,461,Introduction to Data Science,3,True
+IE303,IE,303,Modeling and Methods in Optimization,3,True
+IE325,IE,325,Stochastic Models,3,True
+IE411,IE,411,Introduction to Nonlinear Optimization,3,True
+IE423,IE,423,Forecasting Methods and Applications,3,True
+IE451,IE,451,Applied Data Analysis,3,True
+IE452,IE,452,Algebraic and Geometric Methods in Data Analysis,3,True
+IE456,IE,456,Reinforcement Learning and Dynamic Programming,3,True
+IE486,IE,486,Computational Optimization,3,True
+MATH202,MATH,202,Complex Analysis,3,True
+MATH213,MATH,213,Advanced Calculus I,4,True
+MATH224,MATH,224,Linear Algebra II,3,True
+MATH240,MATH,240,Differential Equations,3,True
+MATH253,MATH,253,Introduction to Number Theory,3,True
+MATH260,MATH,260,Introduction to Statistics,3,True
+MATH313,MATH,313,Real Analysis I,3,True
+MATH314,MATH,314,Real Analysis II,3,True
+MATH323,MATH,323,Algebra I,3,True
+MATH324,MATH,324,Algebra II,3,True
+MATH421,MATH,421,Introduction to Quantum Computation,3,True
+MATH422,MATH,422,Topics in Quantum Information Theory,3,True
+MATH465,MATH,465,Mathematical Foundations of Data Science,3,True
+MBG209,MBG,209,Principles of Genetics,3,True
+MBG222,MBG,222,Fundamentals of Molecular Genetics,3,True
+MBG326,MBG,326,Introduction to Bioinformatics,3,True
+ME473,ME,473,Flexible Robotics,3,True
+ME474,ME,474,Mobile Robots,3,True
+ME489,ME,489,Fundamentals of Design for Reliability,3,True

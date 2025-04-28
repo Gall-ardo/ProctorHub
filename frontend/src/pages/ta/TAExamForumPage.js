@@ -3,7 +3,7 @@ import './TAExamForumPage.css';
 import TAPersonalSwapRequest from './TAPersonalSwapRequest';
 import TASwapExamDetailsPopup from './TASwapExamDetailsPopup';
 import TASubmitForumRequest from './TASubmitForumRequest';
-import TANavBar from './TANavBar';
+import TANavBar from './TANavBar'; // Import TANavBar from existing component
 
 const ConfirmationDialog = ({ isOpen, onClose, onConfirm, type }) => {
   if (!isOpen) return null;
@@ -38,69 +38,64 @@ const TAExamForumPage = () => {
   
   // Current user's exams for swap
   const [currentUserExams, setCurrentUserExams] = useState([
-    { id: 1, course: 'CS201', date: '25.03.2025', time: '13.00-16.00' },
-    { id: 2, course: 'MATH102', date: '22.03.2025', time: '18.00-21.00' },
-    { id: 3, course: 'CS101', date: '27.03.2025', time: '15.00-18.00' }
+    { id: 1, course: 'CS201', date: '25.03.2025', time: '13.00-16.00', classrooms: 'EE101 - EE102' },
+    { id: 2, course: 'MATH102', date: '22.03.2025', time: '18.00-21.00', classrooms: 'B101 - B102 - B103 - B104' },
+    { id: 3, course: 'CS101', date: '27.03.2025', time: '15.00-18.00', classrooms: 'EA201 - EA202' }
   ]);
   
-  // Swap requests waiting for approval
+  // Swap requests waiting for approval - modified to match screenshot
   const [waitingSwapRequests, setWaitingSwapRequests] = useState([
     {
       id: 1,
       course: 'CS201',
-      date: '17.03.2025',
+      date: '22.03.2025',
       time: '13.00-16.00',
-      classrooms: 'EE201 - EE202',
+      classrooms: 'EE101 - EE102',
       requestedBy: 'Sude Ergün',
+      submitTime: '07.03.2025'
     },
     {
       id: 2,
-      course: 'CS101',
-      date: '20.03.2025',
-      time: '10.00-13.00',
-      classrooms: 'EA101 - EA102',
-      requestedBy: 'Halil Arda Özongün'
-
-
+      course: 'MATH102',
+      date: '25.03.2025',
+      time: '18.00-21.00',
+      classrooms: 'B101 - B102 - B103 - B104',
+      requestedBy: 'Halil Arda Özongün',
+      submitTime: '11.03.2025'
     },
     {
       id: 3,
-      course: 'CS202',
-      date: '16.03.2025',
-      time: '13.00-16.00',
-      classrooms: 'BZ101 - BZ102',
-      requestedBy: 'Sude Ergün'
+      course: 'CS101',
+      date: '27.03.2025',
+      time: '15.00-18.00',
+      classrooms: 'EA201- EA202',
+      requestedBy: 'Sude Ergün',
+      submitTime: '07.03.2025'
     },
     {
-      id: 4,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classrooms: 'EA101 - EA102',
-      requestedBy: 'Halil Arda Özongün'
+      id: 3,
+      course: 'CS101',
+      date: '27.03.2025',
+      time: '15.00-18.00',
+      classrooms: 'EA201- EA202',
+      requestedBy: 'Sude Ergün',
+      submitTime: '07.03.2025'
     },
     {
-      id: 5,
-      course: 'CS202',
-      date: '16.03.2025',
-      time: '13.00-16.00',
-      classrooms: 'BZ101 - BZ102',
-      requestedBy: 'Sude Ergün'
-    },
-    {
-      id: 6,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classrooms: 'EA101 - EA102',
-      requestedBy: 'Halil Arda Özongün'
+      id: 3,
+      course: 'CS101',
+      date: '27.03.2025',
+      time: '15.00-18.00',
+      classrooms: 'EA201- EA202',
+      requestedBy: 'Sude Ergün',
+      submitTime: '07.03.2025'
     }
   ]);
   
-  // Swap forum items
+  // Swap forum items - modified to match screenshot
   const [swapForumItems, setSwapForumItems] = useState([
     {
-      id: 3,
+      id: 1,
       course: 'CS202',
       date: '16.03.2025',
       time: '13.00-16.00',
@@ -110,27 +105,27 @@ const TAExamForumPage = () => {
       requestedBy: 'sude.ergun@bilkent.edu.tr'
     },
     {
+      id: 2,
+      course: 'GE301',
+      date: '19.03.2025',
+      time: '10.00-13.00',
+      classroom: 'EA101-EA102',
+      submitter: 'Halil Arda Özongün',
+      submitTime: '11.03.2025',
+      requestedBy: 'halil.ozongun@bilkent.edu.tr'
+    },
+    {
+      id: 3,
+      course: 'GE301',
+      date: '19.03.2025',
+      time: '10.00-13.00',
+      classroom: 'EA101-EA102',
+      submitter: 'Halil Arda Özongün',
+      submitTime: '11.03.2025',
+      requestedBy: 'halil.ozongun@bilkent.edu.tr'
+    },
+    {
       id: 4,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classroom: 'EA101-EA102',
-      submitter: 'Halil Arda Özongün',
-      submitTime: '11.03.2025',
-      requestedBy: 'halil.ozongun@bilkent.edu.tr'
-    },
-    {
-      id: 121,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classroom: 'EA101-EA102',
-      submitter: 'Halil Arda Özongün',
-      submitTime: '11.03.2025',
-      requestedBy: 'halil.ozongun@bilkent.edu.tr'
-    },
-    {
-      id: 122,
       course: 'GE301',
       date: '19.03.2025',
       time: '10.00-13.00',
@@ -140,20 +135,6 @@ const TAExamForumPage = () => {
       requestedBy: 'halil.ozongun@bilkent.edu.tr'
     }
   ]);
-
-  // Handle accept action
-  const handleAccept = (exam) => {
-    setSelectedExam(exam);
-    setConfirmationType('Accept');
-    setConfirmDialogOpen(true);
-  };
-
-  // Handle reject action
-  const handleReject = (exam) => {
-    setSelectedExam(exam);
-    setConfirmationType('Reject');
-    setConfirmDialogOpen(true);
-  };
 
   // Confirm action
   const confirmAction = () => {
@@ -190,7 +171,7 @@ const TAExamForumPage = () => {
     setSwapRequestModalOpen(false);
   };
 
-  // Open exam details modal
+  // Open exam details modal - now used for both forum and waiting items
   const openExamDetailsModal = (exam) => {
     setSelectedForumExam(exam);
     setExamDetailsModalOpen(true);
@@ -212,33 +193,29 @@ const TAExamForumPage = () => {
     setSubmitForumModalOpen(false);
   };
 
-  // Render waiting swap requests
+  // Render waiting swap requests - modified to be clickable and match forum items
   const renderWaitingSwapRequests = () => {
     return waitingSwapRequests.map((request) => (
-      <div key={request.id} className="ta-exam-forum-page-swap-item">
-        <div className="ta-exam-forum-page-swap-details">
+      <div 
+        key={request.id} 
+        className="ta-exam-forum-page-forum-item"
+        onClick={() => openExamDetailsModal(request)}
+      >
+        <div className="ta-exam-forum-page-forum-details">
           <div className="ta-exam-forum-page-course-info">
             {request.course} Midterm Exam
           </div>
           <div className="ta-exam-forum-page-swap-meta">
             <div>{request.date}      {request.time}</div>
             <div>Clasrooms: {request.classrooms}</div>
-            <div>Requested by: {request.requestedBy}</div>
           </div>
         </div>
-        <div className="ta-exam-forum-page-swap-actions">
-          <button 
-            className="ta-exam-forum-page-action-button accept"
-            onClick={() => handleAccept(request)}
-          >
-            ✓
-          </button>
-          <button 
-            className="ta-exam-forum-page-action-button reject"
-            onClick={() => handleReject(request)}
-          >
-            ✕
-          </button>
+        <div className="ta-exam-forum-page-submitter-info">
+          <div className="ta-exam-forum-page-submitter-avatar"></div>
+          <div className="ta-exam-forum-page-submitter-details">
+            <div>{request.requestedBy}</div>
+            <div>Submit time: {request.submitTime}</div>
+          </div>
         </div>
       </div>
     ));
@@ -274,21 +251,34 @@ const TAExamForumPage = () => {
 
   return (
     <div className="ta-exam-forum-page-main-page">
-       <TANavBar />
+      <TANavBar />
       
       <div className="ta-exam-forum-page-main-content">
-        <div className="ta-exam-forum-page-send-request-container">
-          <div className="ta-exam-forum-page-send-icon"></div>
-          <button 
-            className="ta-exam-forum-page-send-button"
-            onClick={openSwapRequestModal}
-          >
-            Send Personal Swap Request
-          </button>
+        {/* Left sidebar for buttons, similar to TAWorkloadPage */}
+        <div className="ta-exam-forum-page-sidebar-actions">
+          {/* Personal Swap Request Button */}
+          <div className="ta-exam-forum-page-button-container">
+            <div className="ta-exam-forum-page-send-request-container">
+              <div className="ta-exam-forum-page-send-button-label">Send Personal Swap Request</div>
+              <div className="ta-exam-forum-page-send-icon" onClick={openSwapRequestModal}></div>
+            </div>
+          </div>
+          
+          {/* Removed middle container to bring buttons closer */}
+          
+          {/* Submit Forum Request Button */}
+          <div className="ta-exam-forum-page-submit-container">
+            <div className="ta-exam-forum-page-submit-forum-container">
+              <div className="ta-exam-forum-page-submit-button-label">Submit Swap Request on Forum</div>
+              <div className="ta-exam-forum-page-submit-icon" onClick={openSubmitForumModal}>
+                <span>+</span>
+              </div>
+            </div>
+          </div>
         </div>
-        
+
         <div className="ta-exam-forum-page-content-wrapper">
-          <div className="ta-exam-forum-page-sidebar">
+          <div className="ta-exam-forum-page-forum-section">
             <div className="ta-exam-forum-page-forum-container">
               <div className="ta-exam-forum-page-forum-header">
                 <div className="ta-exam-forum-page-forum-icon"></div>
@@ -299,14 +289,7 @@ const TAExamForumPage = () => {
                 {renderSwapForumItems()}
               </div>
               
-              <div className="ta-exam-forum-page-add-button-container">
-                <button 
-                  className="ta-exam-forum-page-add-button"
-                  onClick={openSubmitForumModal}
-                >
-                  Publish on Swap Forum
-                </button>
-              </div>
+              {/* Removed "Publish on Swap Forum" button */}
             </div>
           </div>
           
@@ -335,7 +318,7 @@ const TAExamForumPage = () => {
         currentUserExams={currentUserExams}
       />
 
-      {/* Exam Details Modal */}
+      {/* Exam Details Modal - now used for both forum and waiting items */}
       <TASwapExamDetailsPopup 
         isOpen={examDetailsModalOpen}
         onClose={closeExamDetailsModal}
