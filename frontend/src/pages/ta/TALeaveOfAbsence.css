@@ -1,29 +1,4 @@
-.ta-leave-of-absence-file-upload {
-  flex: 1;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  border: 2px dashed #ccc;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 1rem;
-  cursor: pointer;
-}
-
-.ta-leave-of-absence-reason-container textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  align-items: center;
-  justify-content: center;
-}
-
+/* Main page container */
 .ta-leave-of-absence-main-page {
   display: flex;
   flex-direction: column;
@@ -39,37 +14,137 @@
   overflow-y: auto;
 }
 
-/* Leave of Absence specific styles */
+/* List view styles */
+.ta-leave-of-absence-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.ta-leave-of-absence-list-title {
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.ta-leave-of-absence-list-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.ta-leave-of-absence-request-details h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.ta-leave-of-absence-request-details p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.ta-leave-of-absence-request-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ta-leave-of-absence-status-pending {
+  color: #f2c94c;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.ta-leave-of-absence-status-accepted {
+  color: #4CAF50;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.ta-leave-of-absence-status-rejected {
+  color: #c62828;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.ta-leave-of-absence-days-remaining {
+  color: #4CAF50;
+  margin: 5px 0 10px 0;
+}
+
+.ta-leave-of-absence-delete-btn {
+  background: none;
+  border: none;
+  color: #c62828;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.ta-leave-of-absence-trash-icon {
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+.ta-leave-of-absence-add-request {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.ta-leave-of-absence-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #c62828;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.ta-leave-of-absence-add-btn:hover {
+  background-color: #b71c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ta-leave-of-absence-plus-icon {
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Form view styles */
 .ta-leave-of-absence-leave-container {
   max-width: 1200px;
   margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
 }
 
 .ta-leave-of-absence-leave-title {
-  font-size: 28px;
-  margin-bottom: 30px;
-}
-
-.ta-leave-of-absence-leave-status {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.ta-leave-of-absence-leave-status.not-submitted {
-  color: #c62828;
-}
-.ta-leave-of-absence-leave-status.pending {
-  color: #f2c94c;
-}
-
-.ta-leave-of-absence-leave-status.accepted {
-  color: #4CAF50;
-}
-
-.ta-leave-of-absence-status-icon {
   font-size: 24px;
-  margin-right: 10px;
+  margin-bottom: 30px;
+  color: #333;
 }
 
 .ta-leave-of-absence-leave-form {
@@ -83,51 +158,63 @@
   gap: 25px;
 }
 
+.ta-leave-of-absence-type-container {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.ta-leave-of-absence-type-container label {
+  display: block;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.ta-leave-of-absence-type-container input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
 .ta-leave-of-absence-date-selector {
   flex: 1;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
-.ta-leave-of-absence-date-selector label, .ta-leave-of-absence-file-upload label, .ta-leave-of-absence-reason-container label {
+.ta-leave-of-absence-date-selector label, 
+.ta-leave-of-absence-file-upload label, 
+.ta-leave-of-absence-reason-container label {
   display: block;
   color: #333;
   margin-bottom: 10px;
   font-weight: bold;
-  text-align: center;
 }
 
 .ta-leave-of-absence-date-inputs {
   display: flex;
   gap: 15px;
   margin-top: 15px;
-  width: 100%;
-  justify-content: center;
 }
 
 .ta-leave-of-absence-date-field {
   flex: 1;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .ta-leave-of-absence-date-field label {
   font-size: 14px;
   color: #666;
   font-weight: normal;
-  text-align: center;
 }
 
-.ta-leave-of-absence-date-field input, .ta-leave-of-absence-reason-container textarea {
+.ta-leave-of-absence-date-field input {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -136,16 +223,18 @@
 }
 
 .ta-leave-of-absence-file-upload {
-  border: 2px dashed #ccc;
+  flex: 1;
+  background-color: white;
   border-radius: 8px;
-  padding: 2rem 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border: 2px dashed #ccc;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   gap: 1rem;
-  background-color: white;
   cursor: pointer;
 }
 
@@ -157,16 +246,6 @@
   width: 100%;
 }
 
-.ta-leave-of-absence-upload-text {
-  font-size: 1rem;
-  color: #ffffff;
-}
-
-.ta-leave-of-absence-upload-divider {
-  font-size: 0.9rem;
-  color: #777;
-}
-
 .ta-leave-of-absence-upload-icon {
   font-size: 32px;
   margin-bottom: 10px;
@@ -174,7 +253,7 @@
 }
 
 .ta-leave-of-absence-select-file-btn {
-  color: #f5f5f5;
+  color: white;
   background-color: #c62828;
   border: none;
   padding: 12px 20px;
@@ -182,29 +261,14 @@
   font-size: 16px;
   cursor: pointer;
   width: 100%;
-  max-width: 400px;
-}
-
-.ta-leave-of-absence-select-file-btn:hover {
-  color: #f5f5f5;
+  max-width: 200px;
+  text-align: center;
 }
 
 .ta-leave-of-absence-selected-file {
   margin-top: 10px;
   font-size: 14px;
   color: #444;
-}
-
-.ta-leave-of-absence-upload-file-btn {
-  background-color: #c62828;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  width: 100%;
-  max-width: 400px;
 }
 
 .ta-leave-of-absence-reason-container {
@@ -215,13 +279,19 @@
 }
 
 .ta-leave-of-absence-reason-container textarea {
+  width: 100%;
   min-height: 120px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
   resize: vertical;
 }
 
-.ta-leave-of-absence-form-submit {
+.ta-leave-of-absence-form-actions {
   display: flex;
   justify-content: center;
+  gap: 15px;
   margin-top: 20px;
 }
 
@@ -233,47 +303,84 @@
   border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
-  width: 100%;
-  max-width: 400px;
+  flex: 1;
+  max-width: 300px;
 }
 
 .ta-leave-of-absence-submit-btn:hover {
   background-color: #b71c1c;
 }
 
-/* Accepted request styles */
-.ta-leave-of-absence-leave-details {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-}
-
-.ta-leave-of-absence-leave-date, .ta-leave-of-absence-remaining-days {
-  font-size: 24px;
-  margin-bottom: 20px;
-  color: #4CAF50;
-}
-
-.ta-leave-of-absence-remaining-days {
-  margin-top: 40px;
-}
-
-/* Debug toggle - you can remove this in production */
-.ta-leave-of-absence-debug-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #333;
+.ta-leave-of-absence-cancel-btn {
+  background-color: #757575;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 12px 20px;
   border-radius: 4px;
+  font-size: 16px;
   cursor: pointer;
-  opacity: 0.7;
-  font-size: 12px;
+  flex: 1;
+  max-width: 150px;
 }
 
-.ta-leave-of-absence-debug-toggle:hover {
-  opacity: 1;
+.ta-leave-of-absence-cancel-btn:hover {
+  background-color: #616161;
+}
+
+/* Delete confirmation modal */
+.ta-leave-of-absence-delete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.ta-leave-of-absence-delete-modal-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.ta-leave-of-absence-delete-modal-content h3 {
+  margin-top: 0;
+  color: #c62828;
+}
+
+.ta-leave-of-absence-delete-modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.ta-leave-of-absence-confirm-btn {
+  background-color: #c62828;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ta-leave-of-absence-confirm-btn:hover {
+  background-color: #b71c1c;
+}
+
+.ta-leave-of-absence-cancel-btn {
+  background-color: #757575;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
 }
