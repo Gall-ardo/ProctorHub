@@ -21,6 +21,7 @@ const SwapRequest = require("./SwapRequest");
 const Notification = require("./Notification");
 const Log = require("./Log");
 const Report = require("./Report");
+const PasswordResetToken = require("./passwordResetToken");
 
 // Inheritance (1-to-1 via shared ID)
 Admin.belongsTo(User, { foreignKey: "id", as: "adminUser" });

@@ -3,37 +3,50 @@ import { Link, useNavigate } from 'react-router-dom';
 import styles from './ForgotPassword.module.css';
 import bilkentLogo from '../../assets/bilkent-logo.png';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleSendPassword = (e) => {
+  const handleSendPassword = async (e) => {
     e.preventDefault();
-    
     if (!email) {
       setErrorMessage('Please enter your email address');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Password reset requested for:', email);
-      // Here you would typically make an API call to send a password reset email
-      
+    setErrorMessage('');
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      // we always return { success: true } even if email not found,
+      // to avoid leaking valid emails
+      if (!res.ok) {
+        const { message } = await res.json();
+        throw new Error(message || 'Failed to send reset email');
+      }
+
+      // Success: inform user and redirect to login
+      alert(`If that email exists, a reset link has been sent to ${email}.`);
+      navigate('/'); // or '/auth/login' if that’s your login route
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
       setIsSubmitting(false);
-      
-      // Show success message or redirect
-      alert(`Password reset link has been sent to ${email}. Please check your inbox.`);
-      navigate('/auth/login');
-    }, 1500);
+    }
   };
 
   const handleCancel = () => {
-    navigate('/auth/login');
+    navigate('/');
   };
 
   return (
@@ -74,7 +87,7 @@ function ForgotPassword() {
               onClick={handleSendPassword}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Sending...' : 'Send New Password'}
+              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
             </button>
           </div>
         </div>

@@ -29,6 +29,7 @@ import InstructorAssignPage from "./pages/instructor/InstructorAssignPage";
 import DeansOfficeMainPage from "./pages/deansoffice/DeansOfficeMainPage";
 import DeansOfficeExamsPage from "./pages/deansoffice/DeansOfficeExamsPage";
 import DeansOfficeLeaveRequestPage from "./pages/deansoffice/DeansOfficeLeaveRequestPage";
+import ResetPassword from './pages/auth/ResetPassword';
 
 import './App.css';
 
@@ -64,6 +65,7 @@ function App() {
         <Route path="/deansoffice/home" element={<DeansOfficeMainPage />} />
         <Route path="/deansoffice/exams" element={<DeansOfficeExamsPage />} />
         <Route path="/deansoffice/leaverequest" element={<DeansOfficeLeaveRequestPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Add more routes as needed */}
          <Route path="*" element={<Navigate to="/" />} />

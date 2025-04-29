@@ -89,6 +89,24 @@ class EmailService {
       return false;
     }
   }
+
+  async sendPasswordResetEmail(recipient, name, token) {
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: recipient,
+      subject: 'ProctorHub Password Reset',
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>Hi ${name},</p>
+        <p>Click the link below to choose a new password. This link expires in 1 hour.</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+        <p>If you didn’t request this, just ignore this email.</p>
+      `
+    };
+    return this.transporter.sendMail(mailOptions);
+  }
+
 }
 
 module.exports = new EmailService();
