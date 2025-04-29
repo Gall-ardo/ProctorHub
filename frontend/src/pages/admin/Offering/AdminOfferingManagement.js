@@ -4,10 +4,6 @@ import axios from 'axios';
 import AdminNavBar from '../AdminNavBar';
 import InstructorSelectionPopup from './InstructorSelectionPopup';
 import styles from './AdminOfferingManagement.module.css';
-import axios from "axios"; // Make sure you import it at the top
-
-// API URL - can be stored in an environment variable
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // API URL - can be stored in an environment variable
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
