@@ -4,10 +4,8 @@ const sequelize = require("../config/db");
 
 const Offering = sequelize.define("Offering", {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    allowNull: false
+    type: DataTypes.STRING,
+    primaryKey: true
   },
   sectionNumber: {
     type: DataTypes.INTEGER,

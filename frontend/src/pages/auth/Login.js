@@ -10,28 +10,56 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Simple validation
     if (!email || !password) {
-      setErrorMessage('E-mail or Password is Incorrect!');
+      setErrorMessage('Please enter both email and password.');
       return;
     }
-    
-    console.log('Login attempted with:', email, password, 'Remember me:', rememberMe);
-    
-    // Here you would typically make an API call to authenticate
-    // For demo purposes, we'll just navigate
-    if (email.includes('admin')) {
-      navigate('/admin/adminmainpage');
-    } else if (email.includes('instructor')) {
-      navigate('/instructor/dashboard');
-    } else if (email.includes('ta')) {
-      navigate('/teaching_assistant/dashboard');
-    } else {
-      // Failed login attempt
-      setErrorMessage('E-mail or Password is Incorrect!');
+
+    try {
+      const res = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const { message } = await res.json();
+        throw new Error(message || 'Login failed');
+      }
+
+      const { token, role } = await res.json();
+
+      // Persist the JWT
+      if (rememberMe) {
+        localStorage.setItem('authToken', token);
+      } else {
+        sessionStorage.setItem('authToken', token);
+      }
+
+      // Redirect based on role
+      switch (role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'instructor':
+          navigate('/instructor/home');
+          break;
+        case 'ta':
+          navigate('/ta/tamain');
+          break;
+        case 'dean':
+          navigate('/deansoffice/home');
+          break;
+        case 'student':
+          navigate('/student/home');
+          break;
+        default:
+          navigate('/');
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'E-mail or Password is Incorrect!');
     }
   };
 
