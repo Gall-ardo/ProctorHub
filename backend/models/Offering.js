@@ -9,8 +9,8 @@ const Offering = sequelize.define("Offering", {
     primaryKey: true,
     allowNull: false
   },
-  sectionId: {
-    type: DataTypes.STRING,
+  sectionNumber: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   studentCount: {
