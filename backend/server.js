@@ -16,6 +16,7 @@ app.use(express.json());
 // API Routes
 app.use('/api', routes);
 
+
 // Test route
 app.get("/", (req, res) => {
   res.send("🚀 ProctorHub Backend Running");
