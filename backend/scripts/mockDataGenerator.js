@@ -3,6 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const csv = require("csv-parser");
+const bcrypt = require('bcrypt');
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const sequelize = require("../config/db");
@@ -88,13 +89,14 @@ async function safeFindOrCreate(model, options, description) {
 
     // Seed Admins
     for (const row of adminRows) {
+      const hashed = await bcrypt.hash(row.password, 12);
       await safeFindOrCreate(User, {
         where: { id: row.id },
         defaults: {
           id:       row.id,
           name:     row.name,
           email:    row.email,
-          password: row.password,
+          password: hashed,
           userType: "admin"
         }
       }, `User ${row.id}`);
@@ -132,13 +134,14 @@ async function safeFindOrCreate(model, options, description) {
 
     // Seed Deans
     for (const row of deanRows) {
+      const hashed = await bcrypt.hash(row.password, 12);
       await safeFindOrCreate(User, {
         where: { id: row.id },
         defaults: {
           id:       row.id,
           name:     row.name,
           email:    row.email,
-          password: row.password,
+          password: hashed,
           userType: "dean"
         }
       }, `User ${row.id}`);
@@ -165,15 +168,42 @@ async function safeFindOrCreate(model, options, description) {
       }, `Exam ${row.id}`);
     }
 
+    // Seed Semesters
+    for (const row of semesterRows) {
+      await safeFindOrCreate(Semester, {
+        where: { id: row.id },
+        defaults: {
+          id:       row.id,
+          year:     parseValue(row.year),
+          isFall:   parseValue(row.isFall)
+        }
+      }, `Semester ${row.id}`);
+    }
+
+    // Seed Offerings
+    for (const row of offeringRows) {
+      await safeFindOrCreate(Offering, {
+        where: { id: row.id },
+        defaults: {
+          id:       row.id,
+          sectionNumber: row.sectionNumber,
+          studentCount:  parseValue(row.studentCount),
+          courseId:    row.courseId,
+          semesterId: row.semesterId,
+        }
+      }, `Offering ${row.id}`);
+    }
+
     // Seed Instructors
     for (const row of instructorRows) {
+      const hashed = await bcrypt.hash(row.password, 12);
       await safeFindOrCreate(User, {
         where: { id: row.id },
         defaults: {
           id:       row.id,
           name:     row.name,
           email:    row.email,
-          password: row.password,
+          password: hashed,
           userType: "instructor"
         }
       }, `User ${row.id}`);
@@ -245,40 +275,16 @@ async function safeFindOrCreate(model, options, description) {
       }, `Notification ${row.id}`);
     }
 
-    // Seed Offerings
-    for (const row of offeringRows) {
-      await safeFindOrCreate(Offering, {
-        where: { id: row.id },
-        defaults: {
-          sectionNumber: row.sectionNumber,
-          studentCount:  parseValue(row.studentCount),
-          courseId:    row.courseId,
-          semesterId: row.semesterId,
-        }
-      }, `Offering ${row.id}`);
-    }
-
-    // Seed Semesters
-    for (const row of semesterRows) {
-      await safeFindOrCreate(Semester, {
-        where: { id: row.id },
-        defaults: {
-          id:       row.id,
-          year:     parseValue(row.year),
-          isFall:   parseValue(row.isFall)
-        }
-      }, `Semester ${row.id}`);
-    }
-
     // Seed Students
     for (const row of studentRows) {
+      const hashed = await bcrypt.hash(row.password, 12);
       await safeFindOrCreate(User, {
         where: { id: row.id },
         defaults: {
           id:       row.id,
           name:     row.name,
           email:    row.email,
-          password: row.password,
+          password: hashed,
           userType: "student"
         }
       }, `User ${row.id}`);
@@ -290,13 +296,14 @@ async function safeFindOrCreate(model, options, description) {
 
     // Seed Teaching Assistants
     for (const row of taRows) {
+      const hashed = await bcrypt.hash(row.password, 12);
       await safeFindOrCreate(User, {
         where: { id: row.id },
         defaults: {
           id:       row.id,
           name:     row.name,
           email:    row.email,
-          password: row.password,
+          password: hashed,
           userType: "ta"
         }
       }, `User ${row.id}`);
