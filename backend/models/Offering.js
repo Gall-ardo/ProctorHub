@@ -5,7 +5,7 @@ const sequelize = require("../config/db");
 const Offering = sequelize.define("Offering", {
   id: {
     type: DataTypes.STRING,
-    primaryKey: true
+    primaryKey: true,
   },
   sectionNumber: {
     type: DataTypes.INTEGER,
