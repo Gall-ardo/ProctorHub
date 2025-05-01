@@ -1,4 +1,3 @@
-// models/Workload.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
@@ -7,11 +6,38 @@ const Workload = sequelize.define("Workload", {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  taskType: DataTypes.STRING,
-  date: DataTypes.DATE,
-  duration: DataTypes.INTEGER,
-  isApproved: DataTypes.BOOLEAN,
-  rejectionReason: DataTypes.STRING,
+  courseCode: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  taskType: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  duration: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  isApproved: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  rejectionReason: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  taId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  instructorId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  }
 });
 
 module.exports = Workload;

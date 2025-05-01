@@ -10,29 +10,106 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
     minutes: '00',
     workloadType: 'Lab Work'
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState('');
+
+  // Reset form data when the popup is opened
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        instructorEmail: '',
+        courseCode: '',
+        date: '',
+        hours: '04',
+        minutes: '00',
+        workloadType: 'Lab Work'
+      });
+      setValidationError('');
+    }
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Reset validation error when user makes changes
+    if (validationError) {
+      setValidationError('');
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    // Check if email is in valid format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.instructorEmail)) {
+      setValidationError('Please enter a valid email address');
+      return false;
+    }
+    
+    // Check course code format (simple validation)
+    if (formData.courseCode.trim().length < 2) {
+      setValidationError('Please enter a valid course code');
+      return false;
+    }
+    
+    // Check if date is selected
+    if (!formData.date) {
+      setValidationError('Please select a date');
+      return false;
+    }
+    
+    // Validate hours and minutes
+    const hours = parseInt(formData.hours);
+    const minutes = parseInt(formData.minutes);
+    
+    if (isNaN(hours) || hours < 0 || hours > 23) {
+      setValidationError('Hours must be between 0 and 23');
+      return false;
+    }
+    
+    if (isNaN(minutes) || minutes < 0 || minutes > 59) {
+      setValidationError('Minutes must be between 0 and 59');
+      return false;
+    }
+    
+    // Ensure total time is not zero
+    if (hours === 0 && minutes === 0) {
+      setValidationError('Total duration must be greater than zero');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Submitting workload from popup:', formData);
+      await onSubmit(formData);
+      onClose();
+    } catch (error) {
+      console.error('Error submitting workload from popup:', error);
+      setValidationError(error.message || 'Failed to submit workload. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
     onClose(); // This will close the popup when the "X" is clicked
   };
-
-  // This ensures that the popup doesn't disappear immediately
-  useEffect(() => {
-    console.log("Popup is open:", isOpen);
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -44,6 +121,13 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
           ×
         </button>
         <h2>Add Workload</h2>
+        
+        {validationError && (
+          <div className="ta-add-workload-popup-error-message">
+            {validationError}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <div className="ta-add-workload-popup-form-group">
             <label>Instructor Email</label>
@@ -151,8 +235,12 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
             </div>
           </div>
 
-          <button type="submit" className="ta-add-workload-popup-submit-btn">
-            Send Workload Request
+          <button 
+            type="submit" 
+            className="ta-add-workload-popup-submit-btn"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Sending...' : 'Send Workload Request'}
           </button>
         </form>
       </div>

@@ -8,6 +8,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,25 +19,28 @@ function Login() {
     }
 
     try {
+      setIsLoading(true);
       const res = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const { message } = await res.json();
-        throw new Error(message || 'Login failed');
+        throw new Error(data.message || 'Login failed');
       }
 
-      const { token, role } = await res.json();
-
-      // Persist the JWT
-      if (rememberMe) {
-        localStorage.setItem('authToken', token);
-      } else {
-        sessionStorage.setItem('authToken', token);
-      }
+      // Store token and role consistently
+      const { token, role } = data;
+      
+      // Store in localStorage (we don't use sessionStorage for consistency)
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+      
+      console.log('Login successful, role:', role);
+      console.log('Token stored:', token);
 
       // Redirect based on role
       switch (role) {
@@ -49,6 +53,9 @@ function Login() {
         case 'ta':
           navigate('/ta/tamain');
           break;
+        case 'chair':
+          navigate('/departmentchair/home');
+          break;
         case 'dean':
           navigate('/deansoffice/home');
           break;
@@ -59,7 +66,10 @@ function Login() {
           navigate('/');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setErrorMessage(err.message || 'E-mail or Password is Incorrect!');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,10 +112,11 @@ function Login() {
           {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
           
           <button
-             className={styles.signInButton}
+            className={styles.signInButton}
             onClick={handleSubmit}
+            disabled={isLoading}
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
           
           <div className={styles.loginOptions}>

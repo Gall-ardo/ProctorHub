@@ -30,6 +30,7 @@ import DeansOfficeMainPage from "./pages/deansoffice/DeansOfficeMainPage";
 import DeansOfficeExamsPage from "./pages/deansoffice/DeansOfficeExamsPage";
 import DeansOfficeLeaveRequestPage from "./pages/deansoffice/DeansOfficeLeaveRequestPage";
 import ResetPassword from './pages/auth/ResetPassword';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import './App.css';
 
@@ -37,38 +38,149 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
-        <Route path="/admin" element={<AdminLogsReports />} />
-        <Route path="/admin/logs" element={<Navigate to="/admin" />} /> {/* Redirect /admin/logs to /admin */}
-        <Route path="/admin/student" element={<AdminStudentPage />} />
-        <Route path="/admin/course" element={<AdminCoursePage />} />
-        <Route path="/admin/user" element={<AdminUserPage />} />
-        <Route path="/admin/offering" element={<AdminOfferingPage />} />
-        <Route path="/admin/classroom" element={<AdminClassroomPage />} />
-        <Route path="/admin/semester" element={<AdminSemesterPage />} />
-        <Route path="/ta/tamain" element={<TAMainPage />} />
-        <Route path="/ta/taworkload" element={<TAWorkloadPage />} />
-        <Route path="/ta/tanavbar" element={<TANavBar />} />
-        <Route path="/ta/taproctoring" element={<TAProctoringPage />} />
-        <Route path="/ta/taleaveofabsence" element={<TALeaveOfAbsence />} />
-        <Route path="/ta/taforum" element={<TAExamForumPage />} />
-        <Route path="/instructor/home" element={<InstructorMainPage />} />
-        <Route path="/instructor/ta-workload" element={<InstructorTAWorkloadPage />} />
-        <Route path="/instructor/exams" element={<InstructorExamsPage />} />
-        <Route path="/instructor/assign" element={<InstructorAssignPage />} />
-        <Route path="/departmentchair/home" element={<DepartmentChairMainPage />} />
-        <Route path="/departmentchair/ta-workload" element={<DepartmentChairTAWorkloadPage />} />
-        <Route path="/departmentchair/exams" element={<DepartmentChairExamsPage />} />
-        <Route path="/departmentchair/leaverequest" element={<DepartmentChairLeaveRequestPage />} />
-        <Route path="/departmentchair/assign" element={<DepartmentChairAssignPage />} />
-        <Route path="/deansoffice/home" element={<DeansOfficeMainPage />} />
-        <Route path="/deansoffice/exams" element={<DeansOfficeExamsPage />} />
-        <Route path="/deansoffice/leaverequest" element={<DeansOfficeLeaveRequestPage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
-        {/* Add more routes as needed */}
-         <Route path="*" element={<Navigate to="/" />} />
+        
+        {/* Protected Admin Routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminLogsReports />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/logs" element={<Navigate to="/admin" />} /> 
+        <Route path="/admin/student" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminStudentPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/course" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminCoursePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/user" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminUserPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/offering" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminOfferingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/classroom" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminClassroomPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/semester" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSemesterPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Protected TA Routes */}
+        <Route path="/ta/tamain" element={
+          <ProtectedRoute allowedRoles={['ta']}>
+            <TAMainPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/ta/taworkload" element={
+          <ProtectedRoute allowedRoles={['ta']}>
+            <TAWorkloadPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/ta/tanavbar" element={
+          <ProtectedRoute allowedRoles={['ta']}>
+            <TANavBar />
+          </ProtectedRoute>
+        } />
+        <Route path="/ta/taproctoring" element={
+          <ProtectedRoute allowedRoles={['ta']}>
+            <TAProctoringPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/ta/taleaveofabsence" element={
+          <ProtectedRoute allowedRoles={['ta']}>
+            <TALeaveOfAbsence />
+          </ProtectedRoute>
+        } />
+        <Route path="/ta/taforum" element={
+          <ProtectedRoute allowedRoles={['ta']}>
+            <TAExamForumPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Protected Instructor Routes */}
+        <Route path="/instructor/home" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorMainPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/instructor/ta-workload" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorTAWorkloadPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/instructor/exams" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorExamsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/instructor/assign" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorAssignPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Protected Department Chair Routes */}
+        <Route path="/departmentchair/home" element={
+          <ProtectedRoute allowedRoles={['chair']}>
+            <DepartmentChairMainPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/departmentchair/ta-workload" element={
+          <ProtectedRoute allowedRoles={['chair']}>
+            <DepartmentChairTAWorkloadPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/departmentchair/exams" element={
+          <ProtectedRoute allowedRoles={['chair']}>
+            <DepartmentChairExamsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/departmentchair/leaverequest" element={
+          <ProtectedRoute allowedRoles={['chair']}>
+            <DepartmentChairLeaveRequestPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/departmentchair/assign" element={
+          <ProtectedRoute allowedRoles={['chair']}>
+            <DepartmentChairAssignPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Protected Dean's Office Routes */}
+        <Route path="/deansoffice/home" element={
+          <ProtectedRoute allowedRoles={['dean']}>
+            <DeansOfficeMainPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/deansoffice/exams" element={
+          <ProtectedRoute allowedRoles={['dean']}>
+            <DeansOfficeExamsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/deansoffice/leaverequest" element={
+          <ProtectedRoute allowedRoles={['dean']}>
+            <DeansOfficeLeaveRequestPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Catch-all route - redirect to login */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

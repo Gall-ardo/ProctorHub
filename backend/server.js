@@ -4,8 +4,11 @@ require('dotenv').config();
 
 const sequelize = require("./config/db");
 
-// Load all models and relationships
-require("./models");
+// Import models directly for testing
+const User = require("./models/User");
+const TeachingAssistant = require("./models/TeachingAssistant");
+const Workload = require("./models/Workload");
+
 const authRoutes = require("./routes/auth");
 const routes = require("./routes");
 
@@ -19,10 +22,39 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use('/api', routes);
 
-
 // Test route
 app.get("/", (req, res) => {
   res.send("🚀 ProctorHub Backend Running");
+});
+
+// Database diagnostic route
+app.get("/api/test-db", async (req, res) => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    
+    // Test model access
+    const userCount = await User.count();
+    const taCount = await TeachingAssistant.count();
+    const workloadCount = await Workload.count();
+    
+    res.json({
+      success: true,
+      message: 'Database connection and models are working correctly',
+      counts: {
+        users: userCount,
+        tas: taCount,
+        workloads: workloadCount
+      }
+    });
+  } catch (error) {
+    console.error('Database diagnostic error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database diagnostic failed',
+      error: error.message
+    });
+  }
 });
 
 // Error handling middleware
@@ -39,11 +71,28 @@ const syncOptions = {
 };
 
 // Sync database
-sequelize.sync(syncOptions).then(() => {
-  console.log("✅ DB synced with options:", syncOptions);
-});
-
-
+sequelize.sync(syncOptions)
+  .then(() => {
+    console.log("✅ DB synced with options:", syncOptions);
+    
+    // Test model loading after sync
+    Promise.all([
+      User.findAll({ limit: 1 }),
+      TeachingAssistant.findAll({ limit: 1 }),
+      Workload.findAll({ limit: 1 })
+    ])
+    .then(([users, tas, workloads]) => {
+      console.log("✅ Model test - User model loaded, found", users.length, "users");
+      console.log("✅ Model test - TeachingAssistant model loaded, found", tas.length, "TAs");
+      console.log("✅ Model test - Workload model loaded, found", workloads.length, "workloads");
+    })
+    .catch(err => {
+      console.error("❌ Model test failed:", err.message);
+    });
+  })
+  .catch(err => {
+    console.error("❌ DB sync failed:", err);
+  });
 
 const PORT = 5001;
 app.listen(PORT, () => {
