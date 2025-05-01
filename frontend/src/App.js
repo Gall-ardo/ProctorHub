@@ -43,43 +43,16 @@ function App() {
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         
-        {/* Protected Admin Routes */}
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminLogsReports />
-          </ProtectedRoute>
-        } />
+        {/* Admin Routes - Unprotected */}
+        <Route path="/admin" element={<AdminLogsReports />} />
         <Route path="/admin/logs" element={<Navigate to="/admin" />} /> 
-        <Route path="/admin/student" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminStudentPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/course" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminCoursePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/user" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminUserPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/offering" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminOfferingPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/classroom" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminClassroomPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/semester" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminSemesterPage />
-          </ProtectedRoute>
-        } />
+        <Route path="/admin/student" element={<AdminStudentPage />} />
+        <Route path="/admin/course" element={<AdminCoursePage />} />
+        <Route path="/admin/user" element={<AdminUserPage />} />
+        <Route path="/admin/offering" element={<AdminOfferingPage />} />
+        <Route path="/admin/classroom" element={<AdminClassroomPage />} />
+        <Route path="/admin/semester" element={<AdminSemesterPage />} />
+
         
         {/* Protected TA Routes */}
         <Route path="/ta/tamain" element={
