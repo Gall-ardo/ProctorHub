@@ -130,7 +130,18 @@ class UserController {
 
   async resetPassword(req, res) {
     try {
-      const result = await userService.resetUserPassword(req.params.id);
+      const userId = req.params.id;
+      console.log(`Reset password request for user ID: ${userId}`);
+      
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required"
+        });
+      }
+      
+      // Call the service to reset the password
+      const result = await userService.resetUserPassword(userId);
       
       res.status(200).json({
         success: true,
@@ -254,5 +265,6 @@ class UserController {
     }
   }
 }
+
 
 module.exports = new UserController();

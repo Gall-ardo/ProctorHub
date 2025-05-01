@@ -511,3 +511,40 @@ input.readOnly {
   background-color: #f9f9f9;
   cursor: not-allowed;
 }
+
+/* Checkbox styling for TA options */
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.checkbox.checked {
+  background-color: #4CAF50;
+  border-color: #4CAF50;
+  color: white;
+}
+
+.checkmark {
+  font-size: 14px;
+  line-height: 1;
+}

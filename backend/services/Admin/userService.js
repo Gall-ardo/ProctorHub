@@ -62,9 +62,9 @@ class UserService {
         throw new Error("Invalid email format");
       }
 
-      // Validate department for instructor and chair
-      if ((userData.userType === 'instructor' || userData.userType === 'chair') && !userData.department) {
-        throw new Error("Department is required for instructors and department chairs");
+      // Validate department for instructor, chair, and teaching assistant
+      if ((userData.userType === 'instructor' || userData.userType === 'chair' || userData.userType === 'ta') && !userData.department) {
+        throw new Error("Department is required for instructors, department chairs, and teaching assistants");
       }
 
       // Generate a random password if not provided
@@ -102,7 +102,17 @@ class UserService {
             await DeansOffice.create({ id: user.id }, { transaction: t });
             break;
           case "ta":
-            await TeachingAssistant.create({ id: user.id }, { transaction: t });
+            await TeachingAssistant.create({ 
+              id: user.id,
+              department: userData.department,
+              totalProctoringInDepartment: 0,
+              totalNonDepartmentProctoring: 0,
+              totalWorkload: 0,
+              isPHD: userData.isPHD || false,
+              approvedAbsence: false,
+              waitingAbsenceRequest: false,
+              isPartTime: userData.isPartTime || false
+            }, { transaction: t });
             break;
           case "student":
             await Student.create({ id: user.id }, { transaction: t });
@@ -188,6 +198,11 @@ class UserService {
         }
       }
 
+      // Check if department is required and provided
+      if ((userData.userType === 'instructor' || userData.userType === 'chair' || userData.userType === 'ta') && !userData.department) {
+        throw new Error("Department is required for instructors, department chairs, and teaching assistants");
+      }
+
       let passwordForEmail = null;
       
       // Reset password if requested
@@ -208,7 +223,7 @@ class UserService {
       // Update the user details
       await user.update(userData, { transaction: t });
       
-      // Handle department update if user type has a department
+      // Handle department update based on user type
       if (userData.department) {
         try {
           switch (user.userType.toLowerCase()) {
@@ -226,6 +241,24 @@ class UserService {
                 await chair.update({ department: userData.department }, { transaction: t });
               } else {
                 await DepartmentChair.create({ id: user.id, department: userData.department }, { transaction: t });
+              }
+              break;
+            case "ta":
+              const ta = await TeachingAssistant.findByPk(user.id, { transaction: t });
+              if (ta) {
+                await ta.update({ department: userData.department }, { transaction: t });
+              } else {
+                await TeachingAssistant.create({ 
+                  id: user.id, 
+                  department: userData.department,
+                  totalProctoringInDepartment: 0,
+                  totalNonDepartmentProctoring: 0,
+                  totalWorkload: 0,
+                  isPHD: userData.isPHD || false,
+                  approvedAbsence: false,
+                  waitingAbsenceRequest: false,
+                  isPartTime: userData.isPartTime || false
+                }, { transaction: t });
               }
               break;
           }

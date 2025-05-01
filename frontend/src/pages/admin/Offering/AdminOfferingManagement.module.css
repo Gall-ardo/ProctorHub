@@ -227,7 +227,7 @@
   margin-left: 8px;
 }
 
-/* Instructor selection styling */
+/* Instructor selection styling - UPDATED */
 .instructorSelection {
   margin-top: 5px;
 }
@@ -240,22 +240,25 @@
 }
 
 .instructorCountInput {
-  width: 60px;
+  width: 40px; /* Reduced from 60px to make it smaller */
   text-align: center;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 0.9rem;
 }
 
 .selectInstructorsBtn {
   flex: 1;
   background-color: #c42626;
   color: white;
-  padding: 10px;
+  padding: 12px 20px; /* Increased padding to make it bigger */
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 1.05rem; /* Slightly larger font */
+  min-width: 180px;
 }
 
 .selectInstructorsBtn:disabled {
@@ -277,6 +280,55 @@
   font-size: 13px;
   white-space: nowrap;
   color: #333;
+}
+
+/* Section ID counter styles - NEW */
+.sectionIdContainer {
+  position: relative;
+}
+
+.sectionIdInput {
+  padding-right: 40px !important; /* Make room for the counter buttons */
+}
+
+.sectionIdControls {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  height: 80%;
+}
+
+.sectionIdButton {
+  flex: 1;
+  background-color: #e8e8e8;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 26px;
+}
+
+.sectionIdButton:first-child {
+  border-top-right-radius: 4px;
+  border-bottom: none;
+}
+
+.sectionIdButton:last-child {
+  border-bottom-right-radius: 4px;
+}
+
+.sectionIdButton:hover {
+  background-color: #d8d8d8;
+}
+
+.sectionIdButton:active {
+  background-color: #c8c8c8;
 }
 
 /* Semester selection styling */
@@ -448,4 +500,49 @@
   .instructorCountInput {
     width: 100%;
   }
+}
+/* Additional CSS for course code validation */
+
+/* Course code input styling */
+.courseCodeWrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.departmentPrefix {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-right: none;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  padding: 0.75rem 1rem;
+  color: #555;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.courseCodeInput {
+  flex: 1;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.inputError {
+  border-color: #f44336 !important;
+  background-color: #fff8f8;
+}
+
+.fieldErrorMessage {
+  color: #f44336;
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+  padding-left: 0.2rem;
+}
+
+/* Make the course code input disabled when no department is selected */
+.courseCodeInput:disabled {
+  background-color: #f9f9f9;
+  cursor: not-allowed;
 }
