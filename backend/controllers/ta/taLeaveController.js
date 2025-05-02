@@ -62,10 +62,11 @@ const taLeaveController = {
   },
   
   // Create a new leave request
-  createLeaveRequest: async (req, res) => {
+createLeaveRequest: async (req, res) => {
     try {
       const { type, startDate, endDate, reason } = req.body;
-      
+      const file = req.file;
+  
       // Validate required fields
       if (!type || !startDate || !endDate || !reason) {
         return res.status(400).json({
@@ -73,17 +74,23 @@ const taLeaveController = {
           message: 'Missing required fields'
         });
       }
-      
+  
       const taId = req.user.id;
       const result = await taLeaveService.createLeaveRequest(
-        { type, startDate, endDate, reason },
+        {
+          type,
+          startDate,
+          endDate,
+          reason,
+          filePath: file?.filename || null // ✅ add this line
+        },
         taId
       );
-      
+  
       if (!result.success) {
         return res.status(400).json(result);
       }
-      
+  
       return res.status(201).json(result);
     } catch (error) {
       console.error('Error in createLeaveRequest controller:', error);
@@ -92,7 +99,7 @@ const taLeaveController = {
         message: 'Internal server error'
       });
     }
-  },
+  },  
   
   // Delete a leave request
   deleteLeaveRequest: async (req, res) => {
