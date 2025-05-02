@@ -241,7 +241,10 @@ const TALeaveOfAbsence = () => {
       <div className="ta-leave-of-absence-add-request">
         <button 
           className="ta-leave-of-absence-add-btn"
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setError(null); // ✅ clear any previous error
+            setShowForm(true);
+          }}
         >
           <span className="ta-leave-of-absence-plus-icon">+</span>
           Submit Leave of Absence Request
@@ -269,7 +272,12 @@ const TALeaveOfAbsence = () => {
   const renderFormView = () => (
     <div className="ta-leave-of-absence-leave-container">
       <h1 className="ta-leave-of-absence-leave-title">Submit Leave of Absence Request</h1>
-      
+      {error && (
+        <p className="ta-leave-of-absence-error">
+          {error}
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="ta-leave-of-absence-leave-form">
         <div className="ta-leave-of-absence-form-row">
           <div className="ta-leave-of-absence-type-container">
@@ -364,12 +372,26 @@ const TALeaveOfAbsence = () => {
     </div>
   );
 
+  const renderErrorModal = () => (
+    error && (
+      <div className="ta-error-modal-backdrop">
+        <div className="ta-error-modal">
+          <p>{error}</p>
+          <button onClick={() => setError(null)} className="ta-error-close-btn">Close</button>
+        </div>
+      </div>
+    )
+  );
+
+  
   return (
     <div className="ta-leave-of-absence-main-page">
       <TANavBar />
+      {renderErrorModal()}
       <main className="ta-leave-of-absence-main-content">
         {showForm ? renderFormView() : renderListView()}
       </main>
+
     </div>
   );
 };
