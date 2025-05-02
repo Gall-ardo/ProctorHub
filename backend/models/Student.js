@@ -1,7 +1,6 @@
 // models/Student.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const User = require("./User");
 
 const Student = sequelize.define("Student", {
   id: {
@@ -10,7 +9,5 @@ const Student = sequelize.define("Student", {
   },
   department: DataTypes.STRING,
 });
-
-Student.belongsTo(User, { foreignKey: "id", as: "user" });
 
 module.exports = Student;

@@ -40,6 +40,7 @@ router.get("/:id", userController.getUser);
 router.get("/", userController.findUsers);
 router.put("/:id", userController.updateUser);
 router.delete("/:id", userController.deleteUser);
+router.delete("/:id/force", userController.forceDeleteUser); 
 router.post("/upload", upload.single("file"), userController.uploadUsers);
 router.post("/:id/reset-password", userController.resetPassword);
 

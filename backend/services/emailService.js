@@ -90,21 +90,38 @@ class EmailService {
     }
   }
 
-  async sendPasswordResetEmail(recipient, name, token) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: recipient,
-      subject: 'ProctorHub Password Reset',
-      html: `
-        <h2>Password Reset Request</h2>
-        <p>Hi ${name},</p>
-        <p>Click the link below to choose a new password. This link expires in 1 hour.</p>
-        <a href="${resetUrl}">${resetUrl}</a>
-        <p>If you didn’t request this, just ignore this email.</p>
-      `
-    };
-    return this.transporter.sendMail(mailOptions);
+  async sendPasswordResetEmail(recipient, name, password) {
+    try {
+      console.log(`Sending password reset email to ${recipient}`);
+      
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: recipient,
+        subject: 'ProctorHub - Your Password Has Been Reset',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+            <h2 style="color: #c42626;">Password Reset</h2>
+            <p>Hello ${name},</p>
+            <p>Your password has been reset in the ProctorHub system.</p>
+            <p>Your new password is:</p>
+            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
+            </div>
+            <p>Please log in using this password and change it after your first login.</p>
+            <p>If you have any questions, please contact the administrator.</p>
+            <p>Thank you,<br />ProctorHub Team</p>
+          </div>
+        `
+      };
+  
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('Password reset email sent successfully:', info.messageId);
+      return true;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      // Don't throw the error - we don't want to prevent password reset if email fails
+      return false;
+    }
   }
 
 }

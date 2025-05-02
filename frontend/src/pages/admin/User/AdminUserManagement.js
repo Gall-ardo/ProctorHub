@@ -20,6 +20,8 @@ const AdminUserManagement = () => {
   const [userType, setUserType] = useState('');
   const [department, setDepartment] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isPhd, setIsPhd] = useState(false);
+  const [isPartTime, setIsPartTime] = useState(false);
 
   // Status states
   const [loading, setLoading] = useState(false);
@@ -32,15 +34,17 @@ const AdminUserManagement = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [resetPasswordUserId, setResetPasswordUserId] = useState(null);
+  const [editMode, setEditMode] = useState(false); // New state to track if we're in edit mode
+  const [showForceDeleteConfirmation, setShowForceDeleteConfirmation] = useState(false);
+  const [forceDeleteUserId, setForceDeleteUserId] = useState(null);
 
-  // User type options
+  // User type options - Removed student option
   const userTypeOptions = [
     { label: 'Admin', value: 'admin' },
     { label: 'Instructor', value: 'instructor' },
     { label: 'Department Chair', value: 'chair' },
     { label: 'Dean\'s Office', value: 'dean' },
-    { label: 'Teaching Assistant', value: 'ta' },
-    { label: 'Student', value: 'student' }
+    { label: 'Teaching Assistant', value: 'ta' }
   ];
 
   // Department options
@@ -56,7 +60,10 @@ const AdminUserManagement = () => {
     setEmail('');
     setUserType('');
     setDepartment('');
+    setIsPhd(false);
+    setIsPartTime(false);
     setSearchResults([]);
+    setEditMode(false); // Reset edit mode when clearing form
   };
 
   const handleFileSelect = (event) => {
@@ -98,9 +105,9 @@ const AdminUserManagement = () => {
         return false;
       }
       
-      // Department validation for instructor and chair
-      if ((userType === 'instructor' || userType === 'chair') && !department) {
-        setErrorMessage('Department is required for instructors and chairs');
+      // Department validation for instructor, chair and TA
+      if ((userType === 'instructor' || userType === 'chair' || userType === 'ta') && !department) {
+        setErrorMessage('Department is required for instructors, chairs, and teaching assistants');
         setShowError(true);
         return false;
       }
@@ -131,9 +138,15 @@ const AdminUserManagement = () => {
         userType
       };
       
-      // Add department for instructor and chair
-      if (userType === 'instructor' || userType === 'chair') {
+      // Add department for instructor, chair, and TA
+      if (userType === 'instructor' || userType === 'chair' || userType === 'ta') {
         userData.department = department;
+      }
+
+      // Add TA specific fields
+      if (userType === 'ta') {
+        userData.isPHD = isPhd;
+        userData.isPartTime = isPartTime;
       }
       
       console.log('Sending user data:', userData);
@@ -183,9 +196,12 @@ const AdminUserManagement = () => {
       
       const response = await axios.get(`${API_URL}/api/admin/users`, { params });
       
-      setSearchResults(response.data);
+      // Filter out student users from the search results
+      const filteredResults = response.data.filter(user => user.userType !== 'student');
       
-      if (response.data.length === 0) {
+      setSearchResults(filteredResults);
+      
+      if (filteredResults.length === 0) {
         setErrorMessage('No users found');
         setShowError(true);
       }
@@ -250,18 +266,72 @@ const AdminUserManagement = () => {
     setLoading(true);
     
     try {
+      // Make sure the URL is correctly constructed
       await axios.delete(`${API_URL}/api/admin/users/${id}`);
       
       setSuccess('User deleted successfully');
       setSearchResults(searchResults.filter(user => user.id !== id));
       
-      if (searchResults.length === 1) {
+      if (searchResults.length <= 1) {
         clearForm();
       }
     } catch (err) {
       console.error('Error deleting user:', err);
+      
+      // Add more detailed error handling
       if (err.response) {
-        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to delete user`);
+        console.error('Response status:', err.response.status);
+        console.error('Response data:', err.response.data);
+        
+        if (err.response.status === 409) {
+          // Foreign key constraint error - offer force delete
+          setErrorMessage(
+            `Cannot delete user because they have associated data in the system. ` +
+            `Would you like to force delete this user and remove all dependencies?`
+          );
+          
+          // Store the user ID for force deletion
+          setForceDeleteUserId(id);
+          
+          // Show force delete confirmation
+          setShowForceDeleteConfirmation(true);
+        } else {
+          setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to delete user`);
+          setShowError(true);
+        }
+      } else if (err.request) {
+        console.error('No response received:', err.request);
+        setErrorMessage('Server not responding. Please check your connection.');
+        setShowError(true);
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+        setShowError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Add the force delete handler
+  const handleForceDelete = async () => {
+    setShowForceDeleteConfirmation(false);
+    setLoading(true);
+    
+    try {
+      // Call the force delete endpoint
+      await axios.delete(`${API_URL}/api/admin/users/${forceDeleteUserId}/force?confirm=true`);
+      
+      setSuccess('User and all associated data successfully deleted');
+      setSearchResults(searchResults.filter(user => user.id !== forceDeleteUserId));
+      
+      if (searchResults.length <= 1) {
+        clearForm();
+      }
+    } catch (err) {
+      console.error('Error force deleting user:', err);
+      
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to force delete user`);
       } else if (err.request) {
         setErrorMessage('Server not responding. Please check your connection.');
       } else {
@@ -270,8 +340,10 @@ const AdminUserManagement = () => {
       setShowError(true);
     } finally {
       setLoading(false);
+      setForceDeleteUserId(null);
     }
   };
+
 
   const handleEditUser = (user) => {
     setUserId(user.id);
@@ -279,14 +351,25 @@ const AdminUserManagement = () => {
     setEmail(user.email);
     setUserType(user.userType);
     
-    // If user is instructor or chair, set department
-    if (user.userType === 'instructor' || user.userType === 'chair') {
+    // If user is instructor, chair, or TA, set department
+    if (user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta') {
       // You would need to fetch department from the respective model
       // This is a placeholder
       setDepartment(user.department || '');
     }
     
-    setActiveView('edit');
+    // Fetch additional TA information if needed
+    if (user.userType === 'ta') {
+      // Ideally we would fetch this information from the server
+      // For now, we'll leave with defaults
+      setIsPhd(false);
+      setIsPartTime(false);
+    }
+    
+    // Turn on edit mode
+    setEditMode(true);
+    
+    // Clear search results
     setSearchResults([]);
   };
 
@@ -305,9 +388,15 @@ const AdminUserManagement = () => {
         userType
       };
       
-      // Add department for instructor and chair
-      if (userType === 'instructor' || userType === 'chair') {
+      // Add department for instructor, chair, and TA
+      if (userType === 'instructor' || userType === 'chair' || userType === 'ta') {
         userData.department = department;
+      }
+
+      // Add TA specific fields
+      if (userType === 'ta') {
+        userData.isPHD = isPhd;
+        userData.isPartTime = isPartTime;
       }
       
       await axios.put(`${API_URL}/api/admin/users/${userId}`, userData);
@@ -326,6 +415,11 @@ const AdminUserManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    // Clear form and turn off edit mode
+    clearForm();
   };
 
   const handleFileUpload = async () => {
@@ -499,8 +593,8 @@ const AdminUserManagement = () => {
                     </div>
                   </div>
                   
-                  {/* Only show department for instructor and chair */}
-                  {(userType === 'instructor' || userType === 'chair') && (
+                  {/* Show department for instructor, chair, and TA */}
+                  {(userType === 'instructor' || userType === 'chair' || userType === 'ta') && (
                     <div className={styles.formGroup}>
                       <label>Department <span className={styles.requiredField}>*</span></label>
                       <div className={styles.selectionList}>
@@ -516,6 +610,35 @@ const AdminUserManagement = () => {
                         ))}
                       </div>
                     </div>
+                  )}
+                  
+                  {/* Additional fields for TA */}
+                  {userType === 'ta' && (
+                    <>
+                      <div className={styles.formGroup}>
+                        <label>Status</label>
+                        <div className={styles.checkboxContainer}>
+                          <div 
+                            className={`${styles.checkboxItem} ${isPhd ? styles.checked : ''}`}
+                            onClick={() => setIsPhd(!isPhd)}
+                          >
+                            <div className={`${styles.checkbox} ${isPhd ? styles.checked : ''}`}>
+                              {isPhd && <span className={styles.checkmark}>✓</span>}
+                            </div>
+                            <span>PhD Student</span>
+                          </div>
+                          <div 
+                            className={`${styles.checkboxItem} ${isPartTime ? styles.checked : ''}`}
+                            onClick={() => setIsPartTime(!isPartTime)}
+                          >
+                            <div className={`${styles.checkbox} ${isPartTime ? styles.checked : ''}`}>
+                              {isPartTime && <span className={styles.checkmark}>✓</span>}
+                            </div>
+                            <span>Part-time</span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
                   )}
                   
                   <div className={styles.formNote}>
@@ -576,6 +699,9 @@ const AdminUserManagement = () => {
                             <div><strong>Name:</strong> {user.name}</div>
                             <div><strong>Email:</strong> {user.email}</div>
                             <div><strong>Type:</strong> {user.userType}</div>
+                            {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta') && user.department && (
+                              <div><strong>Department:</strong> {user.department}</div>
+                            )}
                           </div>
                           <button 
                             onClick={() => handleDeleteConfirmation(user)}
@@ -593,7 +719,8 @@ const AdminUserManagement = () => {
 
             {activeView === 'edit' && (
               <>
-                {!userId ? (
+                {!editMode ? (
+                  // Search form - similar to delete view
                   <>
                     <h2 className={styles.formTitle}>Enter ID or email to find User</h2>
                     <form onSubmit={handleSearchUser}>
@@ -636,6 +763,9 @@ const AdminUserManagement = () => {
                                 <div><strong>Name:</strong> {user.name}</div>
                                 <div><strong>Email:</strong> {user.email}</div>
                                 <div><strong>Type:</strong> {user.userType}</div>
+                                {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta') && user.department && (
+                                  <div><strong>Department:</strong> {user.department}</div>
+                                )}
                               </div>
                               <div className={styles.buttonGroup}>
                                 <button 
@@ -658,6 +788,7 @@ const AdminUserManagement = () => {
                     )}
                   </>
                 ) : (
+                  // Edit form
                   <>
                     <h2 className={styles.formTitle}>Edit User Information</h2>
                     <form onSubmit={handleUpdateUser}>
@@ -704,10 +835,10 @@ const AdminUserManagement = () => {
                         </div>
                       </div>
                       
-                      {/* Only show department for instructor and chair */}
-                      {(userType === 'instructor' || userType === 'chair') && (
+                      {/* Show department for instructor, chair, and TA */}
+                      {(userType === 'instructor' || userType === 'chair' || userType === 'ta') && (
                         <div className={styles.formGroup}>
-                          <label>Department</label>
+                          <label>Department <span className={styles.requiredField}>*</span></label>
                           <div className={styles.selectionList}>
                             {departmentOptions.map((dept) => (
                               <div 
@@ -723,14 +854,40 @@ const AdminUserManagement = () => {
                         </div>
                       )}
                       
+                      {/* Additional fields for TA */}
+                      {userType === 'ta' && (
+                        <>
+                          <div className={styles.formGroup}>
+                            <label>Status</label>
+                            <div className={styles.checkboxContainer}>
+                              <div 
+                                className={`${styles.checkboxItem} ${isPhd ? styles.checked : ''}`}
+                                onClick={() => setIsPhd(!isPhd)}
+                              >
+                                <div className={`${styles.checkbox} ${isPhd ? styles.checked : ''}`}>
+                                  {isPhd && <span className={styles.checkmark}>✓</span>}
+                                </div>
+                                <span>PhD Student</span>
+                              </div>
+                              <div 
+                                className={`${styles.checkboxItem} ${isPartTime ? styles.checked : ''}`}
+                                onClick={() => setIsPartTime(!isPartTime)}
+                              >
+                                <div className={`${styles.checkbox} ${isPartTime ? styles.checked : ''}`}>
+                                  {isPartTime && <span className={styles.checkmark}>✓</span>}
+                                </div>
+                                <span>Part-time</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
                       <div className={styles.formButtonGroup}>
                         <button 
                           type="button" 
                           className={styles.cancelBtn}
-                          onClick={() => {
-                            clearForm();
-                            setActiveView('edit');
-                          }}
+                          onClick={handleCancelEdit}
                         >
                           Cancel
                         </button>
@@ -759,6 +916,19 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Confirmation Popup for Delete */}
+      {showForceDeleteConfirmation && (
+        <ConfirmationPopup
+          title="Force Delete User"
+          message="WARNING: This will delete the user and ALL associated data (schedules, workloads, assignments, etc.). This action cannot be undone and may affect system integrity. Are you sure you want to proceed?"
+          confirmText="Force Delete User"
+          onCancel={() => {
+            setShowForceDeleteConfirmation(false);
+            setForceDeleteUserId(null);
+          }}
+          onConfirm={handleForceDelete}
+          confirmButtonClass={styles.dangerButton}
+        />
+      )}
       {showConfirmation && (
         <ConfirmationPopup
           user={confirmationData}
@@ -767,6 +937,7 @@ const AdminUserManagement = () => {
           confirmText="Delete User"
           onCancel={() => setShowConfirmation(false)}
           onConfirm={() => handleDeleteUser(confirmationData.id)}
+          confirmButtonClass={styles.dangerButton}
         />
       )}
 

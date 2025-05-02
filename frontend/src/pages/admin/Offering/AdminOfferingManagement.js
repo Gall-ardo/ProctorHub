@@ -17,6 +17,7 @@ const AdminOfferingManagement = () => {
   const [instructorCount, setInstructorCount] = useState(1);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [courseCode, setCourseCode] = useState('');
+  const [courseCodeError, setCourseCodeError] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [semester, setSemester] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
@@ -59,6 +60,27 @@ const AdminOfferingManagement = () => {
     setShowInstructorPopup(false);
   };
 
+  // Course code validation
+  const handleCourseCodeChange = (e) => {
+    const value = e.target.value;
+    
+    // Only allow digits
+    if (value === '' || /^\d+$/.test(value)) {
+      setCourseCode(value);
+      
+      // Validate the length (3 or 4 digits)
+      if (value === '') {
+        setCourseCodeError('');
+      } else if (value.length < 3) {
+        setCourseCodeError('Course code must be at least 3 digits');
+      } else if (value.length > 4) {
+        setCourseCodeError('Course code cannot exceed 4 digits');
+      } else {
+        setCourseCodeError('');
+      }
+    }
+  };
+
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
   };
@@ -74,11 +96,25 @@ const AdminOfferingManagement = () => {
     }
   };
 
+  // Section ID increment/decrement handlers
+  const incrementSectionId = () => {
+    const currentValue = parseInt(sectionId) || 0;
+    setSectionId(String(currentValue + 1).padStart(3, '0'));
+  };
+
+  const decrementSectionId = () => {
+    const currentValue = parseInt(sectionId) || 0;
+    if (currentValue > 0) {
+      setSectionId(String(currentValue - 1).padStart(3, '0'));
+    }
+  };
+
   // Clear form 
   const clearForm = () => {
     setDepartment('');
     setSelectedInstructors([]);
     setCourseCode('');
+    setCourseCodeError('');
     setSectionId('');
     setSemester('');
   };
@@ -125,6 +161,15 @@ const AdminOfferingManagement = () => {
     setError(null);
     setSuccess(null);
     
+    // Check course code validation
+    if (courseCodeError) {
+      setError(courseCodeError);
+      return;
+    }
+    
+    // Format full course code with department
+    const fullCourseCode = department + courseCode;
+    
     // Handle different form submissions based on active view
     switch(activeView) {
       case 'add':
@@ -162,11 +207,11 @@ const AdminOfferingManagement = () => {
             return;
           }
           
-          // Prepare data
+          // Prepare data with formatted course code
           const offeringData = {
             department,
             instructors: selectedInstructors,
-            courseCode,
+            courseCode: fullCourseCode,
             sectionId,
             semester
           };
@@ -210,16 +255,16 @@ const AdminOfferingManagement = () => {
             return;
           }
           
-          // Find offerings
-          const findResult = await findOfferings(courseCode, sectionId);
+          // Find offerings using full course code
+          const findResult = await findOfferings(fullCourseCode, sectionId);
           
           if (findResult.success && findResult.data.length > 0) {
             // Show confirmation
             const confirmDelete = window.confirm(`Are you sure you want to delete ${findResult.data.length} offering(s)?`);
             
             if (confirmDelete) {
-              // Delete offerings
-              const deleteResult = await deleteOfferingsByCourseAndSection(courseCode, sectionId);
+              // Delete offerings using full course code
+              const deleteResult = await deleteOfferingsByCourseAndSection(fullCourseCode, sectionId);
               
               if (deleteResult.success) {
                 setSuccess('Offerings deleted successfully');
@@ -260,8 +305,8 @@ const AdminOfferingManagement = () => {
             return;
           }
           
-          // Find offerings
-          const result = await findOfferings(courseCode, sectionId);
+          // Find offerings using full course code
+          const result = await findOfferings(fullCourseCode, sectionId);
           
           if (result.success && result.data.length > 0) {
             // Navigate to edit page with the offering details
@@ -492,26 +537,60 @@ const AdminOfferingManagement = () => {
                     </div>
                   </div>
 
+                  {/* Course Code Input - Updated */}
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredIndicator}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code (e.g., CS101)" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                      disabled={loading}
-                    />
+                    <div className={styles.courseCodeWrapper}>
+                      <div className={styles.departmentPrefix}>
+                        {department || 'Dept'}
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Enter 3-4 digit code (e.g., 101)" 
+                        value={courseCode}
+                        onChange={handleCourseCodeChange}
+                        className={`${styles.courseCodeInput} ${courseCodeError ? styles.inputError : ''}`}
+                        disabled={loading || !department}
+                      />
+                    </div>
+                    {courseCodeError && (
+                      <div className={styles.fieldErrorMessage}>{courseCodeError}</div>
+                    )}
                   </div>
+
+                  {/* Section ID with increment/decrement buttons */}
                   <div className={styles.formGroup}>
                     <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter section ID (e.g., 001)" 
-                      value={sectionId}
-                      onChange={(e) => setSectionId(e.target.value)}
-                      disabled={loading}
-                    />
+                    <div className={styles.sectionIdContainer}>
+                      <input 
+                        type="text" 
+                        placeholder="Enter section ID (e.g., 001)" 
+                        value={sectionId}
+                        onChange={(e) => setSectionId(e.target.value)}
+                        disabled={loading}
+                        className={styles.sectionIdInput}
+                      />
+                      <div className={styles.sectionIdControls}>
+                        <button 
+                          type="button" 
+                          className={styles.sectionIdButton}
+                          onClick={incrementSectionId}
+                          disabled={loading}
+                        >
+                          ▲
+                        </button>
+                        <button 
+                          type="button" 
+                          className={styles.sectionIdButton}
+                          onClick={decrementSectionId}
+                          disabled={loading}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
                   <div className={styles.formGroup}>
                     <label>Semester <span className={styles.requiredIndicator}>*</span></label>
                     <div className={styles.semesterOptions}>
@@ -532,7 +611,7 @@ const AdminOfferingManagement = () => {
                   <button 
                     type="submit" 
                     className={styles.formSubmitBtn}
-                    disabled={loading}
+                    disabled={loading || courseCodeError}
                   >
                     {loading ? 'Processing...' : 'Add Offering'}
                   </button>
@@ -540,34 +619,86 @@ const AdminOfferingManagement = () => {
               </>
             )}
 
+            {/* Similar updates for delete and edit views */}
             {activeView === 'delete' && (
               <>
                 <h2 className={styles.formTitle}>Enter Course Code and Section ID to Delete</h2>
                 <form onSubmit={handleFormSubmit}>
+                  {/* Department Selection */}
+                  <div className={styles.formGroup}>
+                    <label>Department <span className={styles.requiredIndicator}>*</span></label>
+                    <div className={styles.departmentSelect}>
+                      {departmentOptions.map((dept) => (
+                        <div 
+                          key={dept.value} 
+                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
+                          onClick={() => handleDepartmentChange(dept.value)}
+                        >
+                          {dept.label}
+                          {department === dept.value && (
+                            <span className={styles.radioIndicator}></span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Course Code */}
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredIndicator}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code (e.g., CS101)" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                      disabled={loading}
-                    />
+                    <div className={styles.courseCodeWrapper}>
+                      <div className={styles.departmentPrefix}>
+                        {department || 'Dept'}
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Enter 3-4 digit code (e.g., 101)" 
+                        value={courseCode}
+                        onChange={handleCourseCodeChange}
+                        className={`${styles.courseCodeInput} ${courseCodeError ? styles.inputError : ''}`}
+                        disabled={loading || !department}
+                      />
+                    </div>
+                    {courseCodeError && (
+                      <div className={styles.fieldErrorMessage}>{courseCodeError}</div>
+                    )}
                   </div>
+                  
                   <div className={styles.formGroup}>
                     <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter section ID (e.g., 001)" 
-                      value={sectionId}
-                      onChange={(e) => setSectionId(e.target.value)}
-                      disabled={loading}
-                    />
+                    <div className={styles.sectionIdContainer}>
+                      <input 
+                        type="text" 
+                        placeholder="Enter section ID (e.g., 001)" 
+                        value={sectionId}
+                        onChange={(e) => setSectionId(e.target.value)}
+                        disabled={loading}
+                        className={styles.sectionIdInput}
+                      />
+                      <div className={styles.sectionIdControls}>
+                        <button 
+                          type="button" 
+                          className={styles.sectionIdButton}
+                          onClick={incrementSectionId}
+                          disabled={loading}
+                        >
+                          ▲
+                        </button>
+                        <button 
+                          type="button" 
+                          className={styles.sectionIdButton}
+                          onClick={decrementSectionId}
+                          disabled={loading}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     type="submit" 
                     className={styles.formSubmitBtn}
-                    disabled={loading}
+                    disabled={loading || courseCodeError}
                   >
                     {loading ? 'Processing...' : 'Find Offerings To Delete'}
                   </button>
@@ -579,30 +710,81 @@ const AdminOfferingManagement = () => {
               <>
                 <h2 className={styles.formTitle}>Enter Course Code and Section ID to Edit</h2>
                 <form onSubmit={handleFormSubmit}>
+                  {/* Department Selection */}
+                  <div className={styles.formGroup}>
+                    <label>Department <span className={styles.requiredIndicator}>*</span></label>
+                    <div className={styles.departmentSelect}>
+                      {departmentOptions.map((dept) => (
+                        <div 
+                          key={dept.value} 
+                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
+                          onClick={() => handleDepartmentChange(dept.value)}
+                        >
+                          {dept.label}
+                          {department === dept.value && (
+                            <span className={styles.radioIndicator}></span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Course Code */}
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredIndicator}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code (e.g., CS101)" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                      disabled={loading}
-                    />
+                    <div className={styles.courseCodeWrapper}>
+                      <div className={styles.departmentPrefix}>
+                        {department || 'Dept'}
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Enter 3-4 digit code (e.g., 101)" 
+                        value={courseCode}
+                        onChange={handleCourseCodeChange}
+                        className={`${styles.courseCodeInput} ${courseCodeError ? styles.inputError : ''}`}
+                        disabled={loading || !department}
+                      />
+                    </div>
+                    {courseCodeError && (
+                      <div className={styles.fieldErrorMessage}>{courseCodeError}</div>
+                    )}
                   </div>
+                  
                   <div className={styles.formGroup}>
                     <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter section ID (e.g., 001)" 
-                      value={sectionId}
-                      onChange={(e) => setSectionId(e.target.value)}
-                      disabled={loading}
-                    />
+                    <div className={styles.sectionIdContainer}>
+                      <input 
+                        type="text" 
+                        placeholder="Enter section ID (e.g., 001)" 
+                        value={sectionId}
+                        onChange={(e) => setSectionId(e.target.value)}
+                        disabled={loading}
+                        className={styles.sectionIdInput}
+                      />
+                      <div className={styles.sectionIdControls}>
+                        <button 
+                          type="button" 
+                          className={styles.sectionIdButton}
+                          onClick={incrementSectionId}
+                          disabled={loading}
+                        >
+                          ▲
+                        </button>
+                        <button 
+                          type="button" 
+                          className={styles.sectionIdButton}
+                          onClick={decrementSectionId}
+                          disabled={loading}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     type="submit" 
                     className={styles.formSubmitBtn}
-                    disabled={loading}
+                    disabled={loading || courseCodeError}
                   >
                     {loading ? 'Processing...' : 'Find Offerings To Edit'}
                   </button>

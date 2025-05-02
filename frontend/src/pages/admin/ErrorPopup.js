@@ -3,19 +3,19 @@ import styles from './ErrorPopup.module.css';
 
 const ErrorPopup = ({ message, onClose }) => {
   return (
-    <div className={styles.errorPopupOverlay}>
-      <div className={styles.errorPopupContainer}>
-        <div className={styles.errorPopupContent}>
-          <div className={styles.errorIcon}>
-            <span>!</span>
-          </div>
-          <div className={styles.errorMessage}>
-            <p>{message}</p>
-          </div>
-          <button className={styles.errorCloseBtn} onClick={onClose}>
-            Close
-          </button>
+    <div className={styles.errorOverlay}>
+      <div className={styles.errorContent}>
+        <div className={styles.errorIcon}>
+          <span>!</span>
         </div>
+        
+        <h3 className={styles.errorTitle}>Error</h3>
+        
+        <p className={styles.errorMessage}>{message}</p>
+        
+        <button className={styles.closeButton} onClick={onClose}>
+          Close
+        </button>
       </div>
     </div>
   );
