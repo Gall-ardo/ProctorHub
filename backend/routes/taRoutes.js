@@ -35,6 +35,7 @@ router.get('/proctorings/active', taProctoringController.getActiveProctorings);
 router.put('/proctorings/:proctoringId/accept', taProctoringController.acceptProctoring);
 router.put('/proctorings/:proctoringId/reject', taProctoringController.rejectProctoring);
 router.get('/proctorings/stats', taProctoringController.getProctoringStats);
+router.put('/profile/multidepartment', taProctoringController.updateMultidepartmentPreference);
 
 
 module.exports = router;

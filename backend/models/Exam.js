@@ -48,11 +48,11 @@ const Exam = sequelize.define("Exam", {
     type: DataTypes.ENUM('MIDTERM', 'FINAL', 'QUIZ', 'OTHER'),
     defaultValue: 'MIDTERM',
   },
-  classrooms: {
+  /*classrooms: {
     type: DataTypes.STRING,
     allowNull: false,
     comment: 'Comma separated list of classrooms'
-  },
+  },*/
   proctorNum: {
     type: DataTypes.INTEGER,
     allowNull: false,

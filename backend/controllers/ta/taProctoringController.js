@@ -145,7 +145,37 @@ const taProctoringController = {
         message: 'Internal server error'
       });
     }
-  }
+  },
+
+    // Update multidepartment preference
+    updateMultidepartmentPreference: async (req, res) => {
+        try {
+          const taId = req.user.id;
+          const { isMultidepartmentExam } = req.body;
+    
+          if (typeof isMultidepartmentExam !== 'boolean') {
+            return res.status(400).json({
+              success: false,
+              message: 'isMultidepartmentExam must be a boolean value'
+            });
+          }
+    
+          const result = await taProctoringService.updateMultidepartmentStatus(taId, isMultidepartmentExam);
+    
+          if (!result.success) {
+            return res.status(400).json(result);
+          }
+    
+          return res.status(200).json(result);
+        } catch (error) {
+          console.error('Error in updateMultidepartmentPreference controller:', error);
+          return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+          });
+        }
+      }
+    
 };
 
 module.exports = taProctoringController;

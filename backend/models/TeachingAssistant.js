@@ -14,6 +14,10 @@ const TeachingAssistant = sequelize.define("TeachingAssistant", {
   approvedAbsence: DataTypes.BOOLEAN,
   waitingAbsenceRequest: DataTypes.BOOLEAN,
   isPartTime: DataTypes.BOOLEAN,
+  isMultidepartmentExam: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 // Remove any association here - it's defined in index.js

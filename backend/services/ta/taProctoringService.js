@@ -2,93 +2,127 @@
 const Proctoring = require('../../models/Proctoring');
 const Exam = require('../../models/Exam');
 const TeachingAssistant = require('../../models/TeachingAssistant');
+const Classroom = require('../../models/Classroom');
+const Course = require('../../models/Course');
 const { v4: uuidv4 } = require('uuid');
 
-// Service for TA proctoring operations
 const taProctoringService = {
-  // Get all proctorings for a specific TA
-  getAllProctoringsByTaId: async (taId) => {
-    try {
-      const proctorings = await Proctoring.findAll({
-        where: { taId },
-        include: [{
-          model: Exam,
-          as: 'exam',
-          attributes: ['courseName', 'examType', 'date', 'duration', 'classrooms']
-        }],
-        order: [['assignmentDate', 'DESC']]
-      });
-      
-      return {
-        success: true,
-        data: proctorings
-      };
-    } catch (error) {
-      console.error('Error fetching TA proctorings:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch proctorings'
-      };
-    }
-  },
-
-  // Get pending proctorings for a TA
-  getPendingProctoringsByTaId: async (taId) => {
-    try {
-      const pendingProctorings = await Proctoring.findAll({
-        where: { 
-          taId,
-          status: 'PENDING'
-        },
-        include: [{
-          model: Exam,
-          as: 'exam',
-          attributes: ['courseName', 'examType', 'date', 'duration', 'classrooms']
-        }],
-        order: [['assignmentDate', 'ASC']]
-      });
-      
-      return {
-        success: true,
-        data: pendingProctorings
-      };
-    } catch (error) {
-      console.error('Error fetching pending TA proctorings:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch pending proctorings'
-      };
-    }
-  },
-
-  // Get active proctorings for a TA
-  getActiveProctoringsByTaId: async (taId) => {
-    try {
-      const activeProctorings = await Proctoring.findAll({
-        where: { 
-          taId,
-          status: 'ACCEPTED'
-        },
-        include: [{
-          model: Exam,
-          as: 'exam',
-          attributes: ['courseName', 'examType', 'date', 'duration', 'classrooms']
-        }],
-        order: [['assignmentDate', 'ASC']]
-      });
-      
-      return {
-        success: true,
-        data: activeProctorings
-      };
-    } catch (error) {
-      console.error('Error fetching active TA proctorings:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch active proctorings'
-      };
-    }
-  },
+    // Get all proctorings for a specific TA
+    getAllProctoringsByTaId: async (taId) => {
+      try {
+        const proctorings = await Proctoring.findAll({
+          where: { taId },
+          include: [{
+            model: Exam,
+            as: 'exam',
+            attributes: ['examType', 'date', 'duration'],
+            include: [
+              {
+                model: Course,
+                attributes: ['courseCode']
+              },
+              {
+                model: Classroom,
+                as: 'examRooms',
+                attributes: ['name']
+              }
+            ]
+          }],
+          order: [['assignmentDate', 'DESC']]
+        });
+        
+        return {
+          success: true,
+          data: proctorings
+        };
+      } catch (error) {
+        console.error('Error fetching TA proctorings:', error);
+        return {
+          success: false,
+          message: 'Failed to fetch proctorings'
+        };
+      }
+    },
+  
+    // Get pending proctorings for a TA
+    getPendingProctoringsByTaId: async (taId) => {
+      try {
+        const pendingProctorings = await Proctoring.findAll({
+          where: { 
+            taId,
+            status: 'PENDING'
+          },
+          include: [{
+            model: Exam,
+            as: 'exam',
+            attributes: ['examType', 'date', 'duration'],
+            include: [
+              {
+                model: Course,
+                attributes: ['courseCode']
+              },
+              {
+                model: Classroom,
+                as: 'examRooms',
+                attributes: ['name']
+              }
+            ]
+          }],
+          order: [['assignmentDate', 'ASC']]
+        });
+        
+        return {
+          success: true,
+          data: pendingProctorings
+        };
+      } catch (error) {
+        console.error('Error fetching pending TA proctorings:', error);
+        return {
+          success: false,
+          message: 'Failed to fetch pending proctorings'
+        };
+      }
+    },
+  
+    // Get active proctorings for a TA
+    getActiveProctoringsByTaId: async (taId) => {
+      try {
+        const activeProctorings = await Proctoring.findAll({
+          where: { 
+            taId,
+            status: 'ACCEPTED'
+          },
+          include: [{
+            model: Exam,
+            as: 'exam',
+            attributes: ['examType', 'date', 'duration'],
+            include: [
+              {
+                model: Course,
+                attributes: ['courseCode']
+              },
+              {
+                model: Classroom,
+                as: 'examRooms',
+                attributes: ['name']
+              }
+            ]
+          }],
+          order: [['assignmentDate', 'ASC']]
+        });
+        
+        return {
+          success: true,
+          data: activeProctorings
+        };
+      } catch (error) {
+        console.error('Error fetching active TA proctorings:', error);
+        return {
+          success: false,
+          message: 'Failed to fetch active proctorings'
+        };
+      }
+    },
 
   // Accept a proctoring assignment
   acceptProctoring: async (proctoringId, taId) => {
@@ -226,7 +260,7 @@ const taProctoringService = {
       }
       
       // Get the multidepartment status
-      const isMultidepartment = (ta.totalNonDepartmentProctoring || 0) > 0;
+      const isMultidepartment = ta.isMultidepartmentExam;
       
       return {
         success: true,
@@ -241,6 +275,34 @@ const taProctoringService = {
       return {
         success: false,
         message: 'Failed to fetch proctoring statistics'
+      };
+    }
+  },
+
+  // Update isMultidepartmentExam flag for the TA
+  updateMultidepartmentStatus: async (taId, isMultidepartmentExam) => {
+    try {
+      const ta = await TeachingAssistant.findByPk(taId);
+      if (!ta) {
+        return {
+          success: false,
+          message: 'Teaching Assistant not found'
+        };
+      }
+
+      ta.isMultidepartmentExam = isMultidepartmentExam;
+      await ta.save();
+
+      return {
+        success: true,
+        data: { isMultidepartmentExam: ta.isMultidepartmentExam },
+        message: 'Multidepartment preference updated successfully'
+      };
+    } catch (error) {
+      console.error('Error updating multidepartment status:', error);
+      return {
+        success: false,
+        message: 'Failed to update multidepartment status'
       };
     }
   }

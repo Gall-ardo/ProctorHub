@@ -1,3 +1,4 @@
+// TAProctoringPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -50,247 +51,164 @@ const TAProctoringPage = () => {
         setLoading(true);
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
-        
-        // Fetch pending proctorings
+
         const pendingResponse = await axios.get(`${API_URL}/ta/proctorings/pending`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         if (pendingResponse.data.success) {
-          // Map the API data to the format expected by the component
-          const formattedPendingProctorings = pendingResponse.data.data.map(item => ({
+          const formatted = pendingResponse.data.data.map(item => ({
             id: item.id,
-            course: item.exam.courseName,
+            course: item.exam.Course?.courseCode || 'N/A',
             type: item.exam.examType,
             date: formatDate(item.exam.date),
             time: formatTime(item.exam.date, item.exam.duration),
-            classrooms: item.exam.classrooms
+            classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
           }));
-          
-          setWaitingProctorings(formattedPendingProctorings);
-          console.log('🔄 Pending proctorings:', formattedPendingProctorings);
-        } else {
-          console.warn('⚠️ Pending fetch returned success = false:', pendingResponse.data);
+          setWaitingProctorings(formatted);
         }
-  
-        // Fetch active proctorings
+
         const activeResponse = await axios.get(`${API_URL}/ta/proctorings/active`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         if (activeResponse.data.success) {
-          // Map the API data to the format expected by the component
-          const formattedActiveProctorings = activeResponse.data.data.map(item => ({
+          const formatted = activeResponse.data.data.map(item => ({
             id: item.id,
-            course: item.exam.courseName,
+            course: item.exam.Course?.courseCode || 'N/A',
             type: item.exam.examType,
             date: formatDate(item.exam.date),
             time: formatTime(item.exam.date, item.exam.duration),
-            classrooms: item.exam.classrooms
+            classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
           }));
-          
-          setAssignedProctorings(formattedActiveProctorings);
-          console.log('✅ Active proctorings:', formattedActiveProctorings);
-        } else {
-          console.warn('⚠️ Active fetch returned success = false:', activeResponse.data);
+          setAssignedProctorings(formatted);
         }
-  
-        // Fetch proctoring stats
+
         const statsResponse = await axios.get(`${API_URL}/ta/proctorings/stats`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (statsResponse.data.success) {
           setProctoringStats(statsResponse.data.data);
           setIsMultidepartment(statsResponse.data.data.isMultidepartment);
-          console.log('📈 Proctoring stats:', statsResponse.data.data);
-        } else {
-          console.warn('⚠️ Stats fetch returned success = false:', statsResponse.data);
         }
-  
+
         setLoading(false);
-        console.log('🎉 Finished fetching all proctoring data.');
       } catch (err) {
-        console.error('❌ Error fetching proctoring data:', err?.response || err.message || err);
-        setError('Failed to load proctoring data. Please try again later.');
+        console.error('❌ Error fetching data:', err);
+        setError('Failed to load proctoring data.');
         setLoading(false);
       }
     };
-  
+
     fetchProctoringData();
   }, []);
-  
-  
-  // Helper function to format date string
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-  
-  // Helper function to format time range
-  const formatTime = (dateString, duration) => {
-    if (!dateString || !duration) return '';
-    
-    const date = new Date(dateString);
-    const startHour = date.getHours().toString().padStart(2, '0');
-    const startMinute = date.getMinutes().toString().padStart(2, '0');
-    
-    // Calculate end time
-    const endDate = new Date(date.getTime() + duration * 60000);
-    const endHour = endDate.getHours().toString().padStart(2, '0');
-    const endMinute = endDate.getMinutes().toString().padStart(2, '0');
-    
-    return `${startHour}.${startMinute}-${endHour}.${endMinute}`;
+    return new Date(dateString).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-  // Toggle multidepartment status
+  const formatTime = (dateString, duration) => {
+    if (!dateString || !duration) return '';
+    const date = new Date(dateString);
+    const endDate = new Date(date.getTime() + duration * 60000);
+    return `${date.getHours().toString().padStart(2, '0')}.${date.getMinutes().toString().padStart(2, '0')}` +
+           `-${endDate.getHours().toString().padStart(2, '0')}.${endDate.getMinutes().toString().padStart(2, '0')}`;
+  };
+
   const toggleMultidepartment = async () => {
     try {
-      // In a real implementation, you would make an API call here
-      // to update the TA's preference for multidepartment proctorings
-      setIsMultidepartment(!isMultidepartment);
+      const token = localStorage.getItem('token');
+      const updatedValue = !isMultidepartment;
+
+      const response = await axios.put(`${API_URL}/ta/profile/multidepartment`, {
+        isMultidepartmentExam: updatedValue
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setIsMultidepartment(updatedValue);
+      } else {
+        throw new Error('Failed to update preference');
+      }
     } catch (err) {
-      console.error('Error toggling multidepartment status:', err);
+      console.error('Error updating multidepartment status:', err);
+      setError('Failed to update multidepartment setting.');
     }
   };
 
-  // Handle accept/reject proctoring request
   const handleProctoringAction = (action, id) => {
     setCurrentAction({ action, id });
     setConfirmDialogOpen(true);
   };
 
-  // Confirm accept/reject action
   const confirmAction = async () => {
-    if (currentAction) {
-      const { action, id } = currentAction;
-      
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
-        
+    if (!currentAction) return;
+    const { action, id } = currentAction;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No token');
+
+      const response = await axios.put(`${API_URL}/ta/proctorings/${id}/${action}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
         if (action === 'accept') {
-          const response = await axios.put(`${API_URL}/ta/proctorings/${id}/accept`, {}, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          
-          if (response.data.success) {
-            // Find the proctoring in waiting list
-            const proctoring = waitingProctorings.find(p => p.id === id);
-            if (proctoring) {
-              // Add to assigned and remove from waiting
-              setAssignedProctorings(prev => [...prev, proctoring]);
-              setWaitingProctorings(prev => prev.filter(p => p.id !== id));
-              
-              // Update stats
-              setProctoringStats(prev => ({
-                ...prev,
-                totalProctoringHours: prev.totalProctoringHours + 3 // Assuming 3 hours per proctoring as default
-              }));
-            }
-          }
-        } else if (action === 'reject') {
-          const response = await axios.put(`${API_URL}/ta/proctorings/${id}/reject`, {}, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          
-          if (response.data.success) {
-            // Just remove from waiting list
-            setWaitingProctorings(prev => prev.filter(p => p.id !== id));
-            
-            // Update stats
-            setProctoringStats(prev => ({
-              ...prev,
-              totalRejectedProctoring: prev.totalRejectedProctoring + 1
-            }));
-          }
+          const accepted = waitingProctorings.find(p => p.id === id);
+          setAssignedProctorings(prev => [...prev, accepted]);
+          setWaitingProctorings(prev => prev.filter(p => p.id !== id));
+        } else {
+          setWaitingProctorings(prev => prev.filter(p => p.id !== id));
         }
-      } catch (err) {
-        console.error(`Error ${action}ing proctoring:`, err);
-        setError(`Failed to ${action} proctoring. Please try again.`);
       }
+    } catch (err) {
+      console.error(`Failed to ${action} proctoring:`, err);
+      setError(`Failed to ${action} proctoring.`);
     }
-    
-    // Close dialog and reset current action
+
     setConfirmDialogOpen(false);
     setCurrentAction(null);
   };
 
-  // Close confirmation dialog
   const closeConfirmDialog = () => {
     setConfirmDialogOpen(false);
     setCurrentAction(null);
   };
 
-  // Render proctoring items for waiting approval
   const renderWaitingProctoringList = () => {
-    if (loading) {
-      return <div className="ta-proctoring-page-loading">Loading...</div>;
-    }
-    
-    if (waitingProctorings.length === 0) {
-      return <div className="ta-proctoring-page-empty-list">No pending proctoring assignments</div>;
-    }
-    
-    return waitingProctorings.map((proctoring) => (
-      <div key={proctoring.id} className="ta-proctoring-page-proctoring-item">
+    if (loading) return <div className="ta-proctoring-page-loading">Loading...</div>;
+    if (waitingProctorings.length === 0) return <div className="ta-proctoring-page-empty-list">No pending proctoring assignments</div>;
+    return waitingProctorings.map((p) => (
+      <div key={p.id} className="ta-proctoring-page-proctoring-item">
         <div className="ta-proctoring-page-proctoring-details">
-          <div className="ta-proctoring-page-course-info">
-            {proctoring.course} {proctoring.type}
-          </div>
+          <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
           <div className="ta-proctoring-page-proctoring-meta">
-            <div>{proctoring.date}      {proctoring.time}</div>
-            <div>Classrooms: {proctoring.classrooms}</div>
+            <div>{p.date} {p.time}</div>
+            <div>Classrooms: {p.classrooms}</div>
           </div>
         </div>
         <div className="ta-proctoring-page-proctoring-actions">
-          <button 
-            className="ta-proctoring-page-action-button accept"
-            onClick={() => handleProctoringAction('accept', proctoring.id)}
-          >
-            ✓
-          </button>
-          <button 
-            className="ta-proctoring-page-action-button reject"
-            onClick={() => handleProctoringAction('reject', proctoring.id)}
-          >
-            ✕
-          </button>
+          <button className="ta-proctoring-page-action-button accept" onClick={() => handleProctoringAction('accept', p.id)}>✓</button>
+          <button className="ta-proctoring-page-action-button reject" onClick={() => handleProctoringAction('reject', p.id)}>✕</button>
         </div>
       </div>
     ));
   };
 
-  // Render assigned proctoring items
   const renderAssignedProctoringList = () => {
-    if (loading) {
-      return <div className="ta-proctoring-page-loading">Loading...</div>;
-    }
-    
-    if (assignedProctorings.length === 0) {
-      return <div className="ta-proctoring-page-empty-list">No active proctoring assignments</div>;
-    }
-    
-    return assignedProctorings.map((proctoring) => (
-      <div key={proctoring.id} className="ta-proctoring-page-proctoring-item">
+    if (loading) return <div className="ta-proctoring-page-loading">Loading...</div>;
+    if (assignedProctorings.length === 0) return <div className="ta-proctoring-page-empty-list">No active proctoring assignments</div>;
+    return assignedProctorings.map((p) => (
+      <div key={p.id} className="ta-proctoring-page-proctoring-item">
         <div className="ta-proctoring-page-proctoring-details">
-          <div className="ta-proctoring-page-course-info">
-            {proctoring.course} {proctoring.type}
-          </div>
+          <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
           <div className="ta-proctoring-page-proctoring-meta">
-            <div>{proctoring.date}      {proctoring.time}</div>
-            <div>Classrooms: {proctoring.classrooms}</div>
+            <div>{p.date} {p.time}</div>
+            <div>Classrooms: {p.classrooms}</div>
           </div>
         </div>
       </div>
@@ -302,67 +220,39 @@ const TAProctoringPage = () => {
       <TANavBar />
       <main className="ta-proctoring-page-main-content ta-proctoring-page-proctoring-main">
         {error && <div className="ta-proctoring-page-error">{error}</div>}
-        
+
         <div className="ta-proctoring-page-proctoring-stats-vertical">
           <div className="ta-proctoring-page-stat-container">
             <div className="ta-proctoring-page-stat-item">
               <div className="ta-proctoring-page-stat-label">Total Proctoring Hours</div>
               <div className="ta-proctoring-page-circle proctoring">
                 <svg viewBox="0 0 36 36" className="ta-proctoring-page-circular-chart">
-                  <path 
-                    className="ta-proctoring-page-circle-bg" 
-                    d="M18 2.0845
-                      a 15.9155 15.9155 0 0 1 0 31.831
-                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path 
-                    className="ta-proctoring-page-circle"
-                    strokeDasharray={`${proctoringStats.totalProctoringHours}, 100`}
-                    d="M18 2.0845
-                      a 15.9155 15.9155 0 0 1 0 31.831
-                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                    stroke="#4CAF50"
-                  />
+                  <path className="ta-proctoring-page-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="ta-proctoring-page-circle" strokeDasharray={`${proctoringStats.totalProctoringHours}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="#4CAF50" />
                   <text x="18" y="20.35" className="ta-proctoring-page-percentage">{proctoringStats.totalProctoringHours}</text>
                 </svg>
               </div>
             </div>
           </div>
-          
+
           <div className="ta-proctoring-page-middle-stat">
             <div className="ta-proctoring-page-stat-item">
               <div className="ta-proctoring-page-stat-label">Total Rejected Proctoring Number</div>
               <div className="ta-proctoring-page-circle rejected">
                 <svg viewBox="0 0 36 36" className="ta-proctoring-page-circular-chart">
-                  <path 
-                    className="ta-proctoring-page-circle-bg" 
-                    d="M18 2.0845
-                      a 15.9155 15.9155 0 0 1 0 31.831
-                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path 
-                    className="ta-proctoring-page-circle"
-                    strokeDasharray={`${proctoringStats.totalRejectedProctoring}, 100`}
-                    d="M18 2.0845
-                      a 15.9155 15.9155 0 0 1 0 31.831
-                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                    stroke="#F44336"
-                  />
+                  <path className="ta-proctoring-page-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="ta-proctoring-page-circle" strokeDasharray={`${proctoringStats.totalRejectedProctoring}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="#F44336" />
                   <text x="18" y="20.35" className="ta-proctoring-page-percentage">{proctoringStats.totalRejectedProctoring}</text>
                 </svg>
               </div>
             </div>
           </div>
-          
+
           <div className="ta-proctoring-page-multidepartment-container" onClick={toggleMultidepartment}>
             <div className="ta-proctoring-page-stat-item">
-              <div className="ta-proctoring-page-stat-label">Multidepartment Exam<br/>Proctoring Request</div>
+              <div className="ta-proctoring-page-stat-label">Multidepartment Exam<br />Proctoring Request</div>
               <div className={`ta-proctoring-page-circle multidepartment ${isMultidepartment ? 'active' : 'inactive'}`}>
-                {isMultidepartment ? (
-                  <span className="ta-proctoring-page-check-icon">✓</span>
-                ) : (
-                  <span className="ta-proctoring-page-x-icon">✕</span>
-                )}
+                {isMultidepartment ? <span className="ta-proctoring-page-check-icon">✓</span> : <span className="ta-proctoring-page-x-icon">✕</span>}
               </div>
             </div>
           </div>
@@ -384,7 +274,6 @@ const TAProctoringPage = () => {
         </div>
       </main>
 
-      {/* Confirmation Dialog */}
       <ConfirmationDialog 
         isOpen={confirmDialogOpen}
         onClose={closeConfirmDialog}
