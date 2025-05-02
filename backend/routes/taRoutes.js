@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
 const taWorkloadController = require('../controllers/ta/taWorkloadController');
+const swapRequestController = require('../controllers/ta/taSwapController');
+const taProctoringController = require('../controllers/ta/taProctoringController');
 
 // Test route without authentication
 router.get('/test', (req, res) => {
@@ -18,5 +20,21 @@ router.get('/workloads', taWorkloadController.getWorkloads);
 router.get('/workloads/pending', taWorkloadController.getPendingWorkloads);
 router.get('/workloads/approved', taWorkloadController.getApprovedWorkloads);
 router.post('/workloads', taWorkloadController.createWorkload);
+
+
+router.post('/swaps', swapRequestController.createPersonalSwapRequest);                   // POST /swaps
+router.get('/swaps/mine', swapRequestController.getMySwapRequests);                      // GET /swaps/mine
+router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);                  // GET /swaps/my-exams
+router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /swaps/respond
+router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /swaps/:swapRequestId
+
+// Proctoring routes
+router.get('/proctorings', taProctoringController.getAllProctorings);
+router.get('/proctorings/pending', taProctoringController.getPendingProctorings);
+router.get('/proctorings/active', taProctoringController.getActiveProctorings);
+router.put('/proctorings/:proctoringId/accept', taProctoringController.acceptProctoring);
+router.put('/proctorings/:proctoringId/reject', taProctoringController.rejectProctoring);
+router.get('/proctorings/stats', taProctoringController.getProctoringStats);
+
 
 module.exports = router;

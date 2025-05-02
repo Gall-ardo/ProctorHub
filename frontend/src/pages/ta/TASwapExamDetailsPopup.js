@@ -1,8 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TASwapExamDetailsPopup.css';
 
 const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }) => {
   const [selectedExam, setSelectedExam] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [myExams, setMyExams] = useState([]);
+
+  // Reset selected exam when modal opens with new exam details
+  useEffect(() => {
+    if (isOpen && examDetails) {
+      setSelectedExam(null);
+      setError('');
+      setSuccess('');
+      
+      // Use provided exams or fetch them if not provided
+      if (userExams && userExams.length > 0) {
+        setMyExams(userExams);
+      } else {
+        fetchMyExams();
+      }
+    }
+  }, [isOpen, examDetails, userExams]);
+
+  // Fetch user's exams for swap
+  const fetchMyExams = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/ta/swap/my-exams', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setMyExams(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch your exams');
+      }
+    } catch (err) {
+      setError('Error fetching your exams. Please try again.');
+      console.error('Error fetching exams:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle exam selection
   const handleExamSelection = (exam) => {
@@ -10,11 +63,50 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
   };
 
   // Handle swap button click
-  const handleSwap = () => {
-    if (selectedExam) {
-      console.log(`Swapping ${examDetails.course} with user exam ID: ${selectedExam}`);
-      // Here you would make an API call to process the swap
-      onClose();
+  const handleSwap = async () => {
+    if (!selectedExam) return;
+    
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await fetch('/api/ta/swap/respond', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          swapRequestId: examDetails.id,
+          examIdToSwap: selectedExam
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSuccess('Swap completed successfully!');
+        // Close the modal after a brief delay to show success message
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+      } else {
+        setError(data.message || 'Failed to complete swap');
+      }
+    } catch (err) {
+      setError('Error completing swap. Please try again.');
+      console.error('Error completing swap:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,6 +120,20 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
         </div>
         
         <div className="ta-exam-details-content">
+          {/* Success Message */}
+          {success && (
+            <div style={{ padding: '15px', backgroundColor: '#dff0d8', color: '#3c763d', marginBottom: '20px', borderRadius: '4px' }}>
+              {success}
+            </div>
+          )}
+          
+          {/* Error Message */}
+          {error && (
+            <div style={{ padding: '15px', backgroundColor: '#f2dede', color: '#a94442', marginBottom: '20px', borderRadius: '4px' }}>
+              {error}
+            </div>
+          )}
+          
           {/* Exam details section */}
           <div className="ta-exam-details-info">
             <h2>{examDetails.course} Midterm Exam</h2>
@@ -50,26 +156,37 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
           {/* Possible exams to swap section */}
           <div className="ta-exam-details-possible-exams">
             <h3>Possible Exams to Swap</h3>
-            <div className="ta-exam-details-exam-list">
-              {userExams.map((exam) => (
-                <div 
-                  key={exam.id} 
-                  className={`ta-exam-details-exam-item ${selectedExam === exam.id ? 'selected' : ''}`}
-                  onClick={() => handleExamSelection(exam)}
-                >
-                  <div className="ta-exam-details-exam-info">
-                    {exam.course} / {exam.date} / {exam.time}
+            
+            {loading && <div style={{ textAlign: 'center', padding: '20px' }}>Loading your exams...</div>}
+            
+            {!loading && myExams.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                You don't have any exams available for swap
+              </div>
+            )}
+            
+            {!loading && myExams.length > 0 && (
+              <div className="ta-exam-details-exam-list">
+                {myExams.map((exam) => (
+                  <div 
+                    key={exam.id} 
+                    className={`ta-exam-details-exam-item ${selectedExam === exam.id ? 'selected' : ''}`}
+                    onClick={() => handleExamSelection(exam)}
+                  >
+                    <div className="ta-exam-details-exam-info">
+                      {exam.course} / {exam.date} / {exam.time}
+                    </div>
+                    <div className="ta-exam-details-exam-radio">
+                      {selectedExam === exam.id ? (
+                        <div className="radio-selected"></div>
+                      ) : (
+                        <div className="radio-unselected"></div>
+                      )}
+                    </div>
                   </div>
-                  <div className="ta-exam-details-exam-radio">
-                    {selectedExam === exam.id ? (
-                      <div className="radio-selected"></div>
-                    ) : (
-                      <div className="radio-unselected"></div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
           
           {/* Swap button */}
@@ -77,9 +194,9 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
             <button 
               className="ta-exam-details-swap-button" 
               onClick={handleSwap}
-              disabled={!selectedExam}
+              disabled={loading || !selectedExam}
             >
-              Swap
+              {loading ? 'Processing...' : 'Swap'}
             </button>
           </div>
         </div>
