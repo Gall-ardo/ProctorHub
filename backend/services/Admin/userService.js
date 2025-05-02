@@ -6,6 +6,13 @@ const DepartmentChair = require("../../models/DepartmentChair");
 const DeansOffice = require("../../models/DeansOffice");
 const TeachingAssistant = require("../../models/TeachingAssistant");
 const Student = require("../../models/Student");
+const Schedule = require("../../models/Schedule");
+const TimeSlot = require("../../models/TimeSlot");
+const Workload = require("../../models/Workload");
+const LeaveRequest = require("../../models/LeaveRequest");
+const SwapRequest = require("../../models/SwapRequest");
+const Notification = require("../../models/Notification");
+const Log = require("../../models/Log");
 const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
 const sequelize = require("../../config/db");
@@ -183,6 +190,9 @@ class UserService {
         throw new Error("User not found");
       }
       
+      // Store the original user type for comparison
+      const originalUserType = user.userType;
+      
       // Check if email is being updated and if it's already in use by another user
       if (userData.email && userData.email !== user.email) {
         const existingUser = await User.findOne({
@@ -197,12 +207,15 @@ class UserService {
           throw new Error(`Email ${userData.email} is already in use by another user`);
         }
       }
-
-      // Check if department is required and provided
+  
+      // Check if userType is being changed
+      const isUserTypeChanging = userData.userType && userData.userType !== originalUserType;
+  
+      // Check if department is required and provided for the new user type
       if ((userData.userType === 'instructor' || userData.userType === 'chair' || userData.userType === 'ta') && !userData.department) {
         throw new Error("Department is required for instructors, department chairs, and teaching assistants");
       }
-
+  
       let passwordForEmail = null;
       
       // Reset password if requested
@@ -219,52 +232,101 @@ class UserService {
         // Remove password from userData if it's not provided
         delete userData.password;
       }
-
+  
       // Update the user details
       await user.update(userData, { transaction: t });
       
-      // Handle department update based on user type
-      if (userData.department) {
-        try {
-          switch (user.userType.toLowerCase()) {
-            case "instructor":
-              const instructor = await Instructor.findByPk(user.id, { transaction: t });
-              if (instructor) {
-                await instructor.update({ department: userData.department }, { transaction: t });
-              } else {
-                await Instructor.create({ id: user.id, department: userData.department }, { transaction: t });
-              }
-              break;
-            case "chair":
-              const chair = await DepartmentChair.findByPk(user.id, { transaction: t });
-              if (chair) {
-                await chair.update({ department: userData.department }, { transaction: t });
-              } else {
-                await DepartmentChair.create({ id: user.id, department: userData.department }, { transaction: t });
-              }
-              break;
-            case "ta":
-              const ta = await TeachingAssistant.findByPk(user.id, { transaction: t });
-              if (ta) {
-                await ta.update({ department: userData.department }, { transaction: t });
-              } else {
-                await TeachingAssistant.create({ 
-                  id: user.id, 
-                  department: userData.department,
-                  totalProctoringInDepartment: 0,
-                  totalNonDepartmentProctoring: 0,
-                  totalWorkload: 0,
-                  isPHD: userData.isPHD || false,
-                  approvedAbsence: false,
-                  waitingAbsenceRequest: false,
-                  isPartTime: userData.isPartTime || false
-                }, { transaction: t });
-              }
-              break;
-          }
-        } catch (error) {
-          console.error(`Error updating department for user ${id}:`, error);
-          throw new Error(`Failed to update department: ${error.message}`);
+      // If user type has changed, remove the old role record and create a new one
+      if (isUserTypeChanging) {
+        console.log(`User type changing from ${originalUserType} to ${userData.userType}`);
+        
+        // Step 1: Delete the old user type record
+        switch (originalUserType.toLowerCase()) {
+          case "admin":
+            await Admin.destroy({ where: { id }, transaction: t });
+            break;
+          case "instructor":
+            await Instructor.destroy({ where: { id }, transaction: t });
+            break;
+          case "chair":
+            await DepartmentChair.destroy({ where: { id }, transaction: t });
+            break;
+          case "dean":
+            await DeansOffice.destroy({ where: { id }, transaction: t });
+            break;
+          case "ta":
+            await TeachingAssistant.destroy({ where: { id }, transaction: t });
+            break;
+          case "student":
+            await Student.destroy({ where: { id }, transaction: t });
+            break;
+        }
+        
+        // Step 2: Create the new user type record
+        switch (userData.userType.toLowerCase()) {
+          case "admin":
+            await Admin.create({ id }, { transaction: t });
+            break;
+          case "instructor":
+            await Instructor.create({ 
+              id,
+              department: userData.department
+            }, { transaction: t });
+            break;
+          case "chair":
+            await DepartmentChair.create({ 
+              id,
+              department: userData.department
+            }, { transaction: t });
+            break;
+          case "dean":
+            await DeansOffice.create({ id }, { transaction: t });
+            break;
+          case "ta":
+            await TeachingAssistant.create({ 
+              id,
+              department: userData.department,
+              totalProctoringInDepartment: 0,
+              totalNonDepartmentProctoring: 0,
+              totalWorkload: 0,
+              isPHD: userData.isPHD || false,
+              approvedAbsence: false,
+              waitingAbsenceRequest: false,
+              isPartTime: userData.isPartTime || false
+            }, { transaction: t });
+            break;
+          case "student":
+            await Student.create({ id }, { transaction: t });
+            break;
+        }
+      } 
+      // If just updating the same user type with new data
+      else if (userData.department) {
+        // Update department if the user remains the same type but department changed
+        switch (user.userType.toLowerCase()) {
+          case "instructor":
+            const instructor = await Instructor.findByPk(user.id, { transaction: t });
+            if (instructor) {
+              await instructor.update({ department: userData.department }, { transaction: t });
+            }
+            break;
+          case "chair":
+            const chair = await DepartmentChair.findByPk(user.id, { transaction: t });
+            if (chair) {
+              await chair.update({ department: userData.department }, { transaction: t });
+            }
+            break;
+          case "ta":
+            const ta = await TeachingAssistant.findByPk(user.id, { transaction: t });
+            if (ta) {
+              // Update TA specific fields
+              await ta.update({ 
+                department: userData.department,
+                isPHD: userData.isPHD !== undefined ? userData.isPHD : ta.isPHD,
+                isPartTime: userData.isPartTime !== undefined ? userData.isPartTime : ta.isPartTime
+              }, { transaction: t });
+            }
+            break;
         }
       }
       
@@ -292,7 +354,8 @@ class UserService {
     }
   }
 
-  async deleteUser(id) {
+  // Update this method in your userService.js file
+  async deleteUser(id, force = false) {
     const t = await sequelize.transaction();
     
     try {
@@ -302,35 +365,173 @@ class UserService {
         throw new Error("User not found");
       }
 
-      // Delete the specific user type based on userType
-      try {
+      // Log the deletion attempt
+      console.log(`Attempting to delete user ${id} of type ${user.userType}${force ? ' with force flag' : ''}`);
+      
+      // If force is true, we'll use a different approach to handle dependencies
+      if (force) {
+        console.log('Using forced deletion to handle dependencies');
+        
+        // We'll use MySQL-specific code since you're using MySQL
+        // Temporarily disable foreign key checks to force delete
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', { transaction: t });
+        
+        // Delete from specific user type table first
         switch (user.userType.toLowerCase()) {
-          case "admin":
-            await Admin.destroy({ where: { id }, transaction: t });
+          case "ta":
+            // Only attempt to delete if record exists in this table
+            const ta = await TeachingAssistant.findByPk(id, { transaction: t });
+            if (ta) await ta.destroy({ transaction: t });
             break;
           case "instructor":
+            const instructor = await Instructor.findByPk(id, { transaction: t });
+            if (instructor) await instructor.destroy({ transaction: t });
+            break;
+          case "chair":
+            const chair = await DepartmentChair.findByPk(id, { transaction: t });
+            if (chair) await chair.destroy({ transaction: t });
+            break;
+          case "dean":
+            const dean = await DeansOffice.findByPk(id, { transaction: t });
+            if (dean) await dean.destroy({ transaction: t });
+            break;
+          case "admin":
+            const admin = await Admin.findByPk(id, { transaction: t });
+            if (admin) await admin.destroy({ transaction: t });
+            break;
+          case "student":
+            const student = await Student.findByPk(id, { transaction: t });
+            if (student) await student.destroy({ transaction: t });
+            break;
+        }
+        
+        // Delete the user
+        await User.destroy({ where: { id }, transaction: t });
+        
+        // Re-enable foreign key checks
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1', { transaction: t });
+      } else {
+        // Normal deletion process - we'll try to delete related records first
+        
+        // Delete notifications
+        await Notification.destroy({ where: { recipientId: id }, transaction: t });
+        
+        // Delete logs
+        await Log.destroy({ where: { userId: id }, transaction: t });
+        
+        // Try specific user type deletion
+        switch (user.userType.toLowerCase()) {
+          case "ta":
+            // Delete TA-specific relationships first
+            await Workload.destroy({ where: { taId: id }, transaction: t });
+            await LeaveRequest.destroy({ where: { taId: id }, transaction: t });
+            await SwapRequest.destroy({ 
+              where: { 
+                [Op.or]: [
+                  { requesterId: id },
+                  { recipientId: id }
+                ]
+              }, 
+              transaction: t 
+            });
+            
+            // Delete Schedule and TimeSlots
+            const schedule = await Schedule.findOne({ where: { taId: id }, transaction: t });
+            if (schedule) {
+              await TimeSlot.destroy({ where: { scheduleId: schedule.id }, transaction: t });
+              await schedule.destroy({ transaction: t });
+            }
+            
+            // Delete from join tables - requires raw SQL
+            try {
+              await sequelize.query(
+                `DELETE FROM ExamProctors WHERE TeachingAssistantId = ?`,
+                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
+              );
+            } catch (error) {
+              console.error('Error deleting from ExamProctors:', error);
+            }
+            
+            try {
+              await sequelize.query(
+                `DELETE FROM CourseTAs WHERE TeachingAssistantId = ?`,
+                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
+              );
+            } catch (error) {
+              console.error('Error deleting from CourseTAs:', error);
+            }
+            
+            try {
+              await sequelize.query(
+                `DELETE FROM OfferingTAs WHERE TeachingAssistantId = ?`,
+                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
+              );
+            } catch (error) {
+              console.error('Error deleting from OfferingTAs:', error);
+            }
+            
+            // Delete the TeachingAssistant record
+            await TeachingAssistant.destroy({ where: { id }, transaction: t });
+            break;
+            
+          case "instructor":
+            // Delete instructor relationships
+            await Workload.destroy({ where: { instructorId: id }, transaction: t });
+            
+            // Delete from join tables
+            try {
+              await sequelize.query(
+                `DELETE FROM OfferingInstructors WHERE InstructorId = ?`,
+                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
+              );
+            } catch (error) {
+              console.error('Error deleting from OfferingInstructors:', error);
+            }
+            
+            try {
+              await sequelize.query(
+                `DELETE FROM InstructorCourses WHERE InstructorId = ?`,
+                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
+              );
+            } catch (error) {
+              console.error('Error deleting from InstructorCourses:', error);
+            }
+            
+            // Delete from Instructor table
             await Instructor.destroy({ where: { id }, transaction: t });
             break;
+            
           case "chair":
             await DepartmentChair.destroy({ where: { id }, transaction: t });
             break;
+            
           case "dean":
             await DeansOffice.destroy({ where: { id }, transaction: t });
             break;
-          case "ta":
-            await TeachingAssistant.destroy({ where: { id }, transaction: t });
+            
+          case "admin":
+            await Admin.destroy({ where: { id }, transaction: t });
             break;
+            
           case "student":
+            // Delete from join tables
+            try {
+              await sequelize.query(
+                `DELETE FROM OfferingStudents WHERE StudentId = ?`,
+                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
+              );
+            } catch (error) {
+              console.error('Error deleting from OfferingStudents:', error);
+            }
+            
+            // Delete from Student table
             await Student.destroy({ where: { id }, transaction: t });
             break;
         }
-      } catch (error) {
-        console.error(`Error deleting specific user type for ID ${id}:`, error);
-        throw new Error(`Failed to delete user profile: ${error.message}`);
+        
+        // Finally delete the user
+        await User.destroy({ where: { id }, transaction: t });
       }
-
-      // Delete the base user
-      await user.destroy({ transaction: t });
 
       await t.commit();
       return true;
@@ -338,6 +539,31 @@ class UserService {
       console.error(`Transaction error in deleteUser for ID ${id}:`, error);
       await t.rollback();
       throw error;
+    }
+  }
+
+  // Helper method to try both quoted and unquoted SQL formats
+  async tryBothQueryFormats(sequelize, tableName, columnName, value, transaction) {
+    try {
+      // Try with quotes (for case-sensitive databases)
+      await sequelize.query(
+        `DELETE FROM "${tableName}" WHERE "${columnName}" = ?`,
+        { replacements: [value], transaction, type: sequelize.QueryTypes.DELETE }
+      );
+      console.log(`Successfully deleted from ${tableName} (quoted format)`);
+    } catch (error) {
+      console.error(`Error with quoted format for ${tableName}:`, error);
+      try {
+        // Try without quotes
+        await sequelize.query(
+          `DELETE FROM ${tableName} WHERE ${columnName} = ?`,
+          { replacements: [value], transaction, type: sequelize.QueryTypes.DELETE }
+        );
+        console.log(`Successfully deleted from ${tableName} (unquoted format)`);
+      } catch (altError) {
+        console.error(`Error with unquoted format for ${tableName}:`, altError);
+        // Both formats failed, but we'll continue with other tables
+      }
     }
   }
 

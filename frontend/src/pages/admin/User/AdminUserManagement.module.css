@@ -548,3 +548,9 @@ input.readOnly {
   font-size: 14px;
   line-height: 1;
 }
+
+.dangerButton {
+  background-color: #d32f2f !important;
+  color: white;
+  font-weight: bold;
+}

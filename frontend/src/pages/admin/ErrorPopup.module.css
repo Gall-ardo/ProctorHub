@@ -1,5 +1,4 @@
-/* ErrorPopup.module.css */
-.errorPopupOverlay {
+.errorOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,60 +11,49 @@
   z-index: 1000;
 }
 
-.errorPopupContainer {
+.errorContent {
   background-color: white;
+  padding: 2rem;
   border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.errorPopupContent {
-  padding: 25px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
 }
 
 .errorIcon {
   width: 60px;
   height: 60px;
-  background-color: #ffebee;
   border-radius: 50%;
+  background-color: #ffebee;
+  color: #c42626;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.errorIcon span {
-  color: #c42626;
-  font-size: 36px;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
   font-weight: bold;
 }
 
+.errorTitle {
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
+  color: #c42626;
+}
+
 .errorMessage {
-  text-align: center;
-  margin-bottom: 20px;
+  margin: 0 0 1.5rem;
+  line-height: 1.5;
+  color: #555;
 }
 
-.errorMessage p {
-  color: #333;
-  font-size: 16px;
-  margin: 0;
-}
-
-.errorCloseBtn {
+.closeButton {
   background-color: #c42626;
   color: white;
   border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 4px;
-  padding: 10px 25px;
-  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.errorCloseBtn:hover {
-  background-color: #a52020;
+  min-width: 120px;
 }

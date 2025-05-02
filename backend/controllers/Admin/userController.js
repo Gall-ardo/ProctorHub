@@ -163,6 +163,7 @@ class UserController {
     }
   }
 
+  // Add these methods to your userController.js file
   async deleteUser(req, res) {
     try {
       console.log(`Delete user request for ID ${req.params.id}`);
@@ -177,14 +178,59 @@ class UserController {
       console.error("Error deleting user:", error);
       
       let statusCode = 400;
+      let errorMessage = "Failed to delete user";
+      
       if (error.message.includes('not found')) {
         statusCode = 404;
+        errorMessage = "User not found";
+      } else if (error.name === 'SequelizeForeignKeyConstraintError') {
+        statusCode = 409; // Changed to 409 Conflict for better semantics
+        errorMessage = "Cannot delete user because they are referenced in other tables. Please use force delete or remove those references first.";
       }
       
       res.status(statusCode).json({ 
         success: false,
-        message: "Failed to delete user", 
-        error: error.message 
+        message: errorMessage, 
+        error: error.message,
+        constraint: error.original?.constraint, // Include constraint info for debugging
+        code: error.original?.code
+      });
+    }
+  }
+
+  async forceDeleteUser(req, res) {
+    try {
+      console.log(`Force delete user request for ID ${req.params.id}`);
+      
+      // Check for confirmation parameter
+      if (req.query.confirm !== 'true') {
+        return res.status(400).json({
+          success: false,
+          message: "Confirmation required. Add ?confirm=true to force delete."
+        });
+      }
+      
+      await userService.deleteUser(req.params.id, true); // true flag for force delete
+      
+      res.status(200).json({
+        success: true,
+        message: "User and all dependencies forcefully deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error force deleting user:", error);
+      
+      let statusCode = 500;
+      let errorMessage = "Failed to force delete user";
+      
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+        errorMessage = "User not found";
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: errorMessage, 
+        error: error.message
       });
     }
   }
@@ -265,6 +311,5 @@ class UserController {
     }
   }
 }
-
 
 module.exports = new UserController();

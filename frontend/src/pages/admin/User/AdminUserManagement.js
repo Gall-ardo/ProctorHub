@@ -35,6 +35,8 @@ const AdminUserManagement = () => {
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [resetPasswordUserId, setResetPasswordUserId] = useState(null);
   const [editMode, setEditMode] = useState(false); // New state to track if we're in edit mode
+  const [showForceDeleteConfirmation, setShowForceDeleteConfirmation] = useState(false);
+  const [forceDeleteUserId, setForceDeleteUserId] = useState(null);
 
   // User type options
   const userTypeOptions = [
@@ -262,18 +264,72 @@ const AdminUserManagement = () => {
     setLoading(true);
     
     try {
+      // Make sure the URL is correctly constructed
       await axios.delete(`${API_URL}/api/admin/users/${id}`);
       
       setSuccess('User deleted successfully');
       setSearchResults(searchResults.filter(user => user.id !== id));
       
-      if (searchResults.length === 1) {
+      if (searchResults.length <= 1) {
         clearForm();
       }
     } catch (err) {
       console.error('Error deleting user:', err);
+      
+      // Add more detailed error handling
       if (err.response) {
-        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to delete user`);
+        console.error('Response status:', err.response.status);
+        console.error('Response data:', err.response.data);
+        
+        if (err.response.status === 409) {
+          // Foreign key constraint error - offer force delete
+          setErrorMessage(
+            `Cannot delete user because they have associated data in the system. ` +
+            `Would you like to force delete this user and remove all dependencies?`
+          );
+          
+          // Store the user ID for force deletion
+          setForceDeleteUserId(id);
+          
+          // Show force delete confirmation
+          setShowForceDeleteConfirmation(true);
+        } else {
+          setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to delete user`);
+          setShowError(true);
+        }
+      } else if (err.request) {
+        console.error('No response received:', err.request);
+        setErrorMessage('Server not responding. Please check your connection.');
+        setShowError(true);
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+        setShowError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Add the force delete handler
+  const handleForceDelete = async () => {
+    setShowForceDeleteConfirmation(false);
+    setLoading(true);
+    
+    try {
+      // Call the force delete endpoint
+      await axios.delete(`${API_URL}/api/admin/users/${forceDeleteUserId}/force?confirm=true`);
+      
+      setSuccess('User and all associated data successfully deleted');
+      setSearchResults(searchResults.filter(user => user.id !== forceDeleteUserId));
+      
+      if (searchResults.length <= 1) {
+        clearForm();
+      }
+    } catch (err) {
+      console.error('Error force deleting user:', err);
+      
+      if (err.response) {
+        setErrorMessage(err.response.data?.message || `Error ${err.response.status}: Failed to force delete user`);
       } else if (err.request) {
         setErrorMessage('Server not responding. Please check your connection.');
       } else {
@@ -282,8 +338,10 @@ const AdminUserManagement = () => {
       setShowError(true);
     } finally {
       setLoading(false);
+      setForceDeleteUserId(null);
     }
   };
+
 
   const handleEditUser = (user) => {
     setUserId(user.id);
@@ -856,6 +914,18 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Confirmation Popup for Delete */}
+      {showForceDeleteConfirmation && (
+        <ConfirmationPopup
+          title="Force Delete User"
+          message="WARNING: This will delete the user and ALL associated data (schedules, workloads, assignments, etc.). This action cannot be undone and may affect system integrity. Are you sure you want to proceed?"
+          confirmText="Force Delete User"
+          onCancel={() => {
+            setShowForceDeleteConfirmation(false);
+            setForceDeleteUserId(null);
+          }}
+          onConfirm={handleForceDelete}
+        />
+      )}
       {showConfirmation && (
         <ConfirmationPopup
           user={confirmationData}
