@@ -37,33 +37,26 @@ Student.belongsTo(User, { foreignKey: "id", as: "studentUser" });
 Notification.belongsTo(User, { as: "recipient", foreignKey: "recipientId" });
 User.hasMany(Notification, { as: "notifications", foreignKey: "recipientId" });
 
-// Course & Offering
-Offering.belongsTo(Course, { foreignKey: "id" });
-Course.hasMany(Offering, { foreignKey: "courseId" });
-
 // Course & Exam
 Exam.belongsTo(Course, { foreignKey: "courseId" });
 Course.hasMany(Exam, { foreignKey: "courseId" });
 
-// Offering & Semester
-Offering.belongsTo(Semester, { foreignKey: "semesterId" });
-Semester.hasMany(Offering, { foreignKey: "semesterId" });
+// Course & Semester
+Course.belongsTo(Semester, { foreignKey: "semesterId" });
+Semester.hasMany(Course, { foreignKey: "semesterId" });
 
-// Offering ↔ Instructor
-Offering.belongsToMany(Instructor, { through: "OfferingInstructors", as: "instructors" });
-Instructor.belongsToMany(Offering, { through: "OfferingInstructors", as: "offerings" });
 
-// Offering ↔ TeachingAssistant (student TAs)
-Offering.belongsToMany(TeachingAssistant, { through: "OfferingTAs", as: "studentTAs" });
-TeachingAssistant.belongsToMany(Offering, { through: "OfferingTAs", as: "offerings" });
-
-// Offering ↔ Student
-Offering.belongsToMany(Student, { through: "OfferingStudents", as: "students" });
-Student.belongsToMany(Offering, { through: "OfferingStudents", as: "enrolledCourses" });
+// Course ↔ TeachingAssistant (student TAs)
+Course.belongsToMany(TeachingAssistant, { through: "CourseTAs", as: "studentTAs" });
+TeachingAssistant.belongsToMany(Course, { through: "CourseTAs", as: "courses" });
 
 // Course ↔ TA (assistants)
 Course.belongsToMany(TeachingAssistant, { through: "CourseTAs", as: "TAs" });
 TeachingAssistant.belongsToMany(Course, { through: "CourseTAs", as: "taCourses" });
+
+// Course ↔ Student
+Course.belongsToMany(Student, { through: "CourseStudents", as: "students" });
+Student.belongsToMany(Course, { through: "CourseStudents", as: "enrolledCourses" });
 
 // Exam ↔ TA (proctors)
 Exam.belongsToMany(TeachingAssistant, { through: "ExamProctors", as: "proctors" });
@@ -111,6 +104,10 @@ Exam.hasMany(SwapRequest, { foreignKey: "examId" });
 // Report ↔ TimeSlot
 Report.belongsTo(TimeSlot, { foreignKey: "timeSlotId" });
 TimeSlot.hasMany(Report, { foreignKey: "timeSlotId" });
+
+// Offering ↔ TimeSlot
+Offering.hasMany(TimeSlot, { foreignKey: "timeSlotId" });
+TimeSlot.belongsTo(Offering, { foreignKey: "timeSlotId" });
 
 // Log ↔ User
 Log.belongsTo(User, { foreignKey: "userId" });

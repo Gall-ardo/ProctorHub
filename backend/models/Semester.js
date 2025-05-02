@@ -8,7 +8,13 @@ const Semester = sequelize.define("Semester", {
     primaryKey: true,
   },
   year: DataTypes.INTEGER,
-  isFall: DataTypes.BOOLEAN,
+  // make enum for fall, spring, summer
+  semesterType: {
+    type: DataTypes.ENUM('FALL', 'SPRING', 'SUMMER'),
+    allowNull: false,
+  },
+  startDate: DataTypes.DATE,
+  endDate: DataTypes.DATE,
 });
 
 module.exports = Semester;

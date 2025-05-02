@@ -12,6 +12,14 @@ const Course = sequelize.define("Course", {
   department: DataTypes.STRING,
   credit: DataTypes.INTEGER,
   isGradCourse: DataTypes.BOOLEAN,
+  semesterId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  studentCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
 });
 
 module.exports = Course;
