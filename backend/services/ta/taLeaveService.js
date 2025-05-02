@@ -143,13 +143,13 @@ const taLeaveService = {
       await leaveRequest.destroy();
       
       // Check if there are any remaining pending leave requests
-      const pendingRequests = await LeaveRequest.findOne({
-        where: {
-          taId: taId,
-          isApproved: false,
-          rejectionReason: null
-        }
-      });
+        const pendingRequests = await LeaveRequest.findOne({
+            where: {
+            taId: taId,
+            status: 'waiting'  // ✅ correct enum check
+            }
+        });
+  
       
       // If no pending requests, update the TA's status
       if (!pendingRequests) {
