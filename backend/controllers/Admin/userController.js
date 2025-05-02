@@ -9,6 +9,15 @@ class UserController {
       // Log request data for debugging
       console.log('Create user request:', JSON.stringify(req.body, null, 2));
       
+      // Validate user type - block student creation
+      if (req.body.userType && req.body.userType.toLowerCase() === 'student') {
+        return res.status(400).json({
+          success: false,
+          message: "Students should be managed through the student management interface",
+          error: "Invalid user type for this interface"
+        });
+      }
+      
       // Create user with password generation and email notification
       const user = await userService.createUser(req.body, true);
       
@@ -57,6 +66,14 @@ class UserController {
         });
       }
       
+      // Block access to student users
+      if (user.userType === 'student') {
+        return res.status(403).json({
+          success: false,
+          message: "Students should be managed through the student management interface"
+        });
+      }
+      
       res.status(200).json({
         success: true,
         data: user
@@ -75,6 +92,14 @@ class UserController {
     try {
       console.log('Find users request, query:', req.query);
       
+      // Block search for student users
+      if (req.query.userType && req.query.userType.toLowerCase() === 'student') {
+        return res.status(400).json({
+          success: false,
+          message: "Students should be managed through the student management interface"
+        });
+      }
+      
       const users = await userService.findUsers(req.query);
       
       res.status(200).json(users);
@@ -91,6 +116,25 @@ class UserController {
   async updateUser(req, res) {
     try {
       console.log(`Update user request for ID ${req.params.id}:`, JSON.stringify(req.body, null, 2));
+      
+      // Block updating user type to student
+      if (req.body.userType && req.body.userType.toLowerCase() === 'student') {
+        return res.status(400).json({
+          success: false,
+          message: "Students should be managed through the student management interface",
+          error: "Invalid user type for this interface"
+        });
+      }
+      
+      // First check if the user is a student
+      const user = await userService.findUserById(req.params.id);
+      if (user && user.userType === 'student') {
+        return res.status(403).json({
+          success: false,
+          message: "Students should be managed through the student management interface",
+          error: "Cannot update student users through this interface"
+        });
+      }
       
       // Check if we should reset the password
       const resetPassword = req.query.resetPassword === 'true';
@@ -140,6 +184,16 @@ class UserController {
         });
       }
       
+      // First check if the user is a student
+      const user = await userService.findUserById(userId);
+      if (user && user.userType === 'student') {
+        return res.status(403).json({
+          success: false,
+          message: "Students should be managed through the student management interface",
+          error: "Cannot reset passwords for student users through this interface"
+        });
+      }
+      
       // Call the service to reset the password
       const result = await userService.resetUserPassword(userId);
       
@@ -163,10 +217,19 @@ class UserController {
     }
   }
 
-  // Add these methods to your userController.js file
   async deleteUser(req, res) {
     try {
       console.log(`Delete user request for ID ${req.params.id}`);
+      
+      // First check if the user is a student
+      const user = await userService.findUserById(req.params.id);
+      if (user && user.userType === 'student') {
+        return res.status(403).json({
+          success: false,
+          message: "Students should be managed through the student management interface",
+          error: "Cannot delete student users through this interface"
+        });
+      }
       
       await userService.deleteUser(req.params.id);
       
@@ -201,6 +264,16 @@ class UserController {
   async forceDeleteUser(req, res) {
     try {
       console.log(`Force delete user request for ID ${req.params.id}`);
+      
+      // First check if the user is a student
+      const user = await userService.findUserById(req.params.id);
+      if (user && user.userType === 'student') {
+        return res.status(403).json({
+          success: false,
+          message: "Students should be managed through the student management interface",
+          error: "Cannot delete student users through this interface"
+        });
+      }
       
       // Check for confirmation parameter
       if (req.query.confirm !== 'true') {
@@ -267,13 +340,22 @@ class UserController {
             } else if (lowerKey === 'email') {
               transformedData.email = data[key];
             } else if (lowerKey === 'usertype' || lowerKey === 'role' || lowerKey === 'type') {
+              // Filter out student type in the CSV
+              const userType = data[key].toLowerCase();
+              if (userType === 'student') {
+                console.log(`Skipping student record for ID: ${data.id || 'unknown'}`);
+                return;
+              }
               transformedData.userType = data[key];
             } else if (lowerKey === 'department' || lowerKey === 'dept') {
               transformedData.department = data[key];
             }
           });
           
-          results.push(transformedData);
+          // Only add non-empty and non-student records
+          if (Object.keys(transformedData).length > 0 && transformedData.userType !== 'student') {
+            results.push(transformedData);
+          }
         })
         .on("end", async () => {
           // Remove the temporary file

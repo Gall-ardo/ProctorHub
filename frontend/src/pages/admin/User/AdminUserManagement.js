@@ -38,14 +38,13 @@ const AdminUserManagement = () => {
   const [showForceDeleteConfirmation, setShowForceDeleteConfirmation] = useState(false);
   const [forceDeleteUserId, setForceDeleteUserId] = useState(null);
 
-  // User type options
+  // User type options - Removed student option
   const userTypeOptions = [
     { label: 'Admin', value: 'admin' },
     { label: 'Instructor', value: 'instructor' },
     { label: 'Department Chair', value: 'chair' },
     { label: 'Dean\'s Office', value: 'dean' },
-    { label: 'Teaching Assistant', value: 'ta' },
-    { label: 'Student', value: 'student' }
+    { label: 'Teaching Assistant', value: 'ta' }
   ];
 
   // Department options
@@ -197,9 +196,12 @@ const AdminUserManagement = () => {
       
       const response = await axios.get(`${API_URL}/api/admin/users`, { params });
       
-      setSearchResults(response.data);
+      // Filter out student users from the search results
+      const filteredResults = response.data.filter(user => user.userType !== 'student');
       
-      if (response.data.length === 0) {
+      setSearchResults(filteredResults);
+      
+      if (filteredResults.length === 0) {
         setErrorMessage('No users found');
         setShowError(true);
       }
@@ -924,6 +926,7 @@ const AdminUserManagement = () => {
             setForceDeleteUserId(null);
           }}
           onConfirm={handleForceDelete}
+          confirmButtonClass={styles.dangerButton}
         />
       )}
       {showConfirmation && (
@@ -934,6 +937,7 @@ const AdminUserManagement = () => {
           confirmText="Delete User"
           onCancel={() => setShowConfirmation(false)}
           onConfirm={() => handleDeleteUser(confirmationData.id)}
+          confirmButtonClass={styles.dangerButton}
         />
       )}
 

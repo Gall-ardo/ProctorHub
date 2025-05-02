@@ -74,6 +74,11 @@ class UserService {
         throw new Error("Department is required for instructors, department chairs, and teaching assistants");
       }
 
+      // Validate userType - prevent creating students through this service
+      if (userData.userType === 'student') {
+        throw new Error("Students should be managed through the student management interface");
+      }
+
       // Generate a random password if not provided
       const clearPassword = userData.password || this.generateRandomPassword();
       
@@ -120,9 +125,6 @@ class UserService {
               waitingAbsenceRequest: false,
               isPartTime: userData.isPartTime || false
             }, { transaction: t });
-            break;
-          case "student":
-            await Student.create({ id: user.id }, { transaction: t });
             break;
           default:
             throw new Error(`Invalid user type: ${userData.userType}`);
@@ -210,6 +212,11 @@ class UserService {
   
       // Check if userType is being changed
       const isUserTypeChanging = userData.userType && userData.userType !== originalUserType;
+
+      // Prevent changing user type to student
+      if (userData.userType === 'student') {
+        throw new Error("Cannot change user type to student. Students should be managed through the student management interface");
+      }
   
       // Check if department is required and provided for the new user type
       if ((userData.userType === 'instructor' || userData.userType === 'chair' || userData.userType === 'ta') && !userData.department) {
@@ -257,9 +264,6 @@ class UserService {
           case "ta":
             await TeachingAssistant.destroy({ where: { id }, transaction: t });
             break;
-          case "student":
-            await Student.destroy({ where: { id }, transaction: t });
-            break;
         }
         
         // Step 2: Create the new user type record
@@ -294,9 +298,6 @@ class UserService {
               waitingAbsenceRequest: false,
               isPartTime: userData.isPartTime || false
             }, { transaction: t });
-            break;
-          case "student":
-            await Student.create({ id }, { transaction: t });
             break;
         }
       } 
@@ -354,7 +355,6 @@ class UserService {
     }
   }
 
-  // Update this method in your userService.js file
   async deleteUser(id, force = false) {
     const t = await sequelize.transaction();
     
@@ -367,6 +367,11 @@ class UserService {
 
       // Log the deletion attempt
       console.log(`Attempting to delete user ${id} of type ${user.userType}${force ? ' with force flag' : ''}`);
+      
+      // Prevent deleting student users through this service
+      if (user.userType.toLowerCase() === 'student') {
+        throw new Error("Students should be managed through the student management interface");
+      }
       
       // If force is true, we'll use a different approach to handle dependencies
       if (force) {
@@ -398,10 +403,6 @@ class UserService {
           case "admin":
             const admin = await Admin.findByPk(id, { transaction: t });
             if (admin) await admin.destroy({ transaction: t });
-            break;
-          case "student":
-            const student = await Student.findByPk(id, { transaction: t });
-            if (student) await student.destroy({ transaction: t });
             break;
         }
         
@@ -512,21 +513,6 @@ class UserService {
           case "admin":
             await Admin.destroy({ where: { id }, transaction: t });
             break;
-            
-          case "student":
-            // Delete from join tables
-            try {
-              await sequelize.query(
-                `DELETE FROM OfferingStudents WHERE StudentId = ?`,
-                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
-              );
-            } catch (error) {
-              console.error('Error deleting from OfferingStudents:', error);
-            }
-            
-            // Delete from Student table
-            await Student.destroy({ where: { id }, transaction: t });
-            break;
         }
         
         // Finally delete the user
@@ -583,6 +569,9 @@ class UserService {
         whereClause.userType = query.userType;
       }
 
+      // Exclude student users from the results
+      whereClause.userType = { [Op.ne]: 'student' };
+
       return await User.findAll({ where: whereClause });
     } catch (error) {
       console.error("Error in findUsers:", error);
@@ -598,6 +587,15 @@ class UserService {
       try {
         // Skip empty rows
         if (!userData.id && !userData.email && !userData.name) {
+          continue;
+        }
+        
+        // Skip student records
+        if (userData.userType && userData.userType.toLowerCase() === 'student') {
+          errors.push({
+            data: userData,
+            error: "Students should be managed through the student management interface"
+          });
           continue;
         }
         
@@ -635,6 +633,11 @@ class UserService {
       const user = await this.findUserById(id);
       if (!user) {
         throw new Error("User not found");
+      }
+      
+      // Prevent resetting password for student users
+      if (user.userType.toLowerCase() === 'student') {
+        throw new Error("Students should be managed through the student management interface");
       }
 
       // Generate a new password and update the user
