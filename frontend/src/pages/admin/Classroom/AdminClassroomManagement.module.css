@@ -212,3 +212,102 @@
     width: 100%;
   }
 }
+
+/* Success message styling */
+.successMessage {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 300px;
+  max-width: 500px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 0 5px;
+}
+
+.closeBtn:hover {
+  opacity: 0.8;
+}
+
+/* Required field indicator */
+.requiredField {
+  color: #c42626;
+  margin-left: 3px;
+}
+
+/* Read-only input styling */
+.readOnly {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+/* Form button group */
+.formButtonGroup {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.cancelBtn {
+  background-color: #777;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 45%;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.cancelBtn:hover {
+  background-color: #666;
+}
+
+/* Upload note */
+.uploadNote {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Button states */
+.formSubmitBtn:disabled {
+  background-color: #e0a0a0;
+  cursor: not-allowed;
+}
+
+.uploadFileBtn:disabled {
+  background-color: #e0a0a0;
+  cursor: not-allowed;
+}
