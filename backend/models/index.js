@@ -36,7 +36,7 @@ Notification.belongsTo(User, { as: "recipient", foreignKey: "recipientId" });
 User.hasMany(Notification, { as: "notifications", foreignKey: "recipientId" });
 
 // Course & Offering
-Offering.belongsTo(Course, { foreignKey: "courseId" });
+Offering.belongsTo(Course, { foreignKey: "id" });
 Course.hasMany(Offering, { foreignKey: "courseId" });
 
 // Course & Exam
@@ -88,8 +88,8 @@ Instructor.hasMany(Workload, { foreignKey: "instructorId" });
 Workload.belongsTo(Instructor, { foreignKey: "instructorId" });
 
 // Workload ↔ Course
-Course.hasMany(Workload, { foreignKey: "courseId" });
-Workload.belongsTo(Course, { foreignKey: "courseId" });
+Course.hasMany(Workload, { foreignKey: "courseCode" });
+Workload.belongsTo(Course, { foreignKey: "courseCode" });
 
 // TA ↔ LeaveRequest
 TeachingAssistant.hasMany(LeaveRequest, { foreignKey: "taId" });

@@ -1,6 +1,8 @@
 const Workload = require('../../models/workload');
-const User = require('../../models/user');
-const TeachingAssistant = require('../../models/teachingAssistant');
+const User = require('../../models/User');
+const TeachingAssistant = require('../../models/TeachingAssistant');
+const Course = require('../../models/Course');
+
 const { v4: uuidv4 } = require('uuid');
 
 // Service for TA workload operations
@@ -80,7 +82,7 @@ const taWorkloadService = {
     try {
       // Find instructor's ID by email
       const instructor = await User.findOne({
-        where: { 
+        where: {
           email: workloadData.instructorEmail,
           userType: 'instructor'
         }
@@ -93,15 +95,27 @@ const taWorkloadService = {
         };
       }
       
+      // Check if the course exists
+      const course = await Course.findOne({
+        where: {
+          courseCode: workloadData.courseCode
+        }
+      });
+      
+      if (!course) {
+        return {
+          success: false,
+          message: 'Course not found with the provided course code'
+        };
+      }
+      
       const hours = parseInt(workloadData.hours || '0');
-
       if (!hours || hours <= 0) {
-      return {
+        return {
           success: false,
           message: 'Workload duration (hours) must be a positive number'
-      };
-    }
-
+        };
+      }
       
       // Create a new workload
       const newWorkload = await Workload.create({
@@ -122,7 +136,6 @@ const taWorkloadService = {
           const additionalHours = hours;
           const totalWorkload = (ta.totalWorkload || 0) + additionalHours;
           await ta.update({ totalWorkload });
-
         }
       } catch (error) {
         console.error('Error updating TA total workload:', error);

@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 require('dotenv').config();
+require("./models"); // This ensures all models and associations are registered
+
 
 const sequelize = require("./config/db");
 
@@ -8,6 +10,7 @@ const sequelize = require("./config/db");
 const User = require("./models/User");
 const TeachingAssistant = require("./models/TeachingAssistant");
 const Workload = require("./models/Workload");
+const Course = require("./models/Course");
 
 const authRoutes = require("./routes/auth");
 const routes = require("./routes");
@@ -26,6 +29,8 @@ app.use('/api', routes);
 app.get("/", (req, res) => {
   res.send("🚀 ProctorHub Backend Running");
 });
+
+
 
 // Database diagnostic route
 app.get("/api/test-db", async (req, res) => {
@@ -70,11 +75,13 @@ const syncOptions = {
   alter: true
 };
 
-// Sync database
 sequelize.sync(syncOptions)
   .then(() => {
     console.log("✅ DB synced with options:", syncOptions);
-    
+
+    // ✅ Add this line to log all registered models
+    console.log("Synced models:", Object.keys(sequelize.models));
+
     // Test model loading after sync
     Promise.all([
       User.findAll({ limit: 1 }),
@@ -93,6 +100,7 @@ sequelize.sync(syncOptions)
   .catch(err => {
     console.error("❌ DB sync failed:", err);
   });
+
 
 const PORT = 5001;
 app.listen(PORT, () => {
