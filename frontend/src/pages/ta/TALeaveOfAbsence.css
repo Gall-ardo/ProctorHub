@@ -72,7 +72,8 @@
 }
 
 .ta-leave-of-absence-status-rejected {
-  color: #c62828;
+  color: var(--primary-color);
+
   font-weight: bold;
   margin-bottom: 10px;
 }
@@ -85,7 +86,7 @@
 .ta-leave-of-absence-delete-btn {
   background: none;
   border: none;
-  color: #c62828;
+  color: var(--primary-color);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -108,7 +109,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #c62828;
+  background-color:var(--primary-color);
   color: white;
   border: none;
   padding: 12px 20px;
@@ -120,7 +121,7 @@
 }
 
 .ta-leave-of-absence-add-btn:hover {
-  background-color: #b71c1c;
+  background-color:var(--primary-color);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -254,7 +255,7 @@
 
 .ta-leave-of-absence-select-file-btn {
   color: white;
-  background-color: #c62828;
+  background-color:var(--primary-color);
   border: none;
   padding: 12px 20px;
   border-radius: 4px;
@@ -296,7 +297,7 @@
 }
 
 .ta-leave-of-absence-submit-btn {
-  background-color: #c62828;
+  background-color:var(--primary-color);
   color: white;
   border: none;
   padding: 12px 20px;
@@ -308,7 +309,7 @@
 }
 
 .ta-leave-of-absence-submit-btn:hover {
-  background-color: #b71c1c;
+  background-color:var(--primary-color);
 }
 
 .ta-leave-of-absence-cancel-btn {
@@ -353,7 +354,7 @@
 
 .ta-leave-of-absence-delete-modal-content h3 {
   margin-top: 0;
-  color: #c62828;
+  background-color:var(--primary-color);
 }
 
 .ta-leave-of-absence-delete-modal-buttons {
@@ -364,7 +365,7 @@
 }
 
 .ta-leave-of-absence-confirm-btn {
-  background-color: #c62828;
+  background-color:var(--primary-color);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -373,7 +374,7 @@
 }
 
 .ta-leave-of-absence-confirm-btn:hover {
-  background-color: #b71c1c;
+  background-color:var(--primary-color);
 }
 
 .ta-leave-of-absence-cancel-btn {
@@ -383,4 +384,46 @@
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.ta-error-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.ta-error-modal {
+  background-color: white;
+  border: 1px solid;
+  padding: 20px 24px;
+  border-radius: 8px;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.ta-error-modal p {
+  color: #000000;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.ta-error-close-btn {
+  background-color:var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ta-error-close-btn:hover {
+  background-color:var(--primary-color);
 }
