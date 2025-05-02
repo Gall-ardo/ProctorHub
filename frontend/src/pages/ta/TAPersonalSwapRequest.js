@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TAPersonalSwapRequest.css';
 
 const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
@@ -6,29 +6,124 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedExam, setSelectedExam] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Sample exams for the user to choose from (replace with your actual data)
-  const exams = currentUserExams.length > 0 ? currentUserExams : [
-    { id: 1, course: 'CS201', date: '25.03.2025', time: '13.00-16.00' },
-    { id: 2, course: 'MATH102', date: '22.03.2025', time: '18.00-21.00' },
-    { id: 3, course: 'CS101', date: '27.03.2025', time: '15.00-18.00' }
-  ];
+  // Get user's exams from props or fetch them if not provided
+  const [exams, setExams] = useState([]);
 
-  const handleSubmit = () => {
-    // Process the form submission
-    const requestData = {
-      taEmail,
-      dateRange: { startDate, endDate },
-      selectedExam
-    };
+  useEffect(() => {
+    // If current user exams were provided as props, use those
+    if (currentUserExams.length > 0) {
+      setExams(currentUserExams);
+    } else {
+      // Otherwise fetch them from the API
+      fetchUserExams();
+    }
+  }, [currentUserExams]);
+
+  const fetchUserExams = async () => {
+    try {
+      setLoading(true);
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/ta/swap/my-exams', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setExams(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch exams');
+      }
+    } catch (err) {
+      setError('Error fetching your exams. Please try again.');
+      console.error('Error fetching exams:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    // Reset messages
+    setError('');
+    setSuccess('');
     
-    console.log('Submitting swap request:', requestData);
+    // Validate inputs
+    if (!taEmail) {
+      setError('Please enter a TA email');
+      return;
+    }
     
-    // Here you would typically make an API call to submit the request
+    if (!selectedExam) {
+      setError('Please select an exam to swap');
+      return;
+    }
     
-    // Reset form and close modal
-    resetForm();
-    onClose();
+    if (!startDate || !endDate) {
+      setError('Please select date range');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Prepare request data
+      const requestData = {
+        targetTaEmail: taEmail,
+        examId: selectedExam,
+        startDate,
+        endDate
+      };
+      
+      // Send API request
+      const response = await fetch('/api/ta/swap/personal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSuccess('Swap request sent successfully');
+        // Reset form and close modal after a brief delay to show success message
+        setTimeout(() => {
+          resetForm();
+          onClose();
+        }, 1500);
+      } else {
+        setError(data.message || 'Failed to send swap request');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+      console.error('Error sending swap request:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -36,6 +131,8 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
     setStartDate('');
     setEndDate('');
     setSelectedExam(null);
+    setError('');
+    setSuccess('');
   };
 
   const handleExamSelection = (exam) => {
@@ -53,6 +150,20 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
         </div>
         
         <div className="ta-personal-swap-content">
+          {/* Success Message */}
+          {success && (
+            <div className="ta-personal-swap-success" style={{ padding: '15px', backgroundColor: '#dff0d8', color: '#3c763d', margin: '15px', borderRadius: '4px' }}>
+              {success}
+            </div>
+          )}
+          
+          {/* Error Message */}
+          {error && (
+            <div className="ta-personal-swap-error" style={{ padding: '15px', backgroundColor: '#f2dede', color: '#a94442', margin: '15px', borderRadius: '4px' }}>
+              {error}
+            </div>
+          )}
+          
           {/* TA Email Input */}
           <div className="ta-personal-swap-section">
             <label className="ta-personal-swap-label">TA Email</label>
@@ -102,22 +213,30 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
           {/* Exam Selection */}
           <div className="ta-personal-swap-section">
             <label className="ta-personal-swap-label">Exam to Swap</label>
-            <div className="ta-personal-swap-exam-list">
-              {exams.map((exam) => (
-                <div 
-                  key={exam.id} 
-                  className={`ta-personal-swap-exam-item ${selectedExam === exam.id ? 'selected' : ''}`}
-                  onClick={() => handleExamSelection(exam)}
-                >
-                  <div className="ta-personal-swap-exam-info">
-                    {exam.course} / {exam.date} / {exam.time}
+            {loading && <div style={{ textAlign: 'center', padding: '20px' }}>Loading exams...</div>}
+            {!loading && exams.length === 0 && 
+              <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                No exams available for swap
+              </div>
+            }
+            {!loading && exams.length > 0 && (
+              <div className="ta-personal-swap-exam-list">
+                {exams.map((exam) => (
+                  <div 
+                    key={exam.id} 
+                    className={`ta-personal-swap-exam-item ${selectedExam === exam.id ? 'selected' : ''}`}
+                    onClick={() => handleExamSelection(exam)}
+                  >
+                    <div className="ta-personal-swap-exam-info">
+                      {exam.course} / {exam.date} / {exam.time}
+                    </div>
+                    <div className="ta-personal-swap-exam-radio">
+                      {selectedExam === exam.id ? <div className="radio-selected"></div> : <div className="radio-unselected"></div>}
+                    </div>
                   </div>
-                  <div className="ta-personal-swap-exam-radio">
-                    {selectedExam === exam.id ? <div className="radio-selected"></div> : <div className="radio-unselected"></div>}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         
@@ -125,15 +244,14 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
           <button 
             className="ta-personal-swap-submit-button" 
             onClick={handleSubmit}
-            disabled={!taEmail || !selectedExam}
+            disabled={loading || !taEmail || !selectedExam}
           >
-            Send Personal Swap Request
+            {loading ? 'Sending...' : 'Send Personal Swap Request'}
           </button>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default TAPersonalSwapRequest;

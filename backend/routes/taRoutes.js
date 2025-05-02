@@ -4,7 +4,8 @@ const { authenticateToken, authorizeRole } = require('../middleware/authMiddlewa
 const taWorkloadController = require('../controllers/ta/taWorkloadController');
 const taLeaveController = require('../controllers/ta/taLeaveController');
 const upload = require('../middleware/upload');
-
+const swapRequestController = require('../controllers/ta/taSwapController');
+const taProctoringController = require('../controllers/ta/taProctoringController');
 
 // Test route without authentication
 router.get('/test', (req, res) => {
@@ -29,6 +30,20 @@ router.get('/leave-requests/pending', taLeaveController.getPendingLeaveRequests)
 router.get('/leave-requests/approved', taLeaveController.getApprovedLeaveRequests);
 router.post('/leave-requests', upload.single('file'), taLeaveController.createLeaveRequest); 
 router.delete('/leave-requests/:leaveRequestId', taLeaveController.deleteLeaveRequest);
+
+router.post('/swaps', swapRequestController.createPersonalSwapRequest);                   // POST /swaps
+router.get('/swaps/mine', swapRequestController.getMySwapRequests);                      // GET /swaps/mine
+router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);                  // GET /swaps/my-exams
+router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /swaps/respond
+router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /swaps/:swapRequestId
+
+router.get('/proctorings', taProctoringController.getAllProctorings);
+router.get('/proctorings/pending', taProctoringController.getPendingProctorings);
+router.get('/proctorings/active', taProctoringController.getActiveProctorings);
+router.put('/proctorings/:proctoringId/accept', taProctoringController.acceptProctoring);
+router.put('/proctorings/:proctoringId/reject', taProctoringController.rejectProctoring);
+router.get('/proctorings/stats', taProctoringController.getProctoringStats);
+router.put('/profile/multidepartment', taProctoringController.updateMultidepartmentPreference);
 
 
 module.exports = router;

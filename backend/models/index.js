@@ -22,6 +22,8 @@ const Notification = require("./Notification");
 const Log = require("./Log");
 const Report = require("./Report");
 const PasswordResetToken = require("./passwordResetToken");
+const Proctoring = require("./Proctoring");
+
 
 // Inheritance (1-to-1 via shared ID)
 Admin.belongsTo(User, { foreignKey: "id", as: "adminUser" });
@@ -117,5 +119,12 @@ User.hasMany(Log, { foreignKey: "userId" });
 // Course ↔ Instructor
 Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "courses" });
 Instructor.belongsToMany(Course, { through: "InstructorCourses", as: "courses" });
+
+// Proctoring relationships
+Proctoring.belongsTo(Exam, { as: 'exam', foreignKey: 'examId' });
+Exam.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'examId' });
+
+Proctoring.belongsTo(TeachingAssistant, { as: 'teachingAssistant', foreignKey: 'taId' });
+TeachingAssistant.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'taId' });
 
 module.exports = sequelize;

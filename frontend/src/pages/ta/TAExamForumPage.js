@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TAExamForumPage.css';
 import TAPersonalSwapRequest from './TAPersonalSwapRequest';
 import TASwapExamDetailsPopup from './TASwapExamDetailsPopup';
 import TASubmitForumRequest from './TASubmitForumRequest';
-import TANavBar from './TANavBar'; // Import TANavBar from existing component
+import TANavBar from './TANavBar';
 
 const ConfirmationDialog = ({ isOpen, onClose, onConfirm, type }) => {
   if (!isOpen) return null;
@@ -36,110 +36,128 @@ const TAExamForumPage = () => {
   const [selectedForumExam, setSelectedForumExam] = useState(null);
   const [submitForumModalOpen, setSubmitForumModalOpen] = useState(false);
   
+  // States for loading and errors
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   // Current user's exams for swap
-  const [currentUserExams, setCurrentUserExams] = useState([
-    { id: 1, course: 'CS201', date: '25.03.2025', time: '13.00-16.00', classrooms: 'EE101 - EE102' },
-    { id: 2, course: 'MATH102', date: '22.03.2025', time: '18.00-21.00', classrooms: 'B101 - B102 - B103 - B104' },
-    { id: 3, course: 'CS101', date: '27.03.2025', time: '15.00-18.00', classrooms: 'EA201 - EA202' }
-  ]);
+  const [currentUserExams, setCurrentUserExams] = useState([]);
   
-  // Swap requests waiting for approval - modified to match screenshot
-  const [waitingSwapRequests, setWaitingSwapRequests] = useState([
-    {
-      id: 1,
-      course: 'CS201',
-      date: '22.03.2025',
-      time: '13.00-16.00',
-      classrooms: 'EE101 - EE102',
-      requestedBy: 'Sude Ergün',
-      submitTime: '07.03.2025'
-    },
-    {
-      id: 2,
-      course: 'MATH102',
-      date: '25.03.2025',
-      time: '18.00-21.00',
-      classrooms: 'B101 - B102 - B103 - B104',
-      requestedBy: 'Halil Arda Özongün',
-      submitTime: '11.03.2025'
-    },
-    {
-      id: 3,
-      course: 'CS101',
-      date: '27.03.2025',
-      time: '15.00-18.00',
-      classrooms: 'EA201- EA202',
-      requestedBy: 'Sude Ergün',
-      submitTime: '07.03.2025'
-    },
-    {
-      id: 3,
-      course: 'CS101',
-      date: '27.03.2025',
-      time: '15.00-18.00',
-      classrooms: 'EA201- EA202',
-      requestedBy: 'Sude Ergün',
-      submitTime: '07.03.2025'
-    },
-    {
-      id: 3,
-      course: 'CS101',
-      date: '27.03.2025',
-      time: '15.00-18.00',
-      classrooms: 'EA201- EA202',
-      requestedBy: 'Sude Ergün',
-      submitTime: '07.03.2025'
-    }
-  ]);
+  // Swap requests waiting for approval
+  const [waitingSwapRequests, setWaitingSwapRequests] = useState([]);
   
-  // Swap forum items - modified to match screenshot
-  const [swapForumItems, setSwapForumItems] = useState([
-    {
-      id: 1,
-      course: 'CS202',
-      date: '16.03.2025',
-      time: '13.00-16.00',
-      classroom: 'BZ101-BZ102',
-      submitter: 'Sude Ergün',
-      submitTime: '07.03.2025',
-      requestedBy: 'sude.ergun@bilkent.edu.tr'
-    },
-    {
-      id: 2,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classroom: 'EA101-EA102',
-      submitter: 'Halil Arda Özongün',
-      submitTime: '11.03.2025',
-      requestedBy: 'halil.ozongun@bilkent.edu.tr'
-    },
-    {
-      id: 3,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classroom: 'EA101-EA102',
-      submitter: 'Halil Arda Özongün',
-      submitTime: '11.03.2025',
-      requestedBy: 'halil.ozongun@bilkent.edu.tr'
-    },
-    {
-      id: 4,
-      course: 'GE301',
-      date: '19.03.2025',
-      time: '10.00-13.00',
-      classroom: 'EA101-EA102',
-      submitter: 'Halil Arda Özongün',
-      submitTime: '11.03.2025',
-      requestedBy: 'halil.ozongun@bilkent.edu.tr'
+  // Swap forum items
+  const [swapForumItems, setSwapForumItems] = useState([]);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchUserExams();
+    fetchWaitingSwapRequests();
+    fetchForumItems();
+  }, []);
+
+  // Fetch user's exams
+  const fetchUserExams = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/ta/swap/my-exams', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setCurrentUserExams(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch exams');
+      }
+    } catch (err) {
+      setError('Error fetching your exams. Please try again.');
+      console.error('Error fetching exams:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  // Fetch waiting swap requests
+  const fetchWaitingSwapRequests = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/ta/swap/my-requests', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setWaitingSwapRequests(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch swap requests');
+      }
+    } catch (err) {
+      setError('Error fetching swap requests. Please try again.');
+      console.error('Error fetching swap requests:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch forum items
+  const fetchForumItems = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/ta/swap/forum-items', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSwapForumItems(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch forum items');
+      }
+    } catch (err) {
+      setError('Error fetching forum items. Please try again.');
+      console.error('Error fetching forum items:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Confirm action
   const confirmAction = () => {
     if (selectedExam) {
-      // In a real app, you would perform API requests here
       console.log(`${confirmationType} confirmed for exam ${selectedExam.course}`);
       
       // Filter out the selected exam from waiting list
@@ -169,6 +187,8 @@ const TAExamForumPage = () => {
   // Close swap request modal
   const closeSwapRequestModal = () => {
     setSwapRequestModalOpen(false);
+    // Refresh data after modal closes
+    fetchWaitingSwapRequests();
   };
 
   // Open exam details modal - now used for both forum and waiting items
@@ -181,6 +201,9 @@ const TAExamForumPage = () => {
   const closeExamDetailsModal = () => {
     setExamDetailsModalOpen(false);
     setSelectedForumExam(null);
+    // Refresh data after modal closes
+    fetchWaitingSwapRequests();
+    fetchForumItems();
   };
 
   // Open submit forum modal
@@ -191,10 +214,24 @@ const TAExamForumPage = () => {
   // Close submit forum modal
   const closeSubmitForumModal = () => {
     setSubmitForumModalOpen(false);
+    // Refresh forum items after modal closes
+    fetchForumItems();
   };
 
-  // Render waiting swap requests - modified to be clickable and match forum items
+  // Render waiting swap requests
   const renderWaitingSwapRequests = () => {
+    if (loading) {
+      return <div className="ta-exam-forum-page-loading">Loading swap requests...</div>;
+    }
+    
+    if (error) {
+      return <div className="ta-exam-forum-page-error">{error}</div>;
+    }
+    
+    if (waitingSwapRequests.length === 0) {
+      return <div className="ta-exam-forum-page-empty">No pending swap requests</div>;
+    }
+    
     return waitingSwapRequests.map((request) => (
       <div 
         key={request.id} 
@@ -223,6 +260,18 @@ const TAExamForumPage = () => {
 
   // Render swap forum items
   const renderSwapForumItems = () => {
+    if (loading) {
+      return <div className="ta-exam-forum-page-loading">Loading forum items...</div>;
+    }
+    
+    if (error) {
+      return <div className="ta-exam-forum-page-error">{error}</div>;
+    }
+    
+    if (swapForumItems.length === 0) {
+      return <div className="ta-exam-forum-page-empty">No items in the forum</div>;
+    }
+    
     return swapForumItems.map((item) => (
       <div 
         key={item.id} 
@@ -254,7 +303,7 @@ const TAExamForumPage = () => {
       <TANavBar />
       
       <div className="ta-exam-forum-page-main-content">
-        {/* Left sidebar for buttons, similar to TAWorkloadPage */}
+        {/* Left sidebar for buttons */}
         <div className="ta-exam-forum-page-sidebar-actions">
           {/* Personal Swap Request Button */}
           <div className="ta-exam-forum-page-button-container">
@@ -263,8 +312,6 @@ const TAExamForumPage = () => {
               <div className="ta-exam-forum-page-send-icon" onClick={openSwapRequestModal}></div>
             </div>
           </div>
-          
-          {/* Removed middle container to bring buttons closer */}
           
           {/* Submit Forum Request Button */}
           <div className="ta-exam-forum-page-submit-container">
@@ -288,8 +335,6 @@ const TAExamForumPage = () => {
               <div className="ta-exam-forum-page-forum-list">
                 {renderSwapForumItems()}
               </div>
-              
-              {/* Removed "Publish on Swap Forum" button */}
             </div>
           </div>
           
