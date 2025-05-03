@@ -6,6 +6,8 @@ import bilkentIcon from '../../assets/bilkent-logo.png';
 import notificationIcon from '../../assets/notification-icon.png';
 import userIcon from '../../assets/user-icon.png';
 
+const API_URL = 'http://localhost:5001/api';
+
 const TANavBar = () => {
   const location = useLocation();
   const path = location.pathname;
@@ -16,6 +18,7 @@ const TANavBar = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [loading, setLoading] = useState(false);  // Initialize loading state
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
   const modalRef = useRef(null);
@@ -177,68 +180,63 @@ const TANavBar = () => {
     window.location.href = '/';  // Redirect to root where Login component is mounted
   };
 
-  // Handle password change submission
   const handlePasswordChange = (e) => {
     e.preventDefault();
-    
     // Basic validation
     if (!currentPassword || !newPassword || !confirmPassword) {
       setPasswordError('All fields are required');
       return;
     }
-    
     if (newPassword !== confirmPassword) {
       setPasswordError('New passwords do not match');
       return;
     }
-    
     // Password strength validation (optional)
     if (newPassword.length < 8) {
       setPasswordError('New password must be at least 8 characters long');
       return;
     }
-    
-    /* 
-    BACKEND INTEGRATION COMMENT:
-    For password change functionality, you'll want to:
-    1. Send the current password and new password to your backend API
-    2. Handle success/error responses appropriately
-    
-    Example implementation with fetch API:
-    
-    fetch('/api/user/change-password', {
+
+    // Get the token from localStorage (ensure the token exists)
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setPasswordError('You must be logged in to change the password');
+      return;
+    }
+
+    // Set loading state to true
+    setLoading(true);
+
+    // Send the password change request to the backend
+    fetch(`${API_URL}/auth/change-password`, {
       method: 'POST',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${token}`  // Ensure the token is correctly passed as "Bearer <token>"
       },
       body: JSON.stringify({
-        currentPassword: currentPassword,
-        newPassword: newPassword
+        currentPassword,
+        newPassword
       })
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Show success message
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            throw new Error(errorData.message || 'Server error occurred');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
         alert('Password changed successfully');
-        closePasswordModal();
-      } else {
-        // Show error message
-        setPasswordError(data.message || 'Failed to change password');
-      }
-    })
-    .catch(error => {
-      console.error('Password change error:', error);
-      setPasswordError('An error occurred. Please try again.');
-    });
-    */
-    
-    // For now, just show a success message and close the modal
-    alert('Password change functionality will be implemented with backend integration');
-    closePasswordModal();
+        closePasswordModal();  
+      })
+      .catch(error => {
+        console.error('Password change error:', error);
+        setPasswordError(error.message || 'An error occurred. Please try again.');
+      });
   };
+  
 
   // Function to get the appropriate icon for each notification type
   // Note: This is a placeholder and would ideally be replaced with actual icons

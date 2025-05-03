@@ -43,4 +43,16 @@ async function doResetPassword(req, res) {
   }
 }
 
-module.exports = { login, forgotPassword, doResetPassword };
+async function changePassword(req, res) {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id; 
+
+  try {
+    await authService.changePassword(userId, currentPassword, newPassword);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Full error object:', err);
+    res.status(400).json({ message: err.message });
+  }
+}
+module.exports = { login, forgotPassword, doResetPassword, changePassword };
