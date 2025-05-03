@@ -1,0 +1,326 @@
+// controllers/Admin/courseController.js
+const courseService = require('../../services/Admin/courseService');
+const fs = require('fs');
+const csv = require('csv-parser');
+
+class CourseController {
+  async createCourse(req, res) {
+    try {
+      // Log request data for debugging
+      console.log('Create course request:', JSON.stringify(req.body, null, 2));
+      
+      // Validate required fields
+      if (!req.body.courseCode || !req.body.department || !req.body.semesterId) {
+        return res.status(400).json({
+          success: false,
+          message: "Course code, department, and semester ID are required",
+          error: "Missing required fields"
+        });
+      }
+      
+      // Create course
+      const course = await courseService.createCourse(req.body);
+      
+      console.log('Course created successfully:', course.id);
+      res.status(201).json({
+        success: true,
+        message: 'Course created successfully',
+        data: course
+      });
+    } catch (error) {
+      console.error("Error creating course:", error);
+      
+      // Provide more descriptive error messages based on error type
+      let statusCode = 400;
+      let errorMessage = error.message;
+      
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        errorMessage = 'A course with this ID or course code already exists';
+      } else if (error.name === 'SequelizeValidationError') {
+        errorMessage = error.errors.map(e => e.message).join(', ');
+      } else if (error.message.includes('Missing required')) {
+        errorMessage = error.message;
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: "Failed to create course", 
+        error: errorMessage
+      });
+    }
+  }
+
+  async getCourse(req, res) {
+    try {
+      const course = await courseService.getCourseById(req.params.id);
+      
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found"
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        data: course
+      });
+    } catch (error) {
+      console.error("Error getting course:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to get course", 
+        error: error.message 
+      });
+    }
+  }
+
+  async getCourseByCode(req, res) {
+    try {
+      const course = await courseService.getCourseByCode(req.params.courseCode);
+      
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found"
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        data: course
+      });
+    } catch (error) {
+      console.error("Error getting course by code:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to get course", 
+        error: error.message 
+      });
+    }
+  }
+
+  async getAllCourses(req, res) {
+    try {
+      console.log('Get all courses request, query:', req.query);
+      
+      const filters = {
+        department: req.query.department,
+        isGradCourse: req.query.isGradCourse === 'true',
+        semesterId: req.query.semesterId
+      };
+      
+      // Remove undefined filters
+      Object.keys(filters).forEach(key => 
+        filters[key] === undefined && delete filters[key]
+      );
+      
+      const courses = await courseService.getAllCourses(filters);
+      
+      res.status(200).json({
+        success: true,
+        data: courses
+      });
+    } catch (error) {
+      console.error("Error finding courses:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to find courses", 
+        error: error.message 
+      });
+    }
+  }
+
+  async updateCourse(req, res) {
+    try {
+      console.log(`Update course request for ID ${req.params.id}:`, JSON.stringify(req.body, null, 2));
+      
+      // First check if the course exists
+      const course = await courseService.getCourseById(req.params.id);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+          error: "Course not found with the provided ID"
+        });
+      }
+      
+      const updatedCourse = await courseService.updateCourse(req.params.id, req.body);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Course updated successfully',
+        data: updatedCourse
+      });
+    } catch (error) {
+      console.error("Error updating course:", error);
+      
+      let statusCode = 400;
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: "Failed to update course", 
+        error: error.message 
+      });
+    }
+  }
+
+  async deleteCourse(req, res) {
+    try {
+      console.log(`Delete course request for ID ${req.params.id}`);
+      
+      // First check if the course exists
+      const course = await courseService.getCourseById(req.params.id);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+          error: "Course not found with the provided ID"
+        });
+      }
+      
+      await courseService.deleteCourse(req.params.id);
+      
+      res.status(200).json({
+        success: true,
+        message: "Course deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      
+      let statusCode = 400;
+      let errorMessage = "Failed to delete course";
+      
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+        errorMessage = "Course not found";
+      } else if (error.name === 'SequelizeForeignKeyConstraintError') {
+        statusCode = 409; // Conflict
+        errorMessage = "Cannot delete course because it is referenced in other tables";
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: errorMessage, 
+        error: error.message,
+        constraint: error.original?.constraint, // Include constraint info for debugging
+        code: error.original?.code
+      });
+    }
+  }
+
+  async importCoursesFromCSV(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded"
+        });
+      }
+
+      console.log(`Processing uploaded file: ${req.file.originalname}`);
+      
+      const results = [];
+      const filePath = req.file.path;
+
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on("data", (data) => {
+          // Transform column names to match expected format if needed
+          const transformedData = {};
+          
+          // Map CSV columns to course fields
+          Object.keys(data).forEach(key => {
+            // Convert column headers to expected property names
+            const lowerKey = key.toLowerCase().trim();
+            
+            if (lowerKey === 'coursecode' || lowerKey === 'code') {
+              transformedData.courseCode = data[key];
+            } else if (lowerKey === 'coursename' || lowerKey === 'name') {
+              transformedData.courseName = data[key];
+            } else if (lowerKey === 'department' || lowerKey === 'dept') {
+              transformedData.department = data[key];
+            } else if (lowerKey === 'credit' || lowerKey === 'credits') {
+              transformedData.credit = parseInt(data[key], 10);
+            } else if (lowerKey === 'isgrad' || lowerKey === 'isgraduatecourse' || lowerKey === 'gradcourse') {
+              transformedData.isGradCourse = data[key].toLowerCase() === 'true' || data[key] === '1' || data[key].toLowerCase() === 'yes';
+            } else if (lowerKey === 'semesterid' || lowerKey === 'semester') {
+              transformedData.semesterId = data[key];
+            } else if (lowerKey === 'studentcount' || lowerKey === 'students') {
+              transformedData.studentCount = parseInt(data[key], 10);
+            }
+          });
+          
+          // Only add non-empty records
+          if (Object.keys(transformedData).length > 0) {
+            results.push(transformedData);
+          }
+        })
+        .on("end", async () => {
+          // Remove the temporary file
+          fs.unlinkSync(filePath);
+          
+          console.log(`Parsed ${results.length} courses from CSV`);
+
+          // Process and create courses
+          const uploadResult = await courseService.importCoursesFromCSV(results);
+          
+          res.status(201).json({ 
+            success: true,
+            message: `${uploadResult.success} courses created successfully, ${uploadResult.errors.length} failed.`,
+            coursesCreated: uploadResult.success,
+            coursesFailed: uploadResult.errors.length,
+            totalRecords: results.length,
+            errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
+          });
+        })
+        .on("error", (error) => {
+          console.error("Error parsing CSV:", error);
+          res.status(400).json({
+            success: false,
+            message: "Failed to parse CSV file",
+            error: error.message
+          });
+        });
+    } catch (error) {
+      console.error("Error uploading courses:", error);
+      res.status(400).json({ 
+        success: false,
+        message: "Failed to upload courses", 
+        error: error.message 
+      });
+    }
+  }
+
+  async searchCourses(req, res) {
+    try {
+      const { query } = req.query;
+      
+      if (!query) {
+        return res.status(400).json({
+          success: false,
+          message: "Search query is required"
+        });
+      }
+      
+      const courses = await courseService.searchCourses(query);
+      
+      res.status(200).json({
+        success: true,
+        data: courses
+      });
+    } catch (error) {
+      console.error("Error searching courses:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to search courses", 
+        error: error.message 
+      });
+    }
+  }
+}
+
+module.exports = new CourseController();

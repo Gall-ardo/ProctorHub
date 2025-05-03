@@ -3,12 +3,15 @@
 /* General container */
 .courseManagement {
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
 /* Main content container */
 .mainContent {
   display: flex;
   min-height: calc(100vh - 60px);
+  padding-top: 20px;
 }
 
 /* Left panel styles */
@@ -39,8 +42,8 @@
 }
 
 .circleIcon {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   border: 3px solid #000;
   display: flex;
@@ -60,13 +63,13 @@
 
 /* Active state styles */
 .circleIcon.active {
-  background-color: #4CAF50;
-  border-color: #4CAF50;
+  background-color: #c42626;
+  border-color: #c42626;
   color: white;
 }
 
 .buttonLabel.active {
-  color: #4CAF50;
+  color: #c42626;
 }
 
 /* File upload area */
@@ -81,6 +84,7 @@
   text-align: center;
   gap: 1rem;
   margin-top: 1rem;
+  background-color: white;
 }
 
 .uploadIcon img {
@@ -106,6 +110,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  display: inline-block;
 }
 
 .selectedFile {
@@ -124,6 +129,18 @@
   width: 100%;
   margin-top: 0.5rem;
   font-weight: bold;
+}
+
+.uploadFileBtn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.uploadNote {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.4;
 }
 
 /* Right panel - form section */
@@ -161,9 +178,14 @@
   color: #555;
 }
 
+.requiredField {
+  color: #c42626;
+}
+
 .formGroup input[type="text"],
 .formGroup input[type="email"],
-.formGroup input[type="number"] {
+.formGroup input[type="number"],
+.selectInput {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
@@ -171,9 +193,16 @@
   font-size: 1rem;
 }
 
-.formGroup input:focus {
+.formGroup input:focus,
+.selectInput:focus {
   outline: none;
   border-color: #c42626;
+}
+
+.helpText {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.3rem;
 }
 
 .formSubmitBtn {
@@ -189,6 +218,11 @@
   margin-top: 1rem;
 }
 
+.formSubmitBtn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
 /* Department options styling */
 .departmentOptions {
   display: flex;
@@ -198,7 +232,7 @@
 
 .departmentOption {
   flex: 1;
-  min-width: 80px;
+  min-width: 70px;
   padding: 0.75rem;
   text-align: center;
   background-color: #f5f5f5;
@@ -212,8 +246,8 @@
 }
 
 .departmentOption.selected {
-  background-color: #e1f5e1;
-  color: #4CAF50;
+  background-color: #f8e6e6;
+  color: #c42626;
   font-weight: bold;
 }
 
@@ -227,8 +261,8 @@
 }
 
 .departmentOption.selected .optionIndicator {
-  background-color: #4CAF50;
-  border-color: #4CAF50;
+  background-color: #c42626;
+  border-color: #c42626;
 }
 
 /* Checkbox styling */
@@ -259,7 +293,7 @@
 }
 
 .checkboxGroup .optionIndicator.selected {
-  background-color: #4CAF50;
+  background-color: #c42626;
   position: relative;
 }
 
@@ -324,6 +358,80 @@
   color: #333;
 }
 
+/* Found course styling */
+.foundCourseContainer {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border-left: 4px solid #c42626;
+}
+
+.foundCourseContainer h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.foundCourseDetails p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+/* Form buttons group */
+.formButtonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelBtn {
+  background-color: #f5f5f5;
+  color: #333;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  flex: 1;
+  font-weight: 500;
+}
+
+.cancelBtn:hover {
+  background-color: #e9e9e9;
+}
+
+/* Success message styling */
+.successMessage {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 300px;
+  z-index: 1000;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 10px;
+}
+
+/* Danger button for confirmations */
+.dangerButton {
+  background-color: #c42626 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .mainContent {
@@ -339,8 +447,12 @@
   }
   
   .circleIcon {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .circleIcon span {
+    font-size: 1.8rem;
   }
 }
 
@@ -352,4 +464,9 @@
   .departmentOptions {
     flex-direction: column;
   }
+  
+  .formButtonGroup {
+    flex-direction: column;
+  }
 }
+

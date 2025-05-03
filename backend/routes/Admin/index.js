@@ -1,21 +1,19 @@
-// routes/Admin/index.js (updated)
+// routes/Admin/index.js
 const express = require('express');
 const router = express.Router();
-const offeringRoutes = require('./offeringRoutes');
-const instructorRoutes = require('./instructorRoutes');
+
+// Import all admin routes
 const userRoutes = require('./userRoutes');
 const classroomRoutes = require('./classroomRoutes');
+const instructorRoutes = require('./instructorRoutes');
+const offeringRoutes = require('./offeringRoutes');
+const courseRoutes = require('./courseRoutes'); // Add the new course routes
 
-// Use offering routes
-router.use('/offerings', offeringRoutes);
-
-// Use instructor routes
-router.use('/instructors', instructorRoutes);
-
-// Use user routes
+// Register routes
 router.use('/users', userRoutes);
-
-// Use classroom routes
 router.use('/classrooms', classroomRoutes);
+router.use('/instructors', instructorRoutes);
+router.use('/offerings', offeringRoutes);
+router.use('/courses', courseRoutes); // Register the course routes
 
 module.exports = router;
