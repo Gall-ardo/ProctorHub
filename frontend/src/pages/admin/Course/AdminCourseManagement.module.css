@@ -42,8 +42,8 @@
 }
 
 .circleIcon {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   border: 3px solid #000;
   display: flex;
@@ -63,13 +63,13 @@
 
 /* Active state styles */
 .circleIcon.active {
-  background-color: #c42626;
-  border-color: #c42626;
+  background-color: #4CAF50;
+  border-color: #4CAF50;
   color: white;
 }
 
 .buttonLabel.active {
-  color: #c42626;
+  color: #4CAF50;
 }
 
 /* File upload area */
@@ -447,8 +447,8 @@
   }
   
   .circleIcon {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
   }
   
   .circleIcon span {
@@ -469,4 +469,3 @@
     flex-direction: column;
   }
 }
-

@@ -5,6 +5,7 @@ import axios from 'axios';
 import styles from './AdminCourseManagement.module.css';
 import ErrorPopup from '../ErrorPopup';
 import ConfirmationPopup from '../ConfirmationPopup';
+import SelectUserPopup from './SelectUserPopup';
 
 // Define API URL with fallback for development
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
@@ -19,8 +20,15 @@ const AdminCourseManagement = () => {
   const [courseName, setCourseName] = useState('');
   const [credit, setCredit] = useState(3);
   const [isGradCourse, setIsGradCourse] = useState(false);
+  const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [selectedTAs, setSelectedTAs] = useState([]);
+  const [instructorCount, setInstructorCount] = useState(1);
   const [teachingAssistantNumber, setTeachingAssistantNumber] = useState(1);
   const [selectedFile, setSelectedFile] = useState(null);
+  
+  // Popup states
+  const [showInstructorPopup, setShowInstructorPopup] = useState(false);
+  const [showTAPopup, setShowTAPopup] = useState(false);
   
   // UI states
   const [isLoading, setIsLoading] = useState(false);
@@ -52,16 +60,26 @@ const AdminCourseManagement = () => {
     resetForm();
   }, [activeView]);
 
-  // Fetch semesters from backend
+  // Update the fetchSemesters function in AdminCourseManagement.jsx
   const fetchSemesters = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/admin/semesters`);
       if (response.data.success) {
         setSemesters(response.data.data);
-        // Set the active semester as default if available
-        const activeSemester = response.data.data.find(sem => sem.isActive);
-        if (activeSemester) {
-          setSelectedSemester(activeSemester.id);
+        
+        // Find the most recent semester as default if no active flag exists
+        if (response.data.data.length > 0) {
+          // Sort by createdAt in descending order (newest first)
+          const sortedSemesters = [...response.data.data].sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          
+          // Try to find active semester first, then fall back to most recent
+          const activeSemester = sortedSemesters.find(sem => sem.isActive === true) || sortedSemesters[0];
+          
+          if (activeSemester) {
+            setSelectedSemester(activeSemester.id);
+          }
         }
       }
     } catch (error) {
@@ -71,18 +89,53 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Reset all form fields
   const resetForm = () => {
     setDepartment('');
     setCourseCode('');
     setCourseName('');
     setCredit(3);
     setIsGradCourse(false);
+    setInstructorCount(1);
+    setSelectedInstructors([]);
     setTeachingAssistantNumber(1);
+    setSelectedTAs([]);
     setSelectedFile(null);
     setFoundCourse(null);
     setEditMode(false);
   };
 
+  // Handler functions for instructor popup
+  const handleOpenInstructorPopup = () => {
+    setShowInstructorPopup(true);
+  };
+
+  const handleCloseInstructorPopup = () => {
+    setShowInstructorPopup(false);
+  };
+
+  const handleConfirmInstructorSelection = (instructors) => {
+    setSelectedInstructors(instructors);
+    setInstructorCount(instructors.length);
+    setShowInstructorPopup(false);
+  };
+
+  // Handler functions for TA popup
+  const handleOpenTAPopup = () => {
+    setShowTAPopup(true);
+  };
+
+  const handleCloseTAPopup = () => {
+    setShowTAPopup(false);
+  };
+
+  const handleConfirmTASelection = (tas) => {
+    setSelectedTAs(tas);
+    setTeachingAssistantNumber(tas.length);
+    setShowTAPopup(false);
+  };
+
+  // File handling functions
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
   };
@@ -98,6 +151,7 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Main form submission handler
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
@@ -130,10 +184,11 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Form validation function
   const validateForm = () => {
     if (activeView === 'add' || (activeView === 'edit' && editMode)) {
-      if (!department || !courseCode || !selectedSemester) {
-        setErrorMessage('Department, course code, and semester are required.');
+      if (!department || !courseCode || !selectedSemester || selectedInstructors.length === 0) {
+        setErrorMessage('Department, course code, semester, and at least one instructor are required.');
         setShowError(true);
         return false;
       }
@@ -146,6 +201,22 @@ const AdminCourseManagement = () => {
     return true;
   };
 
+  // Update course associations with instructors and TAs
+  const updateCourseAssociations = async (courseId, instructors, tas) => {
+    try {
+      await axios.put(`${API_URL}/api/admin/courses/${courseId}/associations`, {
+        instructorIds: instructors.map(instructor => instructor.id),
+        taIds: tas.map(ta => ta.id)
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating course associations:', error);
+      throw error;
+    }
+  };
+
+  // Add a new course
   const addCourse = async () => {
     if (!validateForm()) {
       setIsLoading(false);
@@ -153,6 +224,7 @@ const AdminCourseManagement = () => {
     }
 
     try {
+      // Create base course data
       const courseData = {
         department,
         courseCode,
@@ -162,9 +234,20 @@ const AdminCourseManagement = () => {
         semesterId: selectedSemester
       };
 
+      // Create the course
       const response = await axios.post(`${API_URL}/api/admin/courses`, courseData);
       
       if (response.data.success) {
+        // Get the new course ID
+        const courseId = response.data.data.id;
+        
+        // Update course associations
+        await updateCourseAssociations(
+          courseId, 
+          selectedInstructors, 
+          selectedTAs
+        );
+        
         setSuccess('Course added successfully!');
         resetForm();
       }
@@ -174,6 +257,7 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Find a course to delete
   const findCourseToDelete = async () => {
     if (!courseCode) {
       setErrorMessage('Course code is required to find a course.');
@@ -197,6 +281,7 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Handle course deletion confirmation
   const handleDeleteConfirm = async () => {
     setShowConfirmation(false);
     setIsLoading(true);
@@ -218,6 +303,7 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Find a course to edit
   const findCourseToEdit = async () => {
     if (!courseCode) {
       setErrorMessage('Course code is required to find a course.');
@@ -227,6 +313,7 @@ const AdminCourseManagement = () => {
     }
 
     try {
+      // Get the course data
       const response = await axios.get(`${API_URL}/api/admin/courses/code/${courseCode}`);
       
       if (response.data.success) {
@@ -240,6 +327,29 @@ const AdminCourseManagement = () => {
         setCredit(course.credit);
         setIsGradCourse(course.isGradCourse);
         setSelectedSemester(course.semesterId);
+        
+        // Fetch instructors if they exist
+        try {
+          const instructorsResponse = await axios.get(`${API_URL}/api/admin/courses/${course.id}/instructors`);
+          if (instructorsResponse.data.success) {
+            setSelectedInstructors(instructorsResponse.data.data);
+            setInstructorCount(instructorsResponse.data.data.length);
+          }
+        } catch (error) {
+          console.error('Error fetching course instructors:', error);
+        }
+        
+        // Fetch TAs if they exist
+        try {
+          const tasResponse = await axios.get(`${API_URL}/api/admin/courses/${course.id}/teaching-assistants`);
+          if (tasResponse.data.success) {
+            setSelectedTAs(tasResponse.data.data);
+            setTeachingAssistantNumber(tasResponse.data.data.length);
+          }
+        } catch (error) {
+          console.error('Error fetching course TAs:', error);
+        }
+        
         setEditMode(true);
       }
     } catch (error) {
@@ -249,6 +359,7 @@ const AdminCourseManagement = () => {
     }
   };
 
+  // Update an existing course
   const updateCourse = async () => {
     if (!validateForm()) {
       setIsLoading(false);
@@ -256,6 +367,7 @@ const AdminCourseManagement = () => {
     }
 
     try {
+      // Create updated course data
       const courseData = {
         department,
         courseCode,
@@ -265,9 +377,17 @@ const AdminCourseManagement = () => {
         semesterId: selectedSemester
       };
 
+      // Update the course
       const response = await axios.put(`${API_URL}/api/admin/courses/${foundCourse.id}`, courseData);
       
       if (response.data.success) {
+        // Update course associations
+        await updateCourseAssociations(
+          foundCourse.id, 
+          selectedInstructors, 
+          selectedTAs
+        );
+        
         setSuccess('Course updated successfully!');
         resetForm();
       }
@@ -281,6 +401,7 @@ const AdminCourseManagement = () => {
     resetForm();
   };
 
+  // Handle file upload for bulk course creation
   const handleFileUpload = async () => {
     if (!selectedFile) {
       setErrorMessage('Please select a file first');
@@ -316,9 +437,6 @@ const AdminCourseManagement = () => {
       setIsLoading(false);
     }
   };
-
-  // We'll simply use the number input for teaching assistants
-  // without showing a popup for selecting specific TAs
 
   return (
     <div className={styles.courseManagement}>
@@ -476,20 +594,69 @@ const AdminCourseManagement = () => {
                       <span className={`${styles.optionIndicator} ${isGradCourse ? styles.selected : ''}`}></span>
                     </div>
                   </div>
+
                   <div className={styles.formGroup}>
-                    <label>Teaching Assistant Number</label>
+                    <label>Instructor(s) <span className={styles.requiredField}>*</span></label>
+                    <div className={styles.taInputGroup}>
+                      <input 
+                        type="number" 
+                        min="1"
+                        value={instructorCount}
+                        onChange={(e) => setInstructorCount(parseInt(e.target.value))}
+                        readOnly={selectedInstructors.length > 0}
+                      />
+                      <button 
+                        type="button" 
+                        className={styles.selectTaBtn}
+                        onClick={handleOpenInstructorPopup}
+                      >
+                        Select Instructor(s)
+                      </button>
+                    </div>
+                    
+                    {/* Display selected instructors */}
+                    {selectedInstructors.length > 0 && (
+                      <div className={styles.selectedAssistants}>
+                        {selectedInstructors.map(instructor => (
+                          <div key={instructor.id} className={styles.assistantChip}>
+                            {instructor.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label>Teaching Assistant(s)</label>
                     <div className={styles.taInputGroup}>
                       <input 
                         type="number" 
                         min="1"
                         value={teachingAssistantNumber}
                         onChange={(e) => setTeachingAssistantNumber(parseInt(e.target.value))}
+                        readOnly={selectedTAs.length > 0}
                       />
+                      <button 
+                        type="button" 
+                        className={styles.selectTaBtn}
+                        onClick={handleOpenTAPopup}
+                      >
+                        Select Teaching Assistant(s)
+                      </button>
                     </div>
-                    <div className={styles.helpText}>
-                      Number of teaching assistants needed for this course.
-                    </div>
+                    
+                    {/* Display selected teaching assistants */}
+                    {selectedTAs.length > 0 && (
+                      <div className={styles.selectedAssistants}>
+                        {selectedTAs.map(ta => (
+                          <div key={ta.id} className={styles.assistantChip}>
+                            {ta.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
+
                   <button 
                     type="submit" 
                     className={styles.formSubmitBtn}
@@ -643,6 +810,68 @@ const AdminCourseManagement = () => {
                           <span className={`${styles.optionIndicator} ${isGradCourse ? styles.selected : ''}`}></span>
                         </div>
                       </div>
+                      
+                      <div className={styles.formGroup}>
+                        <label>Instructor(s) <span className={styles.requiredField}>*</span></label>
+                        <div className={styles.taInputGroup}>
+                          <input 
+                            type="number" 
+                            min="1"
+                            value={instructorCount}
+                            onChange={(e) => setInstructorCount(parseInt(e.target.value))}
+                            readOnly={selectedInstructors.length > 0}
+                          />
+                          <button 
+                            type="button" 
+                            className={styles.selectTaBtn}
+                            onClick={handleOpenInstructorPopup}
+                          >
+                            Select Instructor(s)
+                          </button>
+                        </div>
+                        
+                        {/* Display selected instructors */}
+                        {selectedInstructors.length > 0 && (
+                          <div className={styles.selectedAssistants}>
+                            {selectedInstructors.map(instructor => (
+                              <div key={instructor.id} className={styles.assistantChip}>
+                                {instructor.name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className={styles.formGroup}>
+                        <label>Teaching Assistant(s)</label>
+                        <div className={styles.taInputGroup}>
+                          <input 
+                            type="number" 
+                            min="1"
+                            value={teachingAssistantNumber}
+                            onChange={(e) => setTeachingAssistantNumber(parseInt(e.target.value))}
+                            readOnly={selectedTAs.length > 0}
+                          />
+                          <button 
+                            type="button" 
+                            className={styles.selectTaBtn}
+                            onClick={handleOpenTAPopup}
+                          >
+                            Select Teaching Assistant(s)
+                          </button>
+                        </div>
+                        
+{/* Display selected teaching assistants */}
+{selectedTAs.length > 0 && (
+                          <div className={styles.selectedAssistants}>
+                            {selectedTAs.map(ta => (
+                              <div key={ta.id} className={styles.assistantChip}>
+                                {ta.name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <div className={styles.formButtonGroup}>
                         <button 
                           type="button" 
@@ -680,7 +909,29 @@ const AdminCourseManagement = () => {
         />
       )}
 
-      {/* We removed the TA popup component */}
+      {/* Instructor Selection Popup */}
+      {showInstructorPopup && (
+        <SelectUserPopup
+          title="Select Instructors"
+          userType="instructor"
+          maxSelections={instructorCount}
+          selectedUsers={selectedInstructors}
+          onCancel={handleCloseInstructorPopup}
+          onConfirm={handleConfirmInstructorSelection}
+        />
+      )}
+
+      {/* Teaching Assistant Selection Popup */}
+      {showTAPopup && (
+        <SelectUserPopup
+          title="Select Teaching Assistants"
+          userType="ta"
+          maxSelections={teachingAssistantNumber}
+          selectedUsers={selectedTAs}
+          onCancel={handleCloseTAPopup}
+          onConfirm={handleConfirmTASelection}
+        />
+      )}
 
       {/* Error Popup */}
       {showError && (
