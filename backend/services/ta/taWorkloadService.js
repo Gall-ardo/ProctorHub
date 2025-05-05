@@ -1,4 +1,4 @@
-const Workload = require('../../models/workload');
+const Workload = require('../../models/Workload');
 const User = require('../../models/User');
 const TeachingAssistant = require('../../models/TeachingAssistant');
 const Course = require('../../models/Course');

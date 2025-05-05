@@ -117,6 +117,9 @@ User.hasMany(Log, { foreignKey: "userId" });
 Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "courses" });
 Instructor.belongsToMany(Course, { through: "InstructorCourses", as: "courses" });
 
+Offering.belongsToMany(Instructor, { through: "InstructorOfferings", as: "offerings" });
+Instructor.belongsToMany(Offering, { through: "InstructorOfferings", as: "offerings" });
+
 // Proctoring relationships
 Proctoring.belongsTo(Exam, { as: 'exam', foreignKey: 'examId' });
 Exam.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'examId' });
@@ -124,4 +127,17 @@ Exam.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'examId' });
 Proctoring.belongsTo(TeachingAssistant, { as: 'teachingAssistant', foreignKey: 'taId' });
 TeachingAssistant.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'taId' });
 
-module.exports = sequelize;
+module.exports = {
+    sequelize,
+    User,
+    Instructor,
+    Course,
+    Exam,
+    Classroom,
+    SwapRequest,
+    TeachingAssistant,
+    DepartmentChair,
+    DeansOffice,
+    Workload,
+    Offering,
+  };

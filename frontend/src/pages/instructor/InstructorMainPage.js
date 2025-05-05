@@ -1,115 +1,150 @@
+// src/components/InstructorMainPage.jsx
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import './InstructorMainPage.css';
+import axios from 'axios';
 import InstructorNavBar from './InstructorNavBar';
+import './InstructorMainPage.css';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-
-function InstructorMainPage() {
+export default function InstructorMainPage() {
   const [upcomingExams, setUpcomingExams] = useState([]);
-  const [latestSwaps, setLatestSwaps] = useState([]);
-  const [selectedInfo, setSelectedInfo] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [latestSwaps,   setLatestSwaps]   = useState([]);
+  const [selectedInfo,  setSelectedInfo]  = useState(null);
+  const [isModalOpen,   setIsModalOpen]   = useState(false);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState(null);
 
-  const openModal = (info) => {
-    setSelectedInfo(info);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedInfo(null);
-  };
+  // Base URL for all API calls
+  const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
 
   useEffect(() => {
-    // Fetch upcoming exams
-    fetch(`${API}/api/exams/upcoming`)
-      .then(async response => {
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await response.text();
-          throw new Error(`Expected JSON, got: ${text}`);
-        }
-        return response.json();
-      })
-      .then(data => setUpcomingExams(data))
-      .catch(err => console.error("Error fetching upcoming exams:", err));
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authentication token found');
 
-    // Fetch latest swaps
-    fetch(`${API}/api/swaps/latest`)
-      .then(response => response.json())
-      .then(data => setLatestSwaps(data))
-      .catch(err => console.error('Error fetching latest swaps:', err));
+        console.log('Fetching instructor dashboard with token:', token ? 'exists' : 'missing');
+
+        // Hit your single dashboard endpoint
+        const response = await axios.get(`${API_URL}/instructor/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Your controller does: res.json({ upcomingExams, latestSwaps })
+        const { upcomingExams, latestSwaps } = response.data;
+
+        setUpcomingExams(upcomingExams || []);
+        setLatestSwaps(latestSwaps   || []);
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+        if (err.response?.data) {
+          console.error('Server response data:', err.response.data);
+        }
+        setError(err.response?.data?.message || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
   }, []);
+
+  const openModal  = info => { setSelectedInfo(info); setIsModalOpen(true); };
+  const closeModal = () => { setIsModalOpen(false); setSelectedInfo(null); };
 
   return (
     <div className="instructor-main-page">
       <InstructorNavBar />
 
-      {/* Main Content */}
       <main className="main-content">
         {/* Upcoming Exams */}
-        <div className="content-panel upcoming-exams-section">
+        <section className="content-panel upcoming-exams-section">
           <h2>Upcoming Exams</h2>
-          <div className="cards-container">
-            {upcomingExams.map((exam, index) => (
-              <div className="card" key={index}>
-                <div className="card-info">
-                  <h3>{exam.course}</h3>
-                  <p>{exam.date}</p>
-                  <p>{exam.time}</p>
+
+          {loading ? (
+            <div className="loading">Loading exams…</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : upcomingExams.length === 0 ? (
+            <div className="empty">No upcoming exams found</div>
+          ) : (
+            <div className="cards-container">
+              {upcomingExams.map((exam, i) => (
+                <div className="card" key={i}>
+                  <div className="card-info">
+                    <h3>{exam.course}</h3>
+                    <p>{exam.date}</p>
+                    <p>{exam.time}</p>
+                  </div>
+                  <button
+                    className="info-button"
+                    onClick={() => openModal({ type: 'exam', data: exam })}
+                  >
+                    ⓘ
+                  </button>
                 </div>
-                <button className="info-button" onClick={() => openModal({ type: 'exam', data: exam })}>ⓘ</button>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Latest Swaps */}
-        <div className="content-panel latest-swaps-section">
+        <section className="content-panel latest-swaps-section">
           <h2>Latest Swaps</h2>
-          <div className="cards-container">
-            {latestSwaps.map((swap, index) => (
-              <div className="card" key={index}>
-                <div className="card-info">
-                  <h3>{swap.from} → {swap.to}</h3>
-                  <p>{swap.swapInfo}</p>
-                  <p>{swap.date} {swap.time}</p>
+
+          {loading ? (
+            <div className="loading">Loading swaps…</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : latestSwaps.length === 0 ? (
+            <div className="empty">No swap requests found</div>
+          ) : (
+            <div className="cards-container">
+              {latestSwaps.map((swap, i) => (
+                <div className="card" key={i}>
+                  <div className="card-info">
+                    <h3>{swap.from} → {swap.to}</h3>
+                    <p>{swap.swapInfo}</p>
+                    <p>{swap.date} {swap.time}</p>
+                  </div>
+                  <button
+                    className="info-button"
+                    onClick={() => openModal({ type: 'swap', data: swap })}
+                  >
+                    ⓘ
+                  </button>
                 </div>
-                <button className="info-button" onClick={() => openModal({ type: 'swap', data: swap })}>ⓘ</button>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
+      {/* Modal */}
       {isModalOpen && (
         <div className="modal-backdrop">
           <div className="modal-content">
             <button className="close-button" onClick={closeModal}>×</button>
-            {selectedInfo?.type === 'exam' ? (
+
+            {selectedInfo.type === 'exam' ? (
               <>
                 <h3>{selectedInfo.data.course}</h3>
                 <p><strong>Date:</strong> {selectedInfo.data.date}</p>
-                <p><strong>Time Interval:</strong> {selectedInfo.data.time}</p>
-                <p><strong>Exam Duration:</strong> {selectedInfo.data.duration}</p>
-                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms?.join(', ')}</p>
+                <p><strong>Time:</strong> {selectedInfo.data.time}</p>
+                <p><strong>Duration:</strong> {selectedInfo.data.duration}</p>
+                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms.join(', ')}</p>
               </>
             ) : (
               <>
                 <h3>{selectedInfo.data.from} → {selectedInfo.data.to}</h3>
                 <p><strong>Swap Info:</strong> {selectedInfo.data.swapInfo}</p>
                 <p><strong>Date & Time:</strong> {selectedInfo.data.date} {selectedInfo.data.time}</p>
-                {/* For a swap, you could show the exam's classroom/duration too, if it exists. */}
-                <p><strong>Exam Duration:</strong> {selectedInfo.data.duration}</p>
-                <p><strong>Classroom:</strong> {selectedInfo.data.classrooms?.join(', ')}</p>
+                <p><strong>Duration:</strong> {selectedInfo.data.duration}</p>
+                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms.join(', ')}</p>
               </>
             )}
           </div>
         </div>
       )}
     </div>
-  );
+);
 }
-
-export default InstructorMainPage;

@@ -116,18 +116,35 @@ async function safeFindOrCreate(model, options, description) {
       }, `Classroom ${row.id}`);
     }
 
-    // Seed Courses
+    // Seed Semesters
+    for (const row of semesterRows) {
+      await safeFindOrCreate(Semester, {
+        where: { id: row.id },
+        defaults: {
+          id:       row.id,
+          year:     parseValue(row.year),
+          isFall:   parseValue(row.isFall),
+          semesterType: 'FALL'
+        }
+      }, `Semester ${row.id}`);
+    }
+
+    const defaultSemesterId = semesterRows[0].id.trim();
+    console.log('Default semesterId:', defaultSemesterId);
+    
+    // Now seed Courses:
     for (const course of courseRows) {
-      const id = `${course.Department}${course["Course Code"]}`;
+      const id = course.id.trim();
       await safeFindOrCreate(Course, {
         where: { id },
         defaults: {
           id,
-          courseCode:  course["Course Code"],
-          courseName:  course["Course Name"],
-          department:  course.Department,
+          courseCode:  course['Course Code'].trim(),
+          courseName:  course['Course Name'].trim(),
+          department:  course.Department.trim(),
           credit:      parseValue(course.Credit),
-          isGradCourse: course["Is Undergrad"].toLowerCase() !== "true"
+          isGradCourse: course['Is Undergrad'].trim().toLowerCase() !== 'true',
+          semesterId:  defaultSemesterId     // ← satisfy the FK here
         }
       }, `Course ${id}`);
     }
@@ -166,18 +183,6 @@ async function safeFindOrCreate(model, options, description) {
           courseId:         row.courseId,
         }
       }, `Exam ${row.id}`);
-    }
-
-    // Seed Semesters
-    for (const row of semesterRows) {
-      await safeFindOrCreate(Semester, {
-        where: { id: row.id },
-        defaults: {
-          id:       row.id,
-          year:     parseValue(row.year),
-          isFall:   parseValue(row.isFall)
-        }
-      }, `Semester ${row.id}`);
     }
 
     // Seed Offerings
