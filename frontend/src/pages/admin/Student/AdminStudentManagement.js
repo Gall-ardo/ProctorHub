@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminNavBar from '../AdminNavBar';
-import styles from './AdminStudentManagement.module.css';
+import CourseSelectionPopup from './CourseSelectionPopup';
 import axios from 'axios';
-
-// Define API URL with fallback for development
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+import styles from './AdminStudentManagement.module.css';
 
 const AdminStudentManagement = () => {
   const navigate = useNavigate();
@@ -19,11 +17,13 @@ const AdminStudentManagement = () => {
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   
-  // Status states
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [searchResults, setSearchResults] = useState([]);
+  // Course popup state
+  const [isCoursePopupOpen, setIsCoursePopupOpen] = useState(false);
+  
+  // Feedback states
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [findResults, setFindResults] = useState(null);
 
   // Department options
   const departmentOptions = [
@@ -31,22 +31,6 @@ const AdminStudentManagement = () => {
     { label: 'IE', value: 'IE' },
     { label: 'EEE', value: 'EEE' }
   ];
-
-  // Course options
-  const courseOptions = [
-    { label: 'CS-101', value: 'CS-101' },
-    { label: 'CS-102', value: 'CS-102' }
-  ];
-
-  // Clear form and status
-  const clearForm = () => {
-    setStudentId('');
-    setNameSurname('');
-    setEmail('');
-    setDepartment('');
-    setSelectedCourses([]);
-    setSearchResults([]);
-  };
 
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -63,209 +47,191 @@ const AdminStudentManagement = () => {
     }
   };
 
-  const toggleCourse = (courseValue) => {
-    if (selectedCourses.includes(courseValue)) {
-      setSelectedCourses(selectedCourses.filter(course => course !== courseValue));
-    } else {
-      setSelectedCourses([...selectedCourses, courseValue]);
-    }
-  };
-
-  const handleViewChange = (view) => {
-    setActiveView(view);
-    clearForm();
-    setError(null);
-    setSuccess(null);
-  };
-
-  const validateForm = () => {
-    if (activeView === 'add') {
-      if (!studentId || !nameSurname || !email || !department) {
-        setError('Please fill all required fields');
-        return false;
-      }
-      
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        setError('Please enter a valid email address');
-        return false;
-      }
-    } else if (activeView === 'delete' || activeView === 'edit') {
-      if (!studentId && !email) {
-        setError('Please enter either ID or email to search');
-        return false;
-      }
-    }
-    
-    return true;
+  const handleCourseSelection = (selectedCourses) => {
+    setSelectedCourses(selectedCourses);
+    setIsCoursePopupOpen(false);
   };
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+    setIsLoading(true);
+    setMessage({ text: '', type: '' });
     
     try {
       // Handle different form submissions based on active view
       switch(activeView) {
         case 'add':
-          const addResponse = await axios.post(`${API_URL}/api/admin/students`, {
-            studentId,
-            nameSurname,
-            email,
-            department,
-            courses: selectedCourses
-          });
-          
-          setSuccess(addResponse.data.message || 'Student added successfully');
-          clearForm();
+          // If there's a findResults._id, it means we're updating
+          if (findResults && findResults._id) {
+            const updateResponse = await axios.put(`/api/admin/students/${findResults._id}`, { 
+              studentId, 
+              nameSurname, 
+              email, 
+              department,
+              courses: selectedCourses 
+            });
+            
+            if (updateResponse.data.success) {
+              setMessage({ text: 'Student updated successfully!', type: 'success' });
+              resetForm();
+            }
+          } else {
+            // Creating a new student
+            const addResponse = await axios.post('/api/admin/students', { 
+              studentId, 
+              nameSurname, 
+              email, 
+              department,
+              courses: selectedCourses 
+            });
+            
+            if (addResponse.data.success) {
+              setMessage({ text: 'Student added successfully!', type: 'success' });
+              resetForm();
+            }
+          }
           break;
           
         case 'delete':
           // First find the student
           if (!studentId && !email) {
-            setError('Please provide either ID or email to find student');
-            setLoading(false);
+            setMessage({ text: 'Please provide either ID or email to find student', type: 'error' });
+            setIsLoading(false);
             return;
           }
           
-          let findParams = {};
+          const findParams = {};
           if (studentId) findParams.studentId = studentId;
           if (email) findParams.email = email;
           
-          const findResponse = await axios.get(`${API_URL}/api/admin/students`, { params: findParams });
+          const findResponse = await axios.get('/api/admin/students', { params: findParams });
           
           if (findResponse.data.success && findResponse.data.data.length > 0) {
-            setSearchResults(findResponse.data.data);
+            setFindResults(findResponse.data.data);
           } else {
-            setError('No students found with the provided information');
+            setMessage({ text: 'No students found with the provided information', type: 'error' });
           }
           break;
           
         case 'edit':
           // First find the student
           if (!studentId && !email) {
-            setError('Please provide either ID or email to find student');
-            setLoading(false);
+            setMessage({ text: 'Please provide either ID or email to find student', type: 'error' });
+            setIsLoading(false);
             return;
           }
           
-          let editFindParams = {};
+          const editFindParams = {};
           if (studentId) editFindParams.studentId = studentId;
           if (email) editFindParams.email = email;
           
-          const editFindResponse = await axios.get(`${API_URL}/api/admin/students`, { params: editFindParams });
+          const editFindResponse = await axios.get('/api/admin/students', { params: editFindParams });
           
           if (editFindResponse.data.success && editFindResponse.data.data.length > 0) {
-            setSearchResults(editFindResponse.data.data);
+            setFindResults(editFindResponse.data.data);
           } else {
-            setError('No students found with the provided information');
+            setMessage({ text: 'No students found with the provided information', type: 'error' });
           }
           break;
           
         default:
           break;
       }
-    } catch (err) {
-      console.error('Error:', err);
-      if (err.response) {
-        setError(err.response.data?.message || `Error ${err.response.status}: Request failed`);
-      } else if (err.request) {
-        setError('Server not responding. Please check your connection.');
-      } else {
-        setError(`Error: ${err.message}`);
-      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage({ 
+        text: error.response?.data?.message || 'An error occurred', 
+        type: 'error' 
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleFileUpload = async () => {
     if (!selectedFile) {
-      setError('Please select a file first');
+      setMessage({ text: 'Please select a file first', type: 'error' });
       return;
     }
     
-    if (selectedFile.type !== 'text/csv') {
-      setError('Only CSV files are allowed');
-      return;
-    }
-    
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+    setIsLoading(true);
+    setMessage({ text: '', type: '' });
     
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
       
-      const response = await axios.post(
-        `${API_URL}/api/admin/students/upload`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      const response = await axios.post('/api/admin/students/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      );
+      });
       
-      setSuccess(response.data.message || `File uploaded successfully. ${response.data.studentsCreated} students created.`);
-      setSelectedFile(null);
-    } catch (err) {
-      console.error('Error uploading file:', err);
-      if (err.response) {
-        setError(err.response.data?.message || `Error ${err.response.status}: Failed to upload file`);
-      } else if (err.request) {
-        setError('Server not responding. Please check your connection.');
-      } else {
-        setError(`Error: ${err.message}`);
+      if (response.data.success) {
+        setMessage({ 
+          text: `Uploaded successfully! ${response.data.studentsCreated} students added, ${response.data.studentsFailed} errors.`, 
+          type: 'success' 
+        });
+        setSelectedFile(null);
       }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setMessage({ 
+        text: error.response?.data?.message || 'An error occurred uploading the file', 
+        type: 'error' 
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleDeleteStudent = async (id) => {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+    if (!window.confirm('Are you sure you want to delete this student?')) {
+      return;
+    }
+    
+    setIsLoading(true);
     
     try {
-      const response = await axios.delete(`${API_URL}/api/admin/students/${id}`);
+      const response = await axios.delete(`/api/admin/students/${id}`);
       
-      setSuccess(response.data.message || 'Student deleted successfully');
-      setSearchResults(searchResults.filter(student => student.id !== id));
-      
-      if (searchResults.length <= 1) {
-        clearForm();
+      if (response.data.success) {
+        setMessage({ text: 'Student deleted successfully!', type: 'success' });
+        setFindResults(null);
+        resetForm();
       }
-    } catch (err) {
-      console.error('Error deleting student:', err);
-      if (err.response) {
-        setError(err.response.data?.message || `Error ${err.response.status}: Failed to delete student`);
-      } else if (err.request) {
-        setError('Server not responding. Please check your connection.');
-      } else {
-        setError(`Error: ${err.message}`);
-      }
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      setMessage({ 
+        text: error.response?.data?.message || 'An error occurred deleting the student', 
+        type: 'error' 
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleEditStudent = (student) => {
+    // Switch to add view and fill the form with the student's data
+    setActiveView('add');
     setStudentId(student.studentId);
     setNameSurname(student.nameSurname);
     setEmail(student.email);
     setDepartment(student.department);
     setSelectedCourses(student.courses || []);
     
-    setActiveView('add');
+    // Store the MongoDB ID for the update operation
+    setFindResults({ _id: student._id });
+  };
+
+  const resetForm = () => {
+    setStudentId('');
+    setNameSurname('');
+    setEmail('');
+    setDepartment('');
+    setSelectedCourses([]);
+    setMessage({ text: '', type: '' });
+    setFindResults(null);
   };
 
   return (
@@ -274,24 +240,18 @@ const AdminStudentManagement = () => {
       <AdminNavBar />
 
       <div className={styles.mainContent}>
-        {/* Status messages */}
-        {error && (
-          <div className={styles.errorMessage}>
-            {error}
-            <button onClick={() => setError(null)} className={styles.closeBtn}>×</button>
-          </div>
-        )}
-        
-        {success && (
-          <div className={styles.successMessage}>
-            {success}
-            <button onClick={() => setSuccess(null)} className={styles.closeBtn}>×</button>
+        {/* Status message */}
+        {message.text && (
+          <div className={`${styles.statusMessage} ${styles[message.type]}`}>
+            {message.text}
           </div>
         )}
         
         {/* Loading indicator */}
-        {loading && (
-          <div className={styles.loadingIndicator}>Loading...</div>
+        {isLoading && (
+          <div className={styles.loadingIndicator}>
+            Loading...
+          </div>
         )}
         
         {/* Left Panel */}
@@ -299,7 +259,10 @@ const AdminStudentManagement = () => {
           <div className={styles.actionButtons}>
             <div 
               className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
-              onClick={() => handleViewChange('add')}
+              onClick={() => {
+                setActiveView('add');
+                resetForm();
+              }}
             >
               <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
                 <span>+</span>
@@ -309,7 +272,10 @@ const AdminStudentManagement = () => {
             
             <div 
               className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
-              onClick={() => handleViewChange('delete')}
+              onClick={() => {
+                setActiveView('delete');
+                resetForm();
+              }}
             >
               <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
                 <span>-</span>
@@ -319,7 +285,10 @@ const AdminStudentManagement = () => {
             
             <div 
               className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
-              onClick={() => handleViewChange('edit')}
+              onClick={() => {
+                setActiveView('edit');
+                resetForm();
+              }}
             >
               <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
                 <span>✎</span>
@@ -341,9 +310,9 @@ const AdminStudentManagement = () => {
             <label className={styles.selectFileBtn}>
               Select file
               <input 
-                type="file"
-                accept=".csv" 
+                type="file" 
                 hidden 
+                accept=".csv"
                 onChange={handleFileSelect}
               />
             </label>
@@ -351,12 +320,14 @@ const AdminStudentManagement = () => {
             <button 
               className={styles.uploadFileBtn}
               onClick={handleFileUpload}
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? 'Uploading...' : 'Upload File'}
+              Upload File
             </button>
-            <div className={styles.uploadNote}>
-              Note: CSV should contain columns for StudentID, NameSurname, Email, Department, and Courses (optional).
+            <div className={styles.fileFormat}>
+              <small>Accepted format: CSV</small>
+              <small>Required columns: studentId, nameSurname, email, department</small>
+              <small>Optional columns: courses (comma-separated)</small>
             </div>
           </div>
         </div>
@@ -366,10 +337,12 @@ const AdminStudentManagement = () => {
           <div className={styles.formContainer}>
             {activeView === 'add' && (
               <>
-                <h2 className={styles.formTitle}>Enter Student Information</h2>
+                <h2 className={styles.formTitle}>
+                  {findResults && findResults._id ? 'Edit Student Information' : 'Enter Student Information'}
+                </h2>
                 <form onSubmit={handleFormSubmit}>
                   <div className={styles.formGroup}>
-                    <label>ID <span className={styles.requiredField}>*</span></label>
+                    <label>ID</label>
                     <input 
                       type="text" 
                       placeholder="Enter ID" 
@@ -379,7 +352,7 @@ const AdminStudentManagement = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Name Surname <span className={styles.requiredField}>*</span></label>
+                    <label>Name Surname</label>
                     <input 
                       type="text" 
                       placeholder="Enter name surname" 
@@ -389,7 +362,7 @@ const AdminStudentManagement = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Mail <span className={styles.requiredField}>*</span></label>
+                    <label>Mail</label>
                     <input 
                       type="email" 
                       placeholder="Enter mail" 
@@ -399,7 +372,7 @@ const AdminStudentManagement = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>Department <span className={styles.requiredField}>*</span></label>
+                    <label>Department</label>
                     <div className={styles.selectionList}>
                       {departmentOptions.map((dept) => (
                         <div 
@@ -415,148 +388,180 @@ const AdminStudentManagement = () => {
                   </div>
                   <div className={styles.formGroup}>
                     <label>Courses</label>
-                    <div className={styles.selectionList}>
-                      {courseOptions.map((course) => (
-                        <div 
-                          key={course.value} 
-                          className={`${styles.selectionItem} ${selectedCourses.includes(course.value) ? styles.selected : ''}`}
-                          onClick={() => toggleCourse(course.value)}
-                        >
-                          {course.label}
-                          <span className={styles.optionIndicator}></span>
-                        </div>
-                      ))}
+                    <div className={styles.selectContainer} onClick={() => setIsCoursePopupOpen(true)}>
+                      <div className={styles.inputField}>
+                        {selectedCourses.length > 0 
+                          ? `${selectedCourses.length} course${selectedCourses.length > 1 ? 's' : ''} selected` 
+                          : 'Select Course(s)'}
+                      </div>
+                      <div className={styles.arrowIcon}>▼</div>
                     </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={loading}
-                  >
-                    {loading ? 'Adding...' : 'Add Student'}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {activeView === 'delete' && (
-              <>
-                <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
-                <form onSubmit={handleFormSubmit}>
-                  <div className={styles.formGroup}>
-                    <label>ID</label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter ID" 
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Mail</label>
-                    <input 
-                      type="email" 
-                      placeholder="Enter mail" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={loading}
-                  >
-                    {loading ? 'Searching...' : 'Find Student to Delete'}
-                  </button>
-                </form>
-                
-                {/* Search Results */}
-                {searchResults.length > 0 && (
-                  <div className={styles.searchResults}>
-                    <h3>Search Results</h3>
-                    <ul className={styles.resultsList}>
-                      {searchResults.map(student => (
-                        <li key={student.id} className={styles.resultItem}>
-                          <div className={styles.resultInfo}>
-                            <div><strong>ID:</strong> {student.studentId}</div>
-                            <div><strong>Name:</strong> {student.nameSurname}</div>
-                            <div><strong>Email:</strong> {student.email}</div>
-                            <div><strong>Department:</strong> {student.department}</div>
+                    {selectedCourses.length > 0 && (
+                      <div className={styles.selectedItemsContainer}>
+                        {selectedCourses.map(course => (
+                          <div key={course} className={styles.selectedItem}>
+                            <span>{course}</span>
+                            <button 
+                              type="button"
+                              className={styles.removeButton}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCourses(selectedCourses.filter(c => c !== course));
+                              }}
+                            >
+                              ×
+                            </button>
                           </div>
-                          <button 
-                            onClick={() => handleDeleteStudent(student.id)}
-                            className={styles.deleteBtn}
-                          >
-                            Delete
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
-            )}
-
-            {activeView === 'edit' && (
-              <>
-                <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
-                <form onSubmit={handleFormSubmit}>
-                  <div className={styles.formGroup}>
-                    <label>ID</label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter ID" 
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Mail</label>
-                    <input 
-                      type="email" 
-                      placeholder="Enter mail" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <button 
                     type="submit" 
                     className={styles.formSubmitBtn}
-                    disabled={loading}
+                    disabled={isLoading}
                   >
-                    {loading ? 'Searching...' : 'Find Student to Edit'}
-                  </button>
-                </form>
-                
-                {/* Search Results */}
-                {searchResults.length > 0 && (
-                  <div className={styles.searchResults}>
-                    <h3>Search Results</h3>
-                    <ul className={styles.resultsList}>
-                      {searchResults.map(student => (
-                        <li key={student.id} className={styles.resultItem}>
-                          <div className={styles.resultInfo}>
-                            <div><strong>ID:</strong> {student.studentId}</div>
-                            <div><strong>Name:</strong> {student.nameSurname}</div>
-                            <div><strong>Email:</strong> {student.email}</div>
-                            <div><strong>Department:</strong> {student.department}</div>
-                          </div>
-                          <button 
-                            onClick={() => handleEditStudent(student)}
-                            className={styles.editBtn}
-                          >
-                            Edit
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
-            )}
+                    {findResults && findResults._id ? 'Update Student' : 'Add Student'}
+            </button>
+          </form>
+        </>
+        )}
+
+{activeView === 'delete' && (
+  <>
+    <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
+    <form onSubmit={handleFormSubmit}>
+      <div className={styles.formGroup}>
+        <label>ID</label>
+        <input 
+          type="text" 
+          placeholder="Enter ID" 
+          value={studentId}
+          onChange={(e) => setStudentId(e.target.value)}
+        />
+      </div>
+      <div className={styles.formGroup}>
+        <label>Mail</label>
+        <input 
+          type="email" 
+          placeholder="Enter mail" 
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+      <button 
+        type="submit" 
+        className={styles.formSubmitBtn}
+        disabled={isLoading}
+      >
+        Find Student to Delete
+      </button>
+    </form>
+    
+    {/* Display find results for deletion */}
+    {findResults && findResults.length > 0 && (
+      <div className={styles.findResults}>
+        <h3>Found Students:</h3>
+        {findResults.map(student => (
+          <div key={student._id} className={styles.studentCard}>
+            <div className={styles.studentInfo}>
+              <p><strong>ID:</strong> {student.studentId}</p>
+              <p><strong>Name:</strong> {student.nameSurname}</p>
+              <p><strong>Email:</strong> {student.email}</p>
+              <p><strong>Department:</strong> {student.department}</p>
+              {student.courses && student.courses.length > 0 && (
+                <p>
+                  <strong>Courses:</strong> {student.courses.join(', ')}
+                </p>
+              )}
+            </div>
+            <button 
+              className={styles.deleteBtn}
+              onClick={() => handleDeleteStudent(student._id)}
+              disabled={isLoading}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </>
+)}
+
+{activeView === 'edit' && (
+  <>
+    <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
+    <form onSubmit={handleFormSubmit}>
+      <div className={styles.formGroup}>
+        <label>ID</label>
+        <input 
+          type="text" 
+          placeholder="Enter ID" 
+          value={studentId}
+          onChange={(e) => setStudentId(e.target.value)}
+        />
+      </div>
+      <div className={styles.formGroup}>
+        <label>Mail</label>
+        <input 
+          type="email" 
+          placeholder="Enter mail" 
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+      <button 
+        type="submit" 
+        className={styles.formSubmitBtn}
+        disabled={isLoading}
+      >
+        Find Student to Edit
+      </button>
+    </form>
+    
+    {/* Display find results for editing */}
+    {findResults && findResults.length > 0 && (
+      <div className={styles.findResults}>
+        <h3>Found Students:</h3>
+        {findResults.map(student => (
+          <div key={student._id} className={styles.studentCard}>
+            <div className={styles.studentInfo}>
+              <p><strong>ID:</strong> {student.studentId}</p>
+              <p><strong>Name:</strong> {student.nameSurname}</p>
+              <p><strong>Email:</strong> {student.email}</p>
+              <p><strong>Department:</strong> {student.department}</p>
+              {student.courses && student.courses.length > 0 && (
+                <p>
+                  <strong>Courses:</strong> {student.courses.join(', ')}
+                </p>
+              )}
+            </div>
+            <button 
+              className={styles.editBtn}
+              onClick={() => handleEditStudent(student)}
+              disabled={isLoading}
+            >
+              Edit
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </>
+)}
           </div>
         </div>
       </div>
+
+      {/* Course Selection Popup */}
+      <CourseSelectionPopup 
+        isOpen={isCoursePopupOpen}
+        onClose={() => setIsCoursePopupOpen(false)}
+        onSelectCourses={setSelectedCourses}
+        selectedCourses={selectedCourses}
+        department={department}
+      />
     </div>
   );
 };

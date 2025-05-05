@@ -15,77 +15,70 @@
   .modalContent {
     background-color: white;
     border-radius: 8px;
-    width: 80%;
-    max-width: 600px;
+    width: 90%;
+    max-width: 500px;
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
   .modalHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #eee;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eaeaea;
   }
   
   .modalHeader h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
     color: #333;
   }
   
   .closeButton {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
-    color: #666;
+    color: #777;
+  }
+  
+  .modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh;
   }
   
   .searchContainer {
-    padding: 16px 20px;
-    display: flex;
-    gap: 10px;
+    margin-bottom: 15px;
   }
   
   .searchInput {
-    flex: 1;
+    width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
   }
   
-  .searchButton {
-    padding: 10px 15px;
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .searchButton:hover {
-    background-color: #e8e8e8;
-  }
-  
   .courseList {
     flex: 1;
     overflow-y: auto;
-    padding: 0 20px;
   }
   
   .courseItem {
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eaeaea;
     cursor: pointer;
     transition: background-color 0.2s;
-    position: relative;
   }
   
   .courseItem:hover {
@@ -93,43 +86,40 @@
   }
   
   .courseItem.selected {
-    background-color: #e9f5ff;
+    background-color: #f0f7ff;
+  }
+  
+  .courseInfo {
+    display: flex;
+    flex-direction: column;
   }
   
   .courseCode {
     font-weight: bold;
-    width: 100px;
-    flex-shrink: 0;
+    color: #333;
+    margin-bottom: 3px;
   }
   
   .courseName {
-    flex: 1;
+    font-size: 13px;
+    color: #666;
   }
   
-  .checkmark {
-    position: absolute;
-    right: 15px;
+  .selectionIndicator {
     color: #2196F3;
     font-weight: bold;
-  }
-  
-  .selectedCount {
-    padding: 10px 20px;
-    font-size: 14px;
-    color: #666;
-    border-top: 1px solid #eee;
+    font-size: 16px;
   }
   
   .modalFooter {
-    padding: 16px 20px;
+    padding: 15px 20px;
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eaeaea;
   }
   
   .cancelButton {
-    padding: 10px 15px;
+    padding: 8px 15px;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -137,34 +127,12 @@
     font-size: 14px;
   }
   
-  .saveButton {
-    padding: 10px 15px;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .saveButton:hover {
-    background-color: #0b88e8;
-  }
-  
-  .loading {
+  .loading, .error, .emptyMessage {
     padding: 20px;
     text-align: center;
     color: #666;
   }
   
   .error {
-    padding: 20px;
-    text-align: center;
     color: #d32f2f;
-  }
-  
-  .noCourses {
-    padding: 20px;
-    text-align: center;
-    color: #666;
   }
