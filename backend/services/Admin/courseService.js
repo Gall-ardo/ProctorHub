@@ -31,8 +31,7 @@ class CourseService {
         throw new Error("Missing required fields: course code, department, and semester ID");
       }
 
-      // Generate a unique ID for the course
-      const courseId = courseData.id || uuidv4();
+      const courseId = `${courseData.department}${courseData.courseCode}${courseData.semesterId}`.replace(/\s+/g, '');
       
       // Create default course name if not provided
       if (!courseData.courseName) {

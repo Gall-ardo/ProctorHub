@@ -11,7 +11,8 @@ const SelectUserPopup = ({
   maxSelections, 
   selectedUsers, 
   onCancel, 
-  onConfirm 
+  onConfirm,
+  department  // This is the department of the course being created/edited
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState([]);
@@ -19,66 +20,40 @@ const SelectUserPopup = ({
   const [error, setError] = useState(null);
   const [selections, setSelections] = useState([...selectedUsers]);
 
-  // Fetch users based on search query
+  // Load initial users on component mount and when department changes
   useEffect(() => {
-    if (searchQuery.length > 1) {
+    console.log("Department changed to:", department);
+    
+    if (department) {
       fetchUsers();
-    } else if (searchQuery.length === 0) {
-      // When search is cleared, load some initial users
-      fetchInitialUsers();
+    } else {
+      setUsers([]);
+    }
+  }, [department]);
+
+  useEffect(() => {
+    if (department) {
+      fetchUsers();
     }
   }, [searchQuery]);
-
-  // Load initial users on component mount
-  useEffect(() => {
-    fetchInitialUsers();
-  }, []);
-
-  const fetchInitialUsers = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Make API call to get all users of the specified type
-      let response;
-      
-      if (userType === 'instructor') {
-        response = await axios.get(`${API_URL}/api/admin/users`, { 
-          params: { userType: 'instructor' } 
-        });
-      } else {
-        response = await axios.get(`${API_URL}/api/admin/users`, { 
-          params: { userType: 'ta' } 
-        });
-      }
-      
-      // Handle both potential response formats
-      let userData = [];
-      if (response.data.success && Array.isArray(response.data.data)) {
-        userData = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        userData = response.data;
-      }
-      
-      setUsers(userData);
-    } catch (err) {
-      console.error('Error fetching initial users:', err);
-      setError('Failed to fetch users. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const fetchUsers = async () => {
+    if (!department) {
+      setUsers([]);
+      return;
+    }
+  
     setLoading(true);
     setError(null);
-    
+  
     try {
-      // Construct query parameters
-      const params = { 
-        userType: userType === 'instructor' ? 'instructor' : 'ta'
+      const params = {
+        userType,
+        department
       };
-      
+  
+      // Always search — no need to wait for 2+ characters
       if (searchQuery) {
         if (searchQuery.includes('@')) {
           params.email = searchQuery;
@@ -88,36 +63,24 @@ const SelectUserPopup = ({
           params.name = searchQuery;
         }
       }
-      
-      // Make API call
+  
       const response = await axios.get(`${API_URL}/api/admin/users`, { params });
-      
-      // Handle different response formats
+  
       let userData = [];
-      if (response.data.success && Array.isArray(response.data.data)) {
-        userData = response.data.data;
-      } else if (Array.isArray(response.data)) {
+      if (Array.isArray(response.data)) {
         userData = response.data;
+      } else if (response.data?.success && Array.isArray(response.data.data)) {
+        userData = response.data.data;
       }
-      
-      // Filter results client-side if needed
-      const filteredUsers = userData.filter(user => {
-        const searchLower = searchQuery.toLowerCase();
-        return (
-          user.name.toLowerCase().includes(searchLower) ||
-          (user.id && user.id.toLowerCase().includes(searchLower)) ||
-          (user.email && user.email.toLowerCase().includes(searchLower))
-        );
-      });
-      
-      setUsers(filteredUsers);
+  
+      setUsers(userData);
     } catch (err) {
-      console.error('Error fetching users:', err);
-      setError('Failed to fetch users. Please try again.');
+      setError(`Failed to fetch ${userType}s. Please try again.`);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const toggleUserSelection = (user) => {
     // Check if user is already selected
@@ -141,7 +104,12 @@ const SelectUserPopup = ({
   };
 
   const handleConfirm = () => {
-    onConfirm(selections);
+    const usersWithDepartment = selections.map(user => ({
+      ...user,
+      department: department // ensure department is attached
+    }));
+    onConfirm(usersWithDepartment);
+    
   };
 
   return (
@@ -149,6 +117,9 @@ const SelectUserPopup = ({
       <div className={styles.popup}>
         <div className={styles.header}>
           <h2>{title} ({selections.length}/{maxSelections || '∞'})</h2>
+          <div className={styles.departmentFilter}>
+            <span>Department: <strong>{department}</strong></span>
+          </div>
           <button className={styles.closeButton} onClick={onCancel}>×</button>
         </div>
         
@@ -159,11 +130,17 @@ const SelectUserPopup = ({
             placeholder="Search by name or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            disabled={!department}
           />
+          {!department && (
+            <div className={styles.warningMessage}>Please select a department first</div>
+          )}
         </div>
         
         <div className={styles.resultsContainer}>
-          {loading ? (
+          {!department ? (
+            <div className={styles.warningMessage}>Department must be selected to view users</div>
+          ) : loading ? (
             <div className={styles.loadingMessage}>Loading...</div>
           ) : error ? (
             <div className={styles.errorMessage}>{error}</div>
@@ -192,7 +169,9 @@ const SelectUserPopup = ({
             </ul>
           ) : (
             <div className={styles.noResultsMessage}>
-              {searchQuery.length > 1 ? 'No users found.' : 'Enter at least 2 characters to search.'}
+              {searchQuery.length > 0 ? 
+                `No ${userType === 'instructor' ? 'instructors' : 'teaching assistants'} found in ${department} department matching "${searchQuery}".` : 
+                `No ${userType === 'instructor' ? 'instructors' : 'teaching assistants'} found in ${department} department.`}
             </div>
           )}
         </div>

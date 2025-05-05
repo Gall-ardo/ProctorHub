@@ -228,3 +228,84 @@
 .confirmButton:hover {
   background-color: #a52020;
 }
+
+/* Add these CSS classes to your existing SelectUserPopup.module.css file */
+
+.departmentFilter {
+  background-color: #f0f8ff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.departmentFilter strong {
+  color: #0056b3;
+}
+
+/* Enhance the header to display the department filter */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f5f5f5;
+}
+
+.header h2 {
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Update the user item to highlight department */
+.userDepartment {
+  background-color: #e6f7ff;
+  color: #0066cc;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+/* Make the filter warning more prominent */
+.warningMessage {
+  color: #856404;
+  background-color: #fff3cd;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  text-align: center;
+  border: 1px solid #ffeeba;
+}
+/* Add these styles to your SelectUserPopup.module.css file */
+
+.debugInfo {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.debugInfo details {
+  cursor: pointer;
+}
+
+.debugInfo summary {
+  font-weight: bold;
+  color: #555;
+}
+
+.debugInfo pre {
+  margin-top: 8px;
+  background-color: #eee;
+  padding: 8px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 200px;
+  font-family: monospace;
+  font-size: 0.8rem;
+}

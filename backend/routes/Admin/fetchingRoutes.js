@@ -12,6 +12,11 @@ router.get('/users', fetchingController.getUsers);
 router.get('/instructors', fetchingController.getUsers); // Route reused with default params
 router.get('/teaching-assistants', fetchingController.getUsers); // Route reused with default params
 
+// Course fetching routes
+router.get('/courses', fetchingController.getAllCourses);
+router.get('/courses/department/:department', fetchingController.getCoursesByDepartment);
+router.get('/courses/search', fetchingController.searchCourses);
+
 // Course association routes
 router.get('/courses/:id/instructors', fetchingController.getCourseInstructors);
 router.post('/courses/:id/instructors', fetchingController.addInstructorToCourse);

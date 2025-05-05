@@ -469,3 +469,52 @@
     flex-direction: column;
   }
 }
+
+/* Add these styles to your existing AdminCourseManagement.module.css file */
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.warningMessage {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Style for department selection in disabled state */
+.departmentOption.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Style for active selections */
+.selectedAssistants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.assistantChip {
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 13px;
+  display: inline-block;
+  color: #1976d2;
+}
+
+/* Button styles */
+.selectTaBtn.disabled {
+  background-color: #e0e0e0;
+  color: #9e9e9e;
+  cursor: not-allowed;
+  border: 1px solid #cccccc;
+}

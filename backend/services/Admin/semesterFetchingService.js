@@ -8,11 +8,20 @@ class SemesterFetchingService {
    */
   async getAllSemesters() {
     try {
-      // Remove the isActive field from the ordering since it doesn't exist
-      return await Semester.findAll({
+      const semesters = await Semester.findAll({
         order: [
           ['createdAt', 'DESC'] // Sort by creation date (newest first)
         ]
+      });
+      
+      // Add a virtual 'name' property to each semester
+      return semesters.map(semester => {
+        const semesterData = semester.toJSON();
+        
+        // Create a formatted name combining year and semester type
+        semesterData.name = `${semesterData.year} ${semesterData.semesterType}`;
+        
+        return semesterData;
       });
     } catch (error) {
       console.error("Error finding semesters:", error);
@@ -21,17 +30,24 @@ class SemesterFetchingService {
   }
 
   /**
-   * Get active semester - using a different approach
-   * This will need to be adjusted based on how you determine the "active" semester
-   * For now, we'll assume the most recently created semester is the active one
+   * Get active semester
    * @returns {Promise<Object>} The active semester
    */
   async getActiveSemester() {
     try {
-      // Find the most recent semester instead of using isActive field
-      return await Semester.findOne({
+      // Find the most recent semester
+      const semester = await Semester.findOne({
         order: [['createdAt', 'DESC']]
       });
+      
+      if (semester) {
+        const semesterData = semester.toJSON();
+        // Add a virtual name property
+        semesterData.name = `${semesterData.year} ${semesterData.semesterType}`;
+        return semesterData;
+      }
+      
+      return null;
     } catch (error) {
       console.error("Error finding active semester:", error);
       throw error;

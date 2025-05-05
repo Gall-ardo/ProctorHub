@@ -2,20 +2,22 @@
 const express = require('express');
 const router = express.Router();
 
-// Import all admin routes
+// Import route modules
 const userRoutes = require('./userRoutes');
-const classroomRoutes = require('./classroomRoutes');
 const instructorRoutes = require('./instructorRoutes');
-const offeringRoutes = require('./offeringRoutes');
 const courseRoutes = require('./courseRoutes');
-const fetchingRoutes = require('./fetchingRoutes'); // Add the new fetching routes
+const classroomRoutes = require('./classroomRoutes');
+const offeringRoutes = require('./offeringRoutes');
+const fetchingRoutes = require('./fetchingRoutes');
+const studentRoutes = require('./studentRoutes');
 
-// Register routes
+// Apply routes
 router.use('/users', userRoutes);
-router.use('/classrooms', classroomRoutes);
 router.use('/instructors', instructorRoutes);
-router.use('/offerings', offeringRoutes);
 router.use('/courses', courseRoutes);
-router.use('/', fetchingRoutes); 
+router.use('/classrooms', classroomRoutes);
+router.use('/offerings', offeringRoutes);
+router.use('/fetch', fetchingRoutes);
+router.use('/students', studentRoutes);
 
 module.exports = router;
