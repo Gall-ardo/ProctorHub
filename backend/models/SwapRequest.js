@@ -29,7 +29,7 @@ const SwapRequest = sequelize.define("SwapRequest", {
   },
   targetTaId: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   examId: {
     type: DataTypes.STRING,

@@ -410,15 +410,45 @@ const getForumSwapRequests = async () => {
       date: examDate.toLocaleDateString(),
       time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
       classroom: request.exam.examRooms.map(room => room.name).join(', '),
-      submitter: request.requester.user.name,
+      submitter: request.requester.taUser.name,
       submitTime: request.requestDate.toLocaleDateString(),
       requesterId: request.requesterId
     };
   });
 };
 
+/**
+ * Create a forum swap request (no specific target TA)
+ * @param {Object} requestData
+ * @returns {Promise<Object>}
+ */
+const createForumSwapRequest = async (requestData) => {
+  const { requesterId, examId, startDate, endDate } = requestData;
+
+  const exam = await Exam.findByPk(examId);
+  if (!exam) {
+    throw new Error('Exam not found');
+  }
+
+  const forumRequest = await SwapRequest.create({
+    id: uuidv4(),
+    requesterId,
+    examId,
+    startDate,
+    endDate,
+    requestDate: new Date(),
+    isApproved: false,
+    isForumPost: true,
+    status: 'PENDING'
+  });
+
+  return forumRequest;
+};
+
+
 module.exports = {
   createPersonalSwapRequest,
+  createForumSwapRequest,
   getSwapRequestsForTa,
   respondToSwapRequest,
   getUserExamsForSwap,

@@ -38,6 +38,7 @@ router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);         
 router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /api/ta/swaps/respond
 router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /api/ta/swaps/:swapRequestId
 router.get('/swaps/forum-items', swapRequestController.getForumSwapRequests);            // GET /api/ta/swaps/forum-items
+router.post('/swaps/forum', swapRequestController.createForumSwapRequest); // POST /api/ta/swaps/forum
 
 router.get('/proctorings', taProctoringController.getAllProctorings);
 router.get('/proctorings/pending', taProctoringController.getPendingProctorings);

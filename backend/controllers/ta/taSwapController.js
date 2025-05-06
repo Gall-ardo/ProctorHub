@@ -188,11 +188,49 @@ const getForumSwapRequests = async (req, res, next) => {
   }
 };
 
+/**
+ * Create a forum swap request
+ */
+const createForumSwapRequest = async (req, res, next) => {
+  try {
+    const { examId, startDate, endDate } = req.body;
+
+    if (!req.user || req.user.userType !== 'ta') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teaching assistants can submit forum swap requests',
+      });
+    }
+
+    const requesterId = req.user.teachingAssistant?.id || req.user.id;
+
+    const requestData = {
+      requesterId,
+      examId,
+      startDate,
+      endDate
+    };
+
+    const forumRequest = await swapRequestService.createForumSwapRequest(requestData);
+
+    res.status(201).json({
+      success: true,
+      message: 'Forum swap request created successfully',
+      data: forumRequest
+    });
+  } catch (error) {
+    console.error('Error in createForumSwapRequest:', error);
+    next(error);
+  }
+};
+
+
 module.exports = {
   createPersonalSwapRequest,
+  createForumSwapRequest,
   getMySwapRequests,
   respondToSwapRequest,
   getMyExamsForSwap,
   cancelSwapRequest,
-  getForumSwapRequests
+  getForumSwapRequests,
 };

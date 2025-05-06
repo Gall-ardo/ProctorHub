@@ -12,7 +12,7 @@ const TASubmitForumRequest = ({ isOpen, onClose, userExams = [] }) => {
   };
 
   // Handle form submission
-  const handleSubmit = () => {
+  /*const handleSubmit = () => {
     if (selectedExam) {
       console.log('Submitting swap request to forum:', {
         dateRange: { startDate, endDate },
@@ -25,7 +25,46 @@ const TASubmitForumRequest = ({ isOpen, onClose, userExams = [] }) => {
       resetForm();
       onClose();
     }
+  };*/
+
+  const handleSubmit = async () => {
+    if (!selectedExam || !startDate || !endDate) return;
+  
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Authentication required. Please log in again.');
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:5001/api/ta/swaps/forum', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          examId: selectedExam,
+          startDate,
+          endDate
+        })
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok && result.success) {
+        alert('Forum swap request submitted successfully!');
+        resetForm();
+        onClose();
+      } else {
+        alert(result.message || 'Failed to submit forum swap request.');
+      }
+    } catch (err) {
+      console.error('Error submitting forum swap request:', err);
+      alert('An error occurred while submitting the request.');
+    }
   };
+  
 
   // Reset form fields
   const resetForm = () => {
