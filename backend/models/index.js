@@ -83,8 +83,12 @@ Instructor.hasMany(Workload, { foreignKey: "instructorId" });
 Workload.belongsTo(Instructor, { foreignKey: "instructorId" });
 
 // Workload ↔ Course
-Course.hasMany(Workload, { foreignKey: "courseCode" });
-Workload.belongsTo(Course, { foreignKey: "courseCode" });
+Course.hasMany(Workload, { foreignKey: "courseId" });
+Workload.belongsTo(Course, { foreignKey: "courseId" });
+
+Workload.belongsTo(User, { as: 'instructor', foreignKey: 'instructorId' });
+User.hasMany(Workload, { foreignKey: 'instructorId' });
+
 
 // TA ↔ LeaveRequest
 TeachingAssistant.hasMany(LeaveRequest, { foreignKey: "taId" });

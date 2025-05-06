@@ -40,16 +40,20 @@ const TAWorkloadPage = () => {
             const date = new Date(workload.date);
             const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
             const hours = Math.round(workload.duration);
-
+          
+            const instructor = workload.instructor?.email || 'Unknown';
+          
             return {
               id: workload.id,
-              course: workload.courseCode,
+              course: workload.Course?.courseCode || 'Unknown',
               type: workload.taskType,
               date: formattedDate,
               hours: hours,
-              instructor: workload.instructorName || 'Unknown',
+              instructor: instructor
             };
           };
+          
+          
 
           setWaitingWorkloads(pendingResponse.data.data.map(formatWorkload));
           setApprovedWorkloads(approvedResponse.data.data.map(formatWorkload));

@@ -6,10 +6,6 @@ const Workload = sequelize.define("Workload", {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  courseCode: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   taskType: {
     type: DataTypes.STRING,
     allowNull: false,
