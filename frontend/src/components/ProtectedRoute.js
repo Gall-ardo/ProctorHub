@@ -10,8 +10,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const checkAuth = () => {
       try {
         // Get token and role from localStorage
-        const token = localStorage.getItem('token');
-        const storedRole = localStorage.getItem('role');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const storedRole = localStorage.getItem('role') || sessionStorage.getItem('role');
         
         console.log('Checking auth - token:', token ? 'exists' : 'missing');
         console.log('Checking auth - stored role:', storedRole);

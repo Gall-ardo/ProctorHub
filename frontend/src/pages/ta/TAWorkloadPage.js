@@ -18,7 +18,7 @@ const TAWorkloadPage = () => {
     const fetchWorkloads = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
         console.log('Fetching workloads with token:', token ? 'exists' : 'missing');
@@ -81,7 +81,7 @@ const TAWorkloadPage = () => {
 
   const handleSubmitWorkload = async (formData) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
 
       console.log('Submitting workload with token:', token ? 'exists' : 'missing');

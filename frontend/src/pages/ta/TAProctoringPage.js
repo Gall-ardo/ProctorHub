@@ -49,7 +49,7 @@ const TAProctoringPage = () => {
     const fetchProctoringData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
         const pendingResponse = await axios.get(`${API_URL}/ta/proctorings/pending`, {
@@ -119,7 +119,7 @@ const TAProctoringPage = () => {
 
   const toggleMultidepartment = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const updatedValue = !isMultidepartment;
 
       const response = await axios.put(`${API_URL}/ta/profile/multidepartment`, {
@@ -149,7 +149,7 @@ const TAProctoringPage = () => {
     const { action, id } = currentAction;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) throw new Error('No token');
 
       const response = await axios.put(`${API_URL}/ta/proctorings/${id}/${action}`, {}, {

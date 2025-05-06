@@ -39,7 +39,7 @@ const TALeaveOfAbsence = () => {
     setLoading(true);
     try {
       console.log('Fetching leave requests...');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const response = await axios.get(`${API_URL}/ta/leave-requests`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,7 +97,7 @@ const TALeaveOfAbsence = () => {
     e.preventDefault();
   
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   
       const form = new FormData();
       form.append('type', formData.type);
@@ -156,7 +156,7 @@ const TALeaveOfAbsence = () => {
   // Confirm deletion
   const confirmDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const response = await axios.delete(`${API_URL}/ta/leave-requests/${deleteId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
