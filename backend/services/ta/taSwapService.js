@@ -1,6 +1,8 @@
-// services/swapRequestService.js
+// services/ta/taSwapService.js
 const { v4: uuidv4 } = require('uuid');
-const { SwapRequest, TeachingAssistant, Exam, User } = require('../../models');
+const { SwapRequest, TeachingAssistant, Exam, User, Classroom } = require('../../models');
+const Proctoring = require('../../models/Proctoring');
+const { Op } = require('sequelize');
 //const emailService = require('./../emailService');
 //const notificationService = require('./../notificationService');
 
@@ -25,13 +27,17 @@ const createPersonalSwapRequest = async (requestData) => {
     include: [
       {
         model: TeachingAssistant,
-        as: 'teachingAssistant'
+        as: 'taUser',
       }
     ]
   });
 
   if (!targetTa) {
     throw new Error('Target TA not found');
+  }
+
+  if (!targetTa.taUser) {
+    throw new Error('Target user is not a teaching assistant');
   }
 
   // Get exam details
@@ -44,7 +50,7 @@ const createPersonalSwapRequest = async (requestData) => {
   const swapRequest = await SwapRequest.create({
     id: uuidv4(),
     requesterId: requesterId,
-    targetTaId: targetTa.teachingAssistant.id,
+    targetTaId: targetTa.taUser.id,
     examId: examId,
     startDate: startDate,
     endDate: endDate,
@@ -100,33 +106,45 @@ const getSwapRequestsForTa = async (taId) => {
       {
         model: Exam,
         as: 'exam',
-        attributes: ['id', 'courseCode', 'date', 'duration', 'classrooms']
+        attributes: ['id', 'courseName', 'date', 'duration'],
+        include: [
+          {
+            model: Classroom,
+            as: 'examRooms', // must match alias in association
+            attributes: ['name'] // or ['id', 'name'] depending on your model
+          }
+        ]
       },
       {
         model: TeachingAssistant,
         as: 'requester',
         include: {
           model: User,
-          as: 'user',
-          attributes: ['fullName', 'email']
+          as: 'taUser',
+          attributes: ['name', 'email']
         }
       }
     ],
     order: [['requestDate', 'DESC']]
   });
 
+  console.log('Found swap requests:', swapRequests);
+
+
   return swapRequests.map(request => {
     const examDate = new Date(request.exam.date);
     return {
       id: request.id,
-      course: request.exam.courseCode,
+      course: request.exam.courseName,
       date: examDate.toLocaleDateString(),
       time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
-      classrooms: request.exam.classrooms,
-      requestedBy: request.requester.user.fullName,
+      classroom: request.exam.examRooms.map(room => room.name).join(', '),
+      //requestedBy: request.requester.user.name,
       submitTime: request.requestDate.toLocaleDateString(),
       requesterId: request.requesterId,
-      requesterEmail: request.requester.user.email
+      //requesterEmail: request.requester.user.email
+      requestedBy: request.requester.taUser?.name ?? "Unknown",
+      requesterEmail: request.requester.taUser?.email ?? "Unknown"
     };
   });
 };
@@ -150,8 +168,8 @@ const respondToSwapRequest = async (responseData) => {
         as: 'requester',
         include: {
           model: User,
-          as: 'user',
-          attributes: ['email']
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
         }
       },
       {
@@ -184,7 +202,7 @@ const respondToSwapRequest = async (responseData) => {
   // Perform the actual swap in the database
   // This would involve updating the exam assignments
   // Find the original exam's TA assignment
-  const originalExamAssignment = await ExamAssignment.findOne({
+  const originalExamAssignment = await Proctoring.findOne({
     where: {
       examId: swapRequest.examId,
       taId: swapRequest.requesterId
@@ -192,7 +210,7 @@ const respondToSwapRequest = async (responseData) => {
   });
 
   // Find the swap exam's TA assignment
-  const swapExamAssignment = await ExamAssignment.findOne({
+  const swapExamAssignment = await Proctoring.findOne({
     where: {
       examId: examIdToSwap,
       taId: respondentId
@@ -249,7 +267,7 @@ const respondToSwapRequest = async (responseData) => {
  * @returns {Promise<Array>} - list of exams
  */
 const getUserExamsForSwap = async (taId) => {
-  const examAssignments = await ExamAssignment.findAll({
+  const examAssignments = await Proctoring.findAll({
     where: {
       taId: taId
     },
@@ -264,7 +282,14 @@ const getUserExamsForSwap = async (taId) => {
           },
           isOutdated: false
         },
-        attributes: ['id', 'courseCode', 'date', 'duration', 'classrooms']
+        attributes: ['id', 'courseName', 'date', 'duration'],
+        include: [
+          {
+            model: Classroom,
+            as: 'examRooms', // must match alias in association
+            attributes: ['name'] // or ['id', 'name'] depending on your model
+          }
+        ]
       }
     ]
   });
@@ -273,7 +298,7 @@ const getUserExamsForSwap = async (taId) => {
     const examDate = new Date(assignment.exam.date);
     return {
       id: assignment.exam.id,
-      course: assignment.exam.courseCode,
+      course: assignment.exam.courseName,
       date: examDate.toLocaleDateString(),
       time: `${examDate.getHours().toString().padStart(2, '0')}.${examDate.getMinutes().toString().padStart(2, '0')}-${new Date(examDate.getTime() + assignment.exam.duration * 60000).getHours().toString().padStart(2, '0')}.${new Date(examDate.getTime() + assignment.exam.duration * 60000).getMinutes().toString().padStart(2, '0')}`,
       classrooms: assignment.exam.classrooms
@@ -341,10 +366,62 @@ const cancelSwapRequest = async (swapRequestId, userId) => {
   };
 };
 
+/**
+ * Get forum swap requests
+ * @returns {Promise<Array>} - list of forum swap requests
+ */
+const getForumSwapRequests = async () => {
+  const forumRequests = await SwapRequest.findAll({
+    where: {
+      isForumPost: true,
+      status: 'PENDING'
+    },
+    include: [
+      {
+        model: Exam,
+        as: 'exam',
+        attributes: ['id', 'courseName', 'date', 'duration'],
+        include: [
+          {
+            model: Classroom,
+            as: 'examRooms', // must match alias in association
+            attributes: ['name'] // or ['id', 'name'] depending on your model
+          }
+        ]
+      },
+      {
+        model: TeachingAssistant,
+        as: 'requester',
+        include: {
+          model: User,
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
+        }
+      }
+    ],
+    order: [['requestDate', 'DESC']]
+  });
+
+  return forumRequests.map(request => {
+    const examDate = new Date(request.exam.date);
+    return {
+      id: request.id,
+      course: request.exam.courseName,
+      date: examDate.toLocaleDateString(),
+      time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
+      classroom: request.exam.examRooms.map(room => room.name).join(', '),
+      submitter: request.requester.user.name,
+      submitTime: request.requestDate.toLocaleDateString(),
+      requesterId: request.requesterId
+    };
+  });
+};
+
 module.exports = {
   createPersonalSwapRequest,
   getSwapRequestsForTa,
   respondToSwapRequest,
   getUserExamsForSwap,
-  cancelSwapRequest
+  cancelSwapRequest,
+  getForumSwapRequests
 };

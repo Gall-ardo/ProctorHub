@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './TASwapExamDetailsPopup.css';
 
 const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }) => {
@@ -7,6 +8,8 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [myExams, setMyExams] = useState([]);
+
+  const API_URL = 'http://localhost:5001/api';
 
   // Reset selected exam when modal opens with new exam details
   useEffect(() => {
@@ -36,18 +39,16 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
         return;
       }
 
-      const response = await fetch('/api/ta/swap/my-exams', {
+      const response = await axios.get(`${API_URL}/ta/swaps/my-exams`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setMyExams(data.data);
+      if (response.data.success) {
+        setMyExams(response.data.data);
       } else {
-        setError(data.message || 'Failed to fetch your exams');
+        setError(response.data.message || 'Failed to fetch your exams');
       }
     } catch (err) {
       setError('Error fetching your exams. Please try again.');
@@ -79,31 +80,27 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
         return;
       }
       
-      const response = await fetch('/api/ta/swap/respond', {
-        method: 'POST',
+      const response = await axios.post(`${API_URL}/ta/swaps/respond`, {
+        swapRequestId: examDetails.id,
+        examIdToSwap: selectedExam
+      }, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          swapRequestId: examDetails.id,
-          examIdToSwap: selectedExam
-        })
+        }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
+      if (response.data.success) {
         setSuccess('Swap completed successfully!');
         // Close the modal after a brief delay to show success message
         setTimeout(() => {
           onClose();
         }, 1500);
       } else {
-        setError(data.message || 'Failed to complete swap');
+        setError(response.data.message || 'Failed to complete swap');
       }
     } catch (err) {
-      setError('Error completing swap. Please try again.');
+      setError(err.response?.data?.message || 'Error completing swap. Please try again.');
       console.error('Error completing swap:', err);
     } finally {
       setLoading(false);

@@ -31,11 +31,13 @@ router.get('/leave-requests/approved', taLeaveController.getApprovedLeaveRequest
 router.post('/leave-requests', upload.single('file'), taLeaveController.createLeaveRequest); 
 router.delete('/leave-requests/:leaveRequestId', taLeaveController.deleteLeaveRequest);
 
-router.post('/swaps', swapRequestController.createPersonalSwapRequest);                   // POST /swaps
-router.get('/swaps/mine', swapRequestController.getMySwapRequests);                      // GET /swaps/mine
-router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);                  // GET /swaps/my-exams
-router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /swaps/respond
-router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /swaps/:swapRequestId
+// Swap routes
+router.post('/swaps', swapRequestController.createPersonalSwapRequest);                   // POST /api/ta/swaps
+router.get('/swaps/mine', swapRequestController.getMySwapRequests);                       // GET /api/ta/swaps/mine
+router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);                  // GET /api/ta/swaps/my-exams
+router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /api/ta/swaps/respond
+router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /api/ta/swaps/:swapRequestId
+router.get('/swaps/forum-items', swapRequestController.getForumSwapRequests);            // GET /api/ta/swaps/forum-items
 
 router.get('/proctorings', taProctoringController.getAllProctorings);
 router.get('/proctorings/pending', taProctoringController.getPendingProctorings);
@@ -44,6 +46,5 @@ router.put('/proctorings/:proctoringId/accept', taProctoringController.acceptPro
 router.put('/proctorings/:proctoringId/reject', taProctoringController.rejectProctoring);
 router.get('/proctorings/stats', taProctoringController.getProctoringStats);
 router.put('/profile/multidepartment', taProctoringController.updateMultidepartmentPreference);
-
 
 module.exports = router;
