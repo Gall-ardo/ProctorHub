@@ -1,5 +1,6 @@
 // services/Admin/courseService.js
 const Course = require("../../models/Course");
+const Instructor = require("../../models/Instructor");
 const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
 const sequelize = require("../../config/db");
@@ -149,6 +150,7 @@ class CourseService {
       if (!course) {
         throw new Error("Course not found");
       }
+
       
       // Check if courseCode is being updated and if it's already in use by another course
       if (courseData.courseCode && courseData.courseCode !== course.courseCode) {
@@ -169,10 +171,23 @@ class CourseService {
       if (!courseData.courseName && courseData.department && courseData.courseCode) {
         courseData.courseName = `${courseData.department}${courseData.courseCode}`;
       }
-      
       // Update the course
       await course.update(courseData, { transaction: t });
-      
+      const instructorIds = courseData.instructorIds;
+
+      // If instructors are provided, associate them with the course
+      if (instructorIds.length > 0) {
+        // Find all instructors that match the provided IDs
+        const instructors = await Instructor.findAll({
+          where: { id: instructorIds },
+          transaction: t
+        });
+
+        // Based on your table structure and model associations
+        if (instructors.length > 0) {
+          await course.addInstructors(instructors, { transaction: t });
+        }
+      }
       await t.commit();
       return course;
     } catch (error) {

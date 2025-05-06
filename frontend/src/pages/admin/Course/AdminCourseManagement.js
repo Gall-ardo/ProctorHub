@@ -237,12 +237,13 @@
 
     // Update course associations with instructors and TAs
     const updateCourseAssociations = async (courseId, instructors, tas) => {
+
       try {
-        await axios.put(`${API_URL}/api/admin/courses/${courseId}/associations`, {
+        console.log(instructors.map(instructor => instructor.id));
+        await axios.put(`${API_URL}/api/admin/courses/${courseId}`, {
           instructorIds: instructors.map(instructor => instructor.id),
           taIds: tas.map(ta => ta.id)
         });
-        
         return true;
       } catch (error) {
         console.error('Error updating course associations:', error);
@@ -252,6 +253,7 @@
 
     // Add a new course
     const addCourse = async () => {
+
       if (!validateForm()) {
         setIsLoading(false);
         return;
@@ -274,11 +276,10 @@
         if (response.data.success) {
           // Get the new course ID
           const courseId = response.data.data.id;
-          
           // Update course associations
           await updateCourseAssociations(
-            courseId, 
-            selectedInstructors, 
+            courseId,
+            selectedInstructors,
             selectedTAs
           );
           

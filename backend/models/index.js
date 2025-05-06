@@ -113,7 +113,7 @@ Log.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Log, { foreignKey: "userId" });
 
 // Course ↔ Instructor
-Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "courses" });
+Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "instructors" });
 Instructor.belongsToMany(Course, { through: "InstructorCourses", as: "courses" });
 
 // Proctoring relationships
