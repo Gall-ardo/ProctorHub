@@ -8,7 +8,7 @@ const instructorRoutes = require('./instructorRoutes');
 // Use admin routes
 router.use('/admin', adminRoutes);
 router.use('/ta', taRoutes);
-// Add more route categories here as needed
 router.use('/instructor', instructorRoutes);
+// Add more route categories here as needed
 
 module.exports = router;

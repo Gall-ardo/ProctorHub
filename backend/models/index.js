@@ -86,8 +86,12 @@ Workload.belongsTo(Instructor, { foreignKey: "instructorId" });
 Course.hasMany(Workload, { foreignKey: "courseId" });
 Workload.belongsTo(Course, { foreignKey: "courseId" });
 
+
 Workload.belongsTo(User, { as: 'instructor', foreignKey: 'instructorId' });
 User.hasMany(Workload, { foreignKey: 'instructorId' });
+
+Workload.belongsTo(User, { as: 'ta', foreignKey: 'taId' });
+User.hasMany(Workload, { foreignKey: 'taId' });
 
 
 // TA ↔ LeaveRequest

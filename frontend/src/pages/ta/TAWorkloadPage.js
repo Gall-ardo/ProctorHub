@@ -106,7 +106,7 @@ const TAWorkloadPage = () => {
 
         const newWorkload = {
           id: workloadData.id,
-          course: formData.courseCode,
+          course: formData.courseId,
           type: formData.workloadType,
           date: formattedDate,
           hours: parseInt(formData.hours),
