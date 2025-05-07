@@ -33,6 +33,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             console.log('Token expired, not authorized');
             localStorage.removeItem('token');
             localStorage.removeItem('role');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('role');
             setIsAuthorized(false);
             setIsLoading(false);
             return;
@@ -44,6 +46,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           // Check if user has allowed role
           if (allowedRoles && !allowedRoles.includes(userRole)) {
             console.log(`Role ${userRole} not in allowed roles:`, allowedRoles);
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('role');
             setIsAuthorized(false);
             setIsLoading(false);
             return;
