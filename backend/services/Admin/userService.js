@@ -3,7 +3,6 @@ const User = require("../../models/User");
 const Admin = require("../../models/Admin");
 const Instructor = require("../../models/Instructor");
 const DepartmentChair = require("../../models/DepartmentChair");
-const Secretary = require("../../models/Secretary"); // Added Secretary model
 const DeansOffice = require("../../models/DeansOffice");
 const TeachingAssistant = require("../../models/TeachingAssistant");
 const Secretary = require("../../models/Secretary");
