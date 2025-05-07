@@ -23,6 +23,7 @@ const Log = require("./Log");
 const Report = require("./Report");
 const PasswordResetToken = require("./passwordResetToken");
 const Proctoring = require("./Proctoring");
+const TARequest = require('./TARequest');
 
 
 // Inheritance (1-to-1 via shared ID)
@@ -109,6 +110,18 @@ TeachingAssistant.hasMany(SwapRequest, { as: "requestsReceived", foreignKey: "re
 SwapRequest.belongsTo(Exam, { foreignKey: "examId" });
 Exam.hasMany(SwapRequest, { foreignKey: "examId" });
 
+// TARequest ↔ Instructor
+TARequest.belongsTo(Instructor, {foreignKey: "instructorId"});
+Instructor.hasMany(TARequest, {foreignKey: "instructorId"});
+
+// TARequest ↔ Course
+TARequest.belongsTo(Course, {foreignKey: "courseId"});
+Course.hasMany(TARequest, {foreignKey: "courseId"});
+
+// TARequest ↔ TA
+TARequest.belongsTo(TeachingAssistant, {foreignKey: "taId"});
+TeachingAssistant.hasMany(TARequest, {foreignKey: "taId"});
+
 // Report ↔ TimeSlot
 Report.belongsTo(TimeSlot, { foreignKey: "timeSlotId" });
 TimeSlot.hasMany(Report, { foreignKey: "timeSlotId" });
@@ -122,7 +135,7 @@ Log.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Log, { foreignKey: "userId" });
 
 // Course ↔ Instructor
-Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "courses" });
+Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "instructors" });
 Instructor.belongsToMany(Course, { through: "InstructorCourses", as: "courses" });
 
 Offering.belongsToMany(Instructor, { through: "InstructorOfferings", as: "offerings" });
@@ -134,6 +147,10 @@ Exam.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'examId' });
 
 Proctoring.belongsTo(TeachingAssistant, { as: 'teachingAssistant', foreignKey: 'taId' });
 TeachingAssistant.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'taId' });
+
+// User ↔ TeachingAssistant association
+User.hasOne(TeachingAssistant, { foreignKey: 'userId' });
+TeachingAssistant.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = {
     sequelize,
@@ -148,4 +165,5 @@ module.exports = {
     DeansOffice,
     Workload,
     Offering,
+    TARequest
   };
