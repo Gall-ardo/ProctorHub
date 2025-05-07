@@ -7,6 +7,7 @@ const TeachingAssistant = require("./TeachingAssistant");
 const Instructor = require("./Instructor");
 const DepartmentChair = require("./DepartmentChair");
 const DeansOffice = require("./DeansOffice");
+const Secretary = require("./Secretary");
 const Student = require("./Student");
 const Course = require("./Course");
 const Offering = require("./Offering");
@@ -31,6 +32,7 @@ TeachingAssistant.belongsTo(User, { foreignKey: "id", as: "taUser" });
 Instructor.belongsTo(User, { foreignKey: "id", as: "instructorUser" });
 DepartmentChair.belongsTo(User, { foreignKey: "id", as: "chairUser" });
 DeansOffice.belongsTo(User, { foreignKey: "id", as: "deanUser" });
+Secretary.belongsTo(User, { foreignKey: "id", as: "secretaryUser" });
 
 // Notifications
 Notification.belongsTo(User, { as: "recipient", foreignKey: "recipientId" });

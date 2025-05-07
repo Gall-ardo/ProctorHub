@@ -20,6 +20,4 @@ const TeachingAssistant = sequelize.define("TeachingAssistant", {
   },
 });
 
-// Remove any association here - it's defined in index.js
-
 module.exports = TeachingAssistant;

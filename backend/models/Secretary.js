@@ -1,13 +1,12 @@
-// models/DeansOffice.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const User = require("./User");
 
-const DeansOffice = sequelize.define("DeansOffice", {
+const Secretary = sequelize.define("Secretary", {
   id: {
     type: DataTypes.STRING,
     primaryKey: true,
   },
+  department: DataTypes.STRING,
 });
 
-module.exports = DeansOffice;
+module.exports = Secretary;
