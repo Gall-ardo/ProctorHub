@@ -163,6 +163,7 @@ module.exports = {
     TeachingAssistant,
     DepartmentChair,
     DeansOffice,
+    LeaveRequest,
     Workload,
     Offering,
     TARequest
