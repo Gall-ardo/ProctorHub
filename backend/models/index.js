@@ -171,4 +171,5 @@ module.exports = {
     Offering,
     TARequest,
     Proctoring,
+    Notification,
   };

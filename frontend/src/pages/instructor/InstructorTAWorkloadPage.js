@@ -1,3 +1,4 @@
+// src/components/InstructorTAWorkloadPage.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import InstructorNavBar from './InstructorNavBar';
@@ -5,19 +6,18 @@ import './InstructorTAWorkloadPage.css';
 
 export default function InstructorTAWorkloadPage() {
   const [pending, setPending] = useState([]);
-  const [totals, setTotals]   = useState([]);
+  const [totals,  setTotals]  = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error,   setError]   = useState(null);
 
   // Modal state
-  const [isModalOpen, setIsModalOpen]       = useState(false);
-  const [actionType, setActionType]         = useState('');
-  const [selectedId, setSelectedId]         = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [isModalOpen,       setIsModalOpen]       = useState(false);
+  const [actionType,        setActionType]        = useState('');
+  const [selectedId,        setSelectedId]        = useState(null);
+  const [rejectionReason,   setRejectionReason]   = useState('');
 
   const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
 
-  // Helper to retrieve JWT and set header
   function getAuthHeader() {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) throw new Error('No authentication token found');
@@ -28,16 +28,14 @@ export default function InstructorTAWorkloadPage() {
     try {
       setLoading(true);
       const headers = getAuthHeader();
-
-      // Fetch pending workloads and totals in parallel
       const [pendingResp, totalsResp] = await Promise.all([
         axios.get(`${API_URL}/instructor/workloads/pending`, { headers }),
         axios.get(`${API_URL}/instructor/workloads/totals`,  { headers })
       ]);
 
       console.log('Pending workloads:', pendingResp.data.data);
-      console.log('Workload totals:', totalsResp.data.data);
-      
+      console.log('Workload totals:',  totalsResp.data.data);
+
       setPending(pendingResp.data.data);
       setTotals(totalsResp.data.data);
     } catch (err) {
@@ -71,11 +69,7 @@ export default function InstructorTAWorkloadPage() {
       const headers = getAuthHeader();
 
       if (actionType === 'approve') {
-        await axios.post(
-          `${API_URL}/instructor/workloads/${selectedId}/approve`,
-          {},
-          { headers }
-        );
+        await axios.post(`${API_URL}/instructor/workloads/${selectedId}/approve`, {}, { headers });
       } else {
         if (!rejectionReason.trim()) {
           alert('Please provide a rejection reason.');
@@ -88,7 +82,6 @@ export default function InstructorTAWorkloadPage() {
         );
       }
 
-      // Refresh data after action
       await fetchWorkloadData();
     } catch (err) {
       console.error('Action failed:', err);
@@ -99,8 +92,12 @@ export default function InstructorTAWorkloadPage() {
     }
   };
 
-  if (loading && !pending.length && !totals.length) return <div className="loading">Loading workloads…</div>;
-  if (error)   return <div className="error">{error}</div>;
+  if (loading && !pending.length && !totals.length) {
+    return <div className="loading">Loading workloads…</div>;
+  }
+  if (error) {
+    return <div className="error">{error}</div>;
+  }
 
   return (
     <div className="ta-workload-page">
@@ -113,18 +110,32 @@ export default function InstructorTAWorkloadPage() {
             <p>No pending requests.</p>
           ) : (
             <div className="cards-container">
-              {pending.map(w => (
-                <div className="card" key={w.id}>
-                  <h3>{w.teachingAssistant.ta.name} – {w.duration} Hours</h3>
-                  <p>{new Date(w.date).toLocaleDateString()}</p>
-                  <p>Task: {w.taskType || 'Not specified'}</p>
-                  {w.course && <p>Course: {w.course}</p>}
-                  <div className="action-buttons">
-                    <button onClick={() => openModal('approve', w.id)}>Verify</button>
-                    <button onClick={() => openModal('reject', w.id)}>Reject</button>
+              {pending.map(w => {
+                // safe fallback for whichever shape your backend actually sent:
+                const taName =
+                  w.teachingAssistant?.ta?.name ||
+                  w.teachingAssistant?.name ||
+                  'Unknown TA';
+
+                return (
+                  <div className="card" key={w.id}>
+                    <h3>
+                      {taName} – {w.duration} Hours
+                    </h3>
+                    <p>{new Date(w.date).toLocaleDateString()}</p>
+                    <p>Task: {w.taskType || 'Not specified'}</p>
+                    {w.course && <p>Course: {w.course}</p>}
+                    <div className="action-buttons">
+                      <button onClick={() => openModal('approve', w.id)}>
+                        Verify
+                      </button>
+                      <button onClick={() => openModal('reject', w.id)}>
+                        Reject
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -138,8 +149,13 @@ export default function InstructorTAWorkloadPage() {
               {totals.map(t => (
                 <div className="card" key={t.id}>
                   <h3>{t.taName}</h3>
-                  <p>Approved: {t.approvedHours} Hours, Waiting: {t.waitingHours} Hours</p>
-                  <p>Last Update: {new Date(t.lastUpdate).toLocaleDateString()}</p>
+                  <p>
+                    Approved: {t.approvedHours} Hours, Waiting: {t.waitingHours} Hours
+                  </p>
+                  <p>
+                    Last Update:{' '}
+                    {new Date(t.lastUpdate).toLocaleDateString()}
+                  </p>
                 </div>
               ))}
             </div>
@@ -150,7 +166,12 @@ export default function InstructorTAWorkloadPage() {
       {isModalOpen && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            <button className="close-modal-button" onClick={closeModal}>×</button>
+            <button
+              className="close-modal-button"
+              onClick={closeModal}
+            >
+              ×
+            </button>
             {actionType === 'approve' ? (
               <>
                 <h3>Confirm verification?</h3>
@@ -166,7 +187,10 @@ export default function InstructorTAWorkloadPage() {
                   placeholder="Reason for rejecting"
                 />
                 <button onClick={closeModal}>Cancel</button>
-                <button onClick={handleConfirm} disabled={!rejectionReason.trim()}>
+                <button
+                  onClick={handleConfirm}
+                  disabled={!rejectionReason.trim()}
+                >
                   Reject
                 </button>
               </>
