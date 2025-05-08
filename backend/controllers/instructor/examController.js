@@ -1,4 +1,4 @@
-const examService  = require('../../services/instructor/examService');
+const examService  = require('../../services/Instructor/examService');
 class ExamController {
     /**
      * Create a new exam

@@ -5,7 +5,8 @@ import axios from 'axios';
 import './InstructorExamsPage.css';
 import './InstructorMainPage.css';
 import InstructorNavBar from './InstructorNavBar';
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
+
 
 function InstructorExamsPage() {
   // State variables
@@ -26,6 +27,14 @@ function InstructorExamsPage() {
   const [availableTAs, setAvailableTAs] = useState([]);
   const [selectedTAs, setSelectedTAs] = useState([]);
   const [swapHistory, setSwapHistory] = useState([]);
+
+  // Helper to retrieve JWT and set header
+  function getAuthHeader() {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    console.log("tokennnnn", token);
+    if (!token) throw new Error('No authentication token found');
+    return { Authorization: `Bearer ${token}` };
+  }
 
   // Handle date input change - converts from yyyy-MM-dd to dd/MM/yyyy
   const handleDateChange = (e) => {
@@ -58,14 +67,9 @@ function InstructorExamsPage() {
   const fetchCourses = async () => {
     try {
       // Using a different endpoint that returns only the instructor's courses
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
+      const headers = getAuthHeader();
 
-      const response = await axios.get(`${API_URL}/api/instructor/my-courses`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(`${API_URL}/instructor/my-courses`, { headers });
       if (response.data.success) {
         setCourses(response.data.data);
       } else {
@@ -105,15 +109,9 @@ function InstructorExamsPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
-
+        const headers = getAuthHeader();
         // Fetch only exams for courses taught by the current instructor
-        const examsResponse = await axios.get(`${API_URL}/api/instructor/my-exams`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const examsResponse = await axios.get(`${API_URL}/instructor/my-exams`, { headers });
         if (examsResponse.data.success) {
           setExams(examsResponse.data.data);
         } else {
@@ -162,18 +160,11 @@ function InstructorExamsPage() {
   // Fetch available TAs
   const fetchAvailableTAs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
-
+      const headers = getAuthHeader();
       const courseSpecific = formData.prioritizeCourseAssistants || (selectedExam?.prioritizeCourseAssistants ?? false);
       const courseName = selectedExam?.courseName || formData.courseName;
 
-      const response = await axios.get(`${API_URL}/api/instructor/available-tas`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: { courseSpecific, courseName }
-      });
+      const response = await axios.get(`${API_URL}/instructor/available-tas`, { headers });
 
       if (response.data.success) {
         setAvailableTAs(response.data.data);
@@ -186,13 +177,8 @@ function InstructorExamsPage() {
   // Fetch swap history for an exam
   const fetchSwapHistory = async (examId) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
-      const response = await axios.get(`${API_URL}/api/instructor/exams/${examId}/swap-history`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const headers = getAuthHeader();
+      const response = await axios.get(`${API_URL}/instructor/exams/${examId}/swap-history`, { headers });
       if (response.data.success) {
         setSwapHistory(response.data.data);
       }
@@ -350,8 +336,8 @@ function InstructorExamsPage() {
   // Handle form submission
   const handleSubmitExam = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
+      const headers = getAuthHeader();
       // Calculate duration in minutes from start and end time
       const startParts = formData.startTime.split(':').map(part => parseInt(part, 10));
       const endParts = formData.endTime.split(':').map(part => parseInt(part, 10));
@@ -393,11 +379,7 @@ function InstructorExamsPage() {
 
       if (isAddExamOpen) {
         // Create new exam
-        const response = await axios.post(`${API_URL}/api/instructor/exams`, examData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.post(`${API_URL}/instructor/exams`, examData, { headers });
 
         if (response.data.success) {
           // Format the response data to include time values
@@ -416,19 +398,11 @@ function InstructorExamsPage() {
         }
       } else {
         // Update existing exam
-        const response = await axios.put(`${API_URL}/api/instructor/exams/${selectedExam.id}`, examData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.put(`${API_URL}/instructor/exams/${selectedExam.id}`, examData,{ headers });
 
         if (response.data.success) {
           // Refresh the exams list to get the updated data
-          const examsResponse = await axios.get(`${API_URL}/api/instructor/my-exams`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const examsResponse = await axios.get(`${API_URL}/instructor/my-exams`, { headers });
           if (examsResponse.data.success) {
             setExams(examsResponse.data.data);
           }
@@ -446,8 +420,7 @@ function InstructorExamsPage() {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
+      const headers = getAuthHeader();
       const oldProctorId = e.target.oldProctor.value;
       const newProctorId = e.target.newProctor.value;
 
@@ -455,22 +428,14 @@ function InstructorExamsPage() {
         return;
       }
 
-      const response = await axios.post(`${API_URL}/api/instructor/exams/${selectedExam.id}/swap-proctor`, {
+      const response = await axios.post(`${API_URL}/instructor/exams/${selectedExam.id}/swap-proctor`, {
         oldProctorId,
         newProctorId
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      }, { headers });
 
       if (response.data.success) {
         // Refresh exams to get updated proctor list
-        const examsResponse = await axios.get(`${API_URL}/api/instructor/exams`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const examsResponse = await axios.get(`${API_URL}/instructor/exams`, { headers });
         if (examsResponse.data.success) {
           setExams(examsResponse.data.data);
         }
@@ -490,14 +455,9 @@ function InstructorExamsPage() {
 
   const handleDeleteExam = async (examId) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
+      const headers = getAuthHeader();
 
-      const response = await axios.delete(`${API_URL}/api/instructor/exams/${examId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(`${API_URL}/instructor/exams/${examId}`, { headers });
 
       if (response.data.success) {
         setExams(exams.filter(exam => exam.id !== examId));
@@ -534,7 +494,7 @@ function InstructorExamsPage() {
                 <div className="cards-container">
                   {exams.map((exam) => (
                       <div className="exam-card" key={exam.id}>
-                        <button 
+                        <button
                           className="delete-cross-btn"
                           onClick={() => {
                             if (window.confirm('Are you sure you want to delete this exam?')) {

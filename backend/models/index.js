@@ -148,10 +148,6 @@ Exam.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'examId' });
 Proctoring.belongsTo(TeachingAssistant, { as: 'teachingAssistant', foreignKey: 'taId' });
 TeachingAssistant.hasMany(Proctoring, { as: 'proctorings', foreignKey: 'taId' });
 
-// User ↔ TeachingAssistant association
-User.hasOne(TeachingAssistant, { foreignKey: 'userId' });
-TeachingAssistant.belongsTo(User, { foreignKey: 'userId' });
-
 module.exports = {
     sequelize,
     User,
