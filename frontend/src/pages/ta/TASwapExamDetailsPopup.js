@@ -28,7 +28,7 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
   const fetchMyExams = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');
@@ -71,7 +71,7 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
       setError('');
       setSuccess('');
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');

@@ -8,6 +8,9 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
   const [scheduleEvents, setScheduleEvents] = useState([]);
   // State to track the current date internally if no external state is provided
   const [internalCurrentDate, setInternalCurrentDate] = useState(currentDate);
+  // Loading and error states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Use the prop or internal state based on whether onDateChange is provided
   const activeDate = onDateChange ? currentDate : internalCurrentDate;
@@ -51,134 +54,41 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     const dates = calculateWeekDates(activeDate);
     setWeekDates(dates);
     
-    // For demo, just use some hard-coded events with exam dates
-    const demoEvents = [
-        {
-            id: 1,
-            title: 'CS550',
-            examDate: '25/03/2025',
-            startTime: 10,
-            endTime: 12.5,
-            color: 'blue',
-            isExam: false
-          },
-          {
-            id: 2,
-            title: 'EEE586',
-            examDate: '28/03/2025',
-            startTime: 8.5,
-            endTime: 10.5,
-            color: 'blue',
-            isExam: false
-          },
-          {
-            id: 3,
-            title: 'EEE586',
-            examDate: '24/03/2025',
-            startTime: 13.5,
-            endTime: 15.5,
-            color: 'blue',
-            isExam: false // Just a course session
-          },
-          {
-            id: 4,
-            title: 'CS202 - Proctoring',
-            examDate: '29/03/2025',
-            startTime: 15,
-            endTime: 18,
-            color: 'red',
-            isExam: true
-          },
-          {
-            id: 5,
-            title: 'CS550',
-            examDate: '28/03/2025',
-            startTime: 15.5,
-            endTime: 17.5,
-            color: 'blue',
-            isExam: false // Course review session
-          },
-          // Additional exams
-          {
-            id: 6,
-            title: 'MATH301 - Proctoring',
-            examDate: '22/03/2025',
-            startTime: 9,
-            endTime: 11,
-            color: 'red',
-            isExam: true
-          },
-          {
-            id: 7,
-            title: 'PHYS210 - Proctoring',
-            examDate: '26/03/2025',
-            startTime: 14,
-            endTime: 16,
-            color: 'red',
-            isExam: true
-          },
-          {
-            id: 8,
-            title: 'HIST220 - Proctoring',
-            examDate: '27/03/2025',
-            startTime: 11,
-            endTime: 13,
-            color: 'red',
-            isExam: true
-          },
-          {
-            id: 9,
-            title: 'BIO110 - Proctoring',
-            examDate: '30/03/2025',
-            startTime: 10.5,
-            endTime: 12.5,
-            color: 'red',
-            isExam: true
-          },
-          {
-            id: 10,
-            title: 'STAT205 - Proctoring',
-            examDate: '31/03/2025',
-            startTime: 13,
-            endTime: 15,
-            color: 'red',
-            isExam: true
-          }
-        
-    ];
-    
-    // Use provided events if available, otherwise use demo events
-    const eventsToUse = events && events.length > 0 ? events : demoEvents;
-    
     // Process events to determine which ones fall in the current week
-    const processedEvents = eventsToUse.map(event => {
-      const eventDate = parseExamDate(event.examDate);
-      
-      // Check if the event date falls within the current week
-      const weekStart = new Date(dates[0]);
-      const weekEnd = new Date(dates[6]);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      // Calculate the day of the week (0-6, where 0 is Monday)
-      let day = eventDate.getDay() - 1;
-      if (day === -1) day = 6; // Convert Sunday (0) to 6
-      
-      // Only include events from the current week
-      if (eventDate >= weekStart && eventDate <= weekEnd) {
+    if (events && events.length > 0) {
+      const processedEvents = events.map(event => {
+        const eventDate = parseExamDate(event.examDate);
+        
+        // Check if the event date falls within the current week
+        const weekStart = new Date(dates[0]);
+        const weekEnd = new Date(dates[6]);
+        weekEnd.setHours(23, 59, 59, 999);
+        
+        // Calculate the day of the week (0-6, where 0 is Monday)
+        let day = eventDate.getDay() - 1;
+        if (day === -1) day = 6; // Convert Sunday (0) to 6
+        
+        // Only include events from the current week
+        if (eventDate >= weekStart && eventDate <= weekEnd) {
+          return {
+            ...event,
+            day,
+            isVisible: true
+          };
+        }
+        
         return {
           ...event,
-          day,
-          isVisible: true
+          isVisible: false
         };
-      }
+      });
       
-      return {
-        ...event,
-        isVisible: false
-      };
-    });
-    
-    setScheduleEvents(processedEvents);
+      setScheduleEvents(processedEvents);
+      setLoading(false);
+    } else {
+      setScheduleEvents([]);
+      setLoading(false);
+    }
   }, [activeDate, events]);
 
   // Helper function to format the date number
@@ -248,10 +158,24 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     }
   };
 
+  // Format the week range for display (e.g., "Mar 22 - Mar 28, 2025")
+  const formatWeekRange = () => {
+    if (weekDates.length === 0) return '';
+    
+    const startDate = weekDates[0];
+    const endDate = weekDates[6];
+    
+    const options = { month: 'short', day: 'numeric' };
+    return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}, ${endDate.getFullYear()}`;
+  };
+
   return (
     <div className="ta-main-page-weekly-schedule-weekly-schedule-container">
       <div className="ta-main-page-weekly-schedule-weekly-schedule-header">
         <h2>Weekly Schedule</h2>
+        <div className="ta-main-page-weekly-schedule-week-range">
+          {formatWeekRange()}
+        </div>
         <div className="ta-main-page-weekly-schedule-week-navigation">
           <button onClick={goToPreviousWeek}>Previous Week</button>
           <button onClick={goToCurrentWeek}>Current Week</button>
@@ -259,68 +183,83 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
         </div>
       </div>
       
-      <div className="ta-main-page-weekly-schedule-weekly-schedule">
-        <div className="ta-main-page-weekly-schedule-schedule-header">
-          <div className="ta-main-page-weekly-schedule-time-column-header"></div>
-          {weekDates.map((date, index) => (
-            <div 
-              key={index} 
-              className={`ta-main-page-weekly-schedule-day-column-header ${isToday(date) ? 'today' : ''}`}
-            >
-              <div className="ta-main-page-weekly-schedule-day-name">{dayNames[index]}</div>
-              <div className="ta-main-page-weekly-schedule-day-number">{formatDateNumber(date)}</div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="ta-main-page-weekly-schedule-schedule-body">
-          <div className="ta-main-page-weekly-schedule-time-column">
-            {timeSlots.map(time => (
-              <React.Fragment key={time}>
-                <div className="ta-main-page-weekly-schedule-time-slot">
-                  <span>{formatHour(time)}</span>
-                </div>
-                <div className="ta-main-page-weekly-schedule-time-slot half-hour"></div>
-              </React.Fragment>
-            ))}
-          </div>
-          
-          <div className="ta-main-page-weekly-schedule-day-columns-container">
-            {weekDates.map((date, dayIndex) => (
-              <div key={dayIndex} className="ta-main-page-weekly-schedule-day-column">
-                {/* Grid cells for the time slots */}
-                {timeSlots.map(time => (
-                  <React.Fragment key={`${dayIndex}-${time}`}>
-                    <div className="ta-main-page-weekly-schedule-schedule-cell"></div>
-                    <div className="ta-main-page-weekly-schedule-schedule-cell half-hour"></div>
-                  </React.Fragment>
-                ))}
-                
-                {/* Events as absolute positioned elements */}
-                {scheduleEvents
-                  .filter(event => event.isVisible && event.day === dayIndex)
-                  .map(event => (
-                    <div
-                      key={`event-${event.id}`}
-                      className={`ta-main-page-weekly-schedule-schedule-event ${event.color || 'blue'}`}
-                      style={{
-                        position: 'absolute',
-                        top: `${getEventTopPosition(event)}px`,
-                        height: `${getEventHeight(event)}px`,
-                        width: 'calc(100% - 4px)',
-                        margin: '0 2px'
-                      }}
-                      title={`Exam Date: ${event.examDate}`}
-                    >
-                      {event.title}
-                    </div>
-                  ))
-                }
+      {loading ? (
+        <div className="ta-main-page-weekly-schedule-loading">Loading schedule...</div>
+      ) : error ? (
+        <div className="ta-main-page-weekly-schedule-error">{error}</div>
+      ) : (
+        <div className="ta-main-page-weekly-schedule-weekly-schedule">
+          <div className="ta-main-page-weekly-schedule-schedule-header">
+            <div className="ta-main-page-weekly-schedule-time-column-header"></div>
+            {weekDates.map((date, index) => (
+              <div 
+                key={index} 
+                className={`ta-main-page-weekly-schedule-day-column-header ${isToday(date) ? 'today' : ''}`}
+              >
+                <div className="ta-main-page-weekly-schedule-day-name">{dayNames[index]}</div>
+                <div className="ta-main-page-weekly-schedule-day-number">{formatDateNumber(date)}</div>
               </div>
             ))}
           </div>
+          
+          <div className="ta-main-page-weekly-schedule-schedule-body">
+            <div className="ta-main-page-weekly-schedule-time-column">
+              {timeSlots.map(time => (
+                <React.Fragment key={time}>
+                  <div className="ta-main-page-weekly-schedule-time-slot">
+                    <span>{formatHour(time)}</span>
+                  </div>
+                  <div className="ta-main-page-weekly-schedule-time-slot half-hour"></div>
+                </React.Fragment>
+              ))}
+            </div>
+            
+            <div className="ta-main-page-weekly-schedule-day-columns-container">
+              {weekDates.map((date, dayIndex) => (
+                <div key={dayIndex} className="ta-main-page-weekly-schedule-day-column">
+                  {/* Grid cells for the time slots */}
+                  {timeSlots.map(time => (
+                    <React.Fragment key={`${dayIndex}-${time}`}>
+                      <div className="ta-main-page-weekly-schedule-schedule-cell"></div>
+                      <div className="ta-main-page-weekly-schedule-schedule-cell half-hour"></div>
+                    </React.Fragment>
+                  ))}
+                  
+                  {/* Events as absolute positioned elements */}
+                  {scheduleEvents
+                    .filter(event => event.isVisible && event.day === dayIndex)
+                    .map(event => (
+                      <div
+                        key={`event-${event.id}`}
+                        className={`ta-main-page-weekly-schedule-schedule-event ${event.color || 'blue'}`}
+                        style={{
+                          position: 'absolute',
+                          top: `${getEventTopPosition(event)}px`,
+                          height: `${getEventHeight(event)}px`,
+                          width: 'calc(100% - 4px)',
+                          margin: '0 2px'
+                        }}
+                        title={`${event.title}
+Date: ${event.examDate}
+Time: ${Math.floor(event.startTime)}:${(event.startTime % 1) * 60 || '00'} - ${Math.floor(event.endTime)}:${(event.endTime % 1) * 60 || '00'}
+${event.description ? `${event.description}` : ''}
+${event.rooms ? `Rooms: ${event.rooms}` : ''}`}
+                      >
+                        <div className="ta-main-page-weekly-schedule-event-title">{event.title}</div>
+                        {event.endTime - event.startTime >= 1 && event.rooms && (
+                          <div className="ta-main-page-weekly-schedule-event-details">
+                            <div className="ta-main-page-weekly-schedule-event-location">{event.rooms}</div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  }
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

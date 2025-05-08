@@ -10,8 +10,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const checkAuth = () => {
       try {
         // Get token and role from localStorage
-        const token = localStorage.getItem('token');
-        const storedRole = localStorage.getItem('role');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const storedRole = localStorage.getItem('role') || sessionStorage.getItem('role');
         
         console.log('Checking auth - token:', token ? 'exists' : 'missing');
         console.log('Checking auth - stored role:', storedRole);
@@ -33,6 +33,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             console.log('Token expired, not authorized');
             localStorage.removeItem('token');
             localStorage.removeItem('role');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('role');
             setIsAuthorized(false);
             setIsLoading(false);
             return;
@@ -44,6 +46,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           // Check if user has allowed role
           if (allowedRoles && !allowedRoles.includes(userRole)) {
             console.log(`Role ${userRole} not in allowed roles:`, allowedRoles);
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('role');
             setIsAuthorized(false);
             setIsLoading(false);
             return;

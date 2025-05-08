@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import './InstructorNavBar.css';
+import './SecretaryNavBar.css';
 import bilkentIcon from '../../assets/bilkent-logo.png';
 import notificationIcon from '../../assets/notification-icon.png';
 import userIcon from '../../assets/user-icon.png';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-export default function InstructorNavBar() {
+export default function SecretaryNavBar() {
   const location = useLocation();
   const path = location.pathname;
 
@@ -124,31 +124,31 @@ export default function InstructorNavBar() {
   };
 
   return (
-    <div className="instructor-nav-top-navbar">
-      <div className="instructor-nav-logo">
+    <div className="secretary-nav-top-navbar">
+      <div className="secretary-nav-logo">
         <img src={bilkentIcon} alt="Bilkent Logo" />
       </div>
-      <div className="instructor-nav-links">
-        <Link to="/instructor/home"       className={isActive('/instructor/home')       ? 'active' : ''}>Home</Link>
-        <Link to="/instructor/ta-workload" className={isActive('/instructor/ta-workload') ? 'active' : ''}>TA Workload</Link>
-        <Link to="/instructor/exams"      className={isActive('/instructor/exams')      ? 'active' : ''}>Exams</Link>
-        <Link to="/instructor/assign"     className={isActive('/instructor/assign')     ? 'active' : ''}>TA Assign</Link>
+      <div className="secretary-nav-links">
+        <Link to="/secretary/home"       className={isActive('/secretary/home')       ? 'active' : ''}>Home</Link>
+        <Link to="/secretary/ta-workload" className={isActive('/secretary/ta-workload') ? 'active' : ''}>TA Workload</Link>
+        <Link to="/secretary/exams"      className={isActive('/secretary/exams')      ? 'active' : ''}>Exams</Link>
+        <Link to="/secretary/leaverequest"     className={isActive('/secretary/leaverequest')     ? 'active' : ''}>TA Leave Request</Link>
       </div>
 
-      <div className="instructor-nav-icons" style={{ marginLeft: 'auto' }}>
+      <div className="secretary-nav-icons" style={{ marginLeft: 'auto' }}>
         {/* notifications */}
         <div ref={notificationRef}>
           <img
             src={notificationIcon}
             alt="Notifications"
-            className="instructor-nav-notification-icon"
+            className="secretary-nav-notification-icon"
             onClick={() => {
               setShowNotificationDropdown(v => !v);
               setShowProfileDropdown(false);
             }}
           />
           {showNotificationDropdown && (
-            <div className="instructor-nav-notification-dropdown">
+            <div className="secretary-nav-notification-dropdown">
               <div className="notification-header">Notifications</div>
               {notifications.map(n => (
                 <div key={n.id} className="notification-item">
@@ -168,14 +168,14 @@ export default function InstructorNavBar() {
           <img
             src={userIcon}
             alt="Profile"
-            className="instructor-nav-profile-icon"
+            className="secretary-nav-profile-icon"
             onClick={() => {
               setShowProfileDropdown(v => !v);
               setShowNotificationDropdown(false);
             }}
           />
           {showProfileDropdown && (
-            <div className="instructor-nav-profile-dropdown">
+            <div className="secretary-nav-profile-dropdown">
               <div className="dropdown-item" onClick={openPasswordModal}>Change Password</div>
               <div className="dropdown-item" onClick={confirmLogout}>Log Out</div>
             </div>

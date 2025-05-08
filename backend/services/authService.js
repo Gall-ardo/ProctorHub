@@ -68,4 +68,20 @@ async function resetPassword(tokenString, newPlain) {
   return true;
 }
 
-module.exports = { authenticate, requestPasswordReset, resetPassword };
+async function changePassword(userId, currentPassword, newPassword) {
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error('User not found');
+
+  // check if the current password matches the old one
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) throw new Error('Current password is incorrect');
+
+  // hash new password
+  user.password = await bcrypt.hash(newPassword, 12);
+  
+  // save the user with the new password
+  await user.save();
+  
+  return true;
+}
+module.exports = { authenticate, requestPasswordReset, resetPassword, changePassword };

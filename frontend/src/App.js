@@ -31,6 +31,10 @@ import DeansOfficeExamsPage from "./pages/deansoffice/DeansOfficeExamsPage";
 import DeansOfficeLeaveRequestPage from "./pages/deansoffice/DeansOfficeLeaveRequestPage";
 import ResetPassword from './pages/auth/ResetPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import SecretaryMainPage from './pages/secretary/SecretaryMainPage';
+import SecretaryExamsPage from './pages/secretary/SecretaryExamsPage';
+import SecretaryTAWorkloadPage from './pages/secretary/SecretaryTAWorkloadPage';
+import SecretaryLeaveRequestPage from './pages/secretary/SecretaryLeaveRequestPage';
 
 import './App.css';
 
@@ -52,7 +56,10 @@ function App() {
         <Route path="/admin/offering" element={<AdminOfferingPage />} />
         <Route path="/admin/classroom" element={<AdminClassroomPage />} />
         <Route path="/admin/semester" element={<AdminSemesterPage />} />
-
+        <Route path="/secretary/home" element={<SecretaryMainPage />} />
+        <Route path="/secretary/ta-workload" element={<SecretaryTAWorkloadPage />} />
+        <Route path="/secretary/exams" element={<SecretaryExamsPage />} />
+        <Route path="/secretary/leaverequest" element={<SecretaryLeaveRequestPage />} />
         
         {/* Protected TA Routes */}
         <Route path="/ta/tamain" element={
@@ -151,6 +158,7 @@ function App() {
             <DeansOfficeLeaveRequestPage />
           </ProtectedRoute>
         } />
+        
         
         {/* Catch-all route - redirect to login */}
         <Route path="*" element={<Navigate to="/" />} />
