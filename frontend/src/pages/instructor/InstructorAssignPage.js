@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './InstructorAssignPage.css';
 import InstructorNavBar from './InstructorNavBar';
+import axios from 'axios';
 
 function InstructorAssignPage() {
     const [availableTAs, setAvailableTAs] = useState([]);
@@ -12,116 +13,179 @@ function InstructorAssignPage() {
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('all');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     // Form states for adding preference
     const [selectedPriority, setSelectedPriority] = useState('Medium');
     const [preferenceReason, setPreferenceReason] = useState('');
 
-    useEffect(() => {
-        // Mock data - replace with actual API calls
-        const mockTAs = [
-            { id: 1, name: 'Sude Ergün', department: 'Computer Science', experience: '2 years', specialization: 'Machine Learning' },
-            { id: 2, name: 'Rıdvan Yılmaz', department: 'Computer Science', experience: '1 year', specialization: 'Web Development' },
-            { id: 3, name: 'Ziya Özgül', department: 'Computer Science', experience: '3 years', specialization: 'Algorithms' },
-            { id: 4, name: 'Ahmet Tekin', department: 'Computer Science', experience: '2 years', specialization: 'Databases' },
-            { id: 5, name: 'Elif Demir', department: 'Computer Science', experience: '1 year', specialization: 'Mobile Development' },
-            { id: 6, name: 'Zeynep Kaya', department: 'Computer Science', experience: '2 years', specialization: 'Computer Networks' },
-            { id: 7, name: 'Burak Öztürk', department: 'Computer Science', experience: '3 years', specialization: 'Cybersecurity' },
-            { id: 8, name: 'Deniz Çelik', department: 'Computer Science', experience: '1 year', specialization: 'Artificial Intelligence' }
-        ];
+    const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
 
-        const mockCourses = [
-            { id: 1, code: 'CS101', name: 'Introduction to Computer Science', semester: 'Fall 2025', taNeeded: 3 },
-            { id: 2, code: 'CS301', name: 'Data Structures', semester: 'Fall 2025', taNeeded: 2 }
-        ];
+    // Helper to retrieve JWT and set header
+    function getAuthHeader() {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) throw new Error('No authentication token found');
+        return { Authorization: `Bearer ${token}` };
+    }
 
-        // Initial preferences (empty or from previous selections)
-        const mockPreferences = [
-            {
-                id: 1,
-                taId: 3,
-                taName: 'Ziya Özgül',
-                courseId: 1,
-                courseCode: 'CS101',
-                priority: 'High',
-                reason: 'Strong background in algorithms and previous experience teaching this course.',
-                status: 'pending'
-            },
-            {
-                id: 2,
-                taId: 1,
-                taName: 'Sude Ergün',
-                courseId: 2,
-                courseCode: 'CS301',
-                priority: 'Medium',
-                reason: 'Good understanding of data structures.',
-                status: 'pending'
+    // Separate function to fetch TAs
+    const fetchTeachingAssistants = async () => {
+        try {
+            const headers = getAuthHeader();
+            const response = await axios.get(`${API_URL}/instructor/available-tas`, { headers });
+
+            if (response.data.success) {
+                const tas = response.data.data || [];
+                console.log("All TAs:", tas);
+                return tas;
             }
-        ];
+            return [];
+        } catch (error) {
+            console.error("Error fetching teaching assistants:", error);
+            return [];
+        }
+    };
 
-        setAvailableTAs(mockTAs);
-        setInstructorCourses(mockCourses);
-        setPreferredTAs(mockPreferences);
-    }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+            console.log("in fetchData");
+            const headers = getAuthHeader();
+            try {
+                // Get TAs first
+                const allTAs = await fetchTeachingAssistants();
 
-    const handleAddPreference = () => {
+                // Then get courses and requests
+                const [coursesResponse, requestsResponse] = await Promise.all([
+                    axios.get(`${API_URL}/instructor/instructor-courses`, { headers }),
+                    axios.get(`${API_URL}/instructor/ta-requests`, { headers })
+                ]);
+
+                console.log("coursesResponse", coursesResponse);
+                setInstructorCourses(coursesResponse.data.data || []);
+
+                // Set TAs directly
+                setAvailableTAs(allTAs);
+
+                // Transform requests data to match component needs
+                const transformedRequests = requestsResponse.data.data.map(request => ({
+                    id: request.id,
+                    taId: request.taId,
+                    taName: request.ta?.name || 'Unknown TA',
+                    courseId: request.courseId,
+                    courseCode: request.course?.courseCode || 'Unknown Course',
+                    priority: request.priority,
+                    reason: request.reason,
+                    status: request.status
+                }));
+
+                setPreferredTAs(transformedRequests);
+                console.log("transformedRequests", transformedRequests);
+
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                setError("Failed to load data. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [API_URL]);
+
+    const handleAddPreference = async () => {
         if (!selectedTA || !selectedCourse || !selectedPriority || !preferenceReason.trim()) {
             alert("Please complete all fields to add a preference.");
             return;
         }
 
-        // Check if this TA is already preferred for this course
-        const existingPreference = preferredTAs.find(
-            pref => pref.taId === selectedTA.id && pref.courseId === selectedCourse.id
-        );
-
-        if (existingPreference) {
-            // Update existing preference
-            const updatedPreferences = preferredTAs.map(pref => {
-                if (pref.id === existingPreference.id) {
-                    return {
-                        ...pref,
-                        priority: selectedPriority,
-                        reason: preferenceReason,
-                        status: 'updated'
-                    };
-                }
-                return pref;
-            });
-            setPreferredTAs(updatedPreferences);
-        } else {
-            // Add new preference
-            const newPreference = {
-                id: Date.now(), // temporary ID generation
+        try {
+            const headers = getAuthHeader();
+            const requestData = {
                 taId: selectedTA.id,
-                taName: selectedTA.name,
                 courseId: selectedCourse.id,
-                courseCode: selectedCourse.code,
                 priority: selectedPriority,
-                reason: preferenceReason,
-                status: 'new'
+                reason: preferenceReason
             };
-            setPreferredTAs([...preferredTAs, newPreference]);
+
+            const response = await axios.post(
+                `${API_URL}/instructor/ta-requests`,
+                requestData,
+                { headers }
+            );
+
+            if (response.data.success) {
+                // Add the new preference to our state
+                const newPreference = {
+                    id: response.data.data.id,
+                    taId: selectedTA.id,
+                    taName: selectedTA.name,
+                    courseId: selectedCourse.id,
+                    courseCode: selectedCourse.code || selectedCourse.courseCode,
+                    priority: selectedPriority,
+                    reason: preferenceReason,
+                    status: 'pending'
+                };
+
+                // Check if this was an update to an existing preference
+                const existingIndex = preferredTAs.findIndex(
+                    p => p.taId === selectedTA.id && p.courseId === selectedCourse.id
+                );
+
+                if (existingIndex >= 0) {
+                    // Replace the existing preference
+                    const updatedPreferences = [...preferredTAs];
+                    updatedPreferences[existingIndex] = newPreference;
+                    setPreferredTAs(updatedPreferences);
+                } else {
+                    // Add as a new preference
+                    setPreferredTAs([...preferredTAs, newPreference]);
+                }
+
+                // Reset form
+                setSelectedTA(null);
+                setPreferenceReason('');
+                setSelectedPriority('Medium');
+                setShowTAModal(false);
+            } else {
+                alert(response.data.message || "Failed to add preference");
+            }
+        } catch (error) {
+            console.error("Error adding preference:", error);
+            alert(error.response?.data?.message || "Failed to add preference");
         }
-
-        // Reset form
-        setSelectedTA(null);
-        setPreferenceReason('');
-        setSelectedPriority('Medium');
-        setShowTAModal(false);
     };
 
-    const handleRemovePreference = (preferenceId) => {
-        const updatedPreferences = preferredTAs.filter(pref => pref.id !== preferenceId);
-        setPreferredTAs(updatedPreferences);
+    const handleRemovePreference = async (preferenceId) => {
+        try {
+            const headers = getAuthHeader();
+            const response = await axios.delete(
+                `${API_URL}/instructor/ta-requests/${preferenceId}`,
+                { headers }
+            );
+
+            if (response.data.success) {
+                // Remove from local state
+                const updatedPreferences = preferredTAs.filter(pref => pref.id !== preferenceId);
+                setPreferredTAs(updatedPreferences);
+            } else {
+                alert(response.data.message || "Failed to remove preference");
+            }
+        } catch (error) {
+            console.error("Error removing preference:", error);
+            alert(error.response?.data?.message || "Failed to remove preference");
+        }
     };
 
-    const handleSubmitPreferences = () => {
-        // Here you would typically send the preferences to your backend
+    const handleSubmitPreferences = async () => {
+        // This would typically involve setting all pending preferences as 'submitted' in the backend
+        // For now, we'll just update the UI
         alert("Your TA preferences have been submitted successfully!");
         setShowSubmitModal(false);
 
-        // Mark all preferences as submitted
+        // Mark all preferences as submitted in our local state
         const submittedPreferences = preferredTAs.map(pref => ({
             ...pref,
             status: 'submitted'
@@ -129,14 +193,17 @@ function InstructorAssignPage() {
         setPreferredTAs(submittedPreferences);
     };
 
-    const filteredTAs = availableTAs.filter(ta => {
-        return ta.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            ta.specialization.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+    // Simple filter by name without specialization
+    const filteredTAs = searchTerm.trim() === ''
+        ? availableTAs
+        : availableTAs.filter(ta => {
+            const name = ta.name || '';
+            return name.toLowerCase().includes(searchTerm.toLowerCase());
+        });
 
     const filteredPreferences = preferredTAs.filter(pref => {
         if (priorityFilter === 'all') return true;
-        return pref.priority.toLowerCase() === priorityFilter.toLowerCase();
+        return pref.priority?.toLowerCase() === priorityFilter.toLowerCase();
     });
 
     // Group preferences by course
@@ -147,6 +214,32 @@ function InstructorAssignPage() {
         }
         preferencesByCourse[pref.courseCode].push(pref);
     });
+
+    if (loading) {
+        return (
+            <div className="instructor-assign-page">
+                <InstructorNavBar />
+                <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Loading data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="instructor-assign-page">
+                <InstructorNavBar />
+                <div className="error-container">
+                    <p className="error-message">{error}</p>
+                    <button onClick={() => window.location.reload()} className="retry-button">
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="instructor-assign-page">
@@ -241,10 +334,10 @@ function InstructorAssignPage() {
                             return (
                                 <div key={course.id} className="course-card">
                                     <div className="course-info">
-                                        <h3>{course.code}: {course.name}</h3>
-                                        <p>Semester: {course.semester}</p>
+                                        <h3>{course.code || course.courseCode}: {course.name || course.courseName}</h3>
+                                        <p>Semester: {course.semester || 'Current'}</p>
                                         <p className="ta-count">
-                                            TAs Needed: {course.taNeeded} |
+                                            TAs Needed: {course.taNeeded || '?'} |
                                             TAs Requested: {coursePreferences.length}
                                         </p>
                                     </div>
@@ -291,7 +384,7 @@ function InstructorAssignPage() {
                                 <select
                                     value={selectedCourse ? selectedCourse.id : ''}
                                     onChange={(e) => {
-                                        const courseId = parseInt(e.target.value);
+                                        const courseId = e.target.value;
                                         const course = instructorCourses.find(c => c.id === courseId);
                                         setSelectedCourse(course);
                                     }}
@@ -300,7 +393,7 @@ function InstructorAssignPage() {
                                     <option value="">-- Select a course --</option>
                                     {instructorCourses.map(course => (
                                         <option key={course.id} value={course.id}>
-                                            {course.code}: {course.name}
+                                            {course.code || course.courseCode}: {course.name || course.courseName}
                                         </option>
                                     ))}
                                 </select>
@@ -311,35 +404,35 @@ function InstructorAssignPage() {
                                 <label>Search and Select TA:</label>
                                 <input
                                     type="text"
-                                    placeholder="Search by name or specialization..."
+                                    placeholder="Search by name..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="search-input"
                                 />
 
                                 <div className="tas-selection-list">
-                                    {filteredTAs.map(ta => (
-                                        <div
-                                            key={ta.id}
-                                            className={`ta-selection-option ${selectedTA && selectedTA.id === ta.id ? 'selected' : ''}`}
-                                            onClick={() => setSelectedTA(ta)}
-                                        >
-                                            <div className="ta-option-info">
-                                                <div className="ta-option-name">{ta.name}</div>
-                                                <div className="ta-option-details">
-                                                    <span>{ta.experience} experience</span>
-                                                    <span>Specialization: {ta.specialization}</span>
+                                    {filteredTAs.length > 0 ? (
+                                        filteredTAs.map(ta => (
+                                            <div
+                                                key={ta.id}
+                                                className={`ta-selection-option ${selectedTA && selectedTA.id === ta.id ? 'selected' : ''}`}
+                                                onClick={() => setSelectedTA(ta)}
+                                            >
+                                                <div className="ta-option-info">
+                                                    <div className="ta-option-name">{ta.name}</div>
+                                                    <div className="ta-option-details">
+                                                        {ta.department && <span>Department: {ta.department}</span>}
+                                                        {ta.isPHD !== undefined && <span>{ta.isPHD ? 'PhD Student' : 'MS Student'}</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="ta-option-select">
+                                                    {selectedTA && selectedTA.id === ta.id && <span>✓</span>}
                                                 </div>
                                             </div>
-                                            <div className="ta-option-select">
-                                                {selectedTA && selectedTA.id === ta.id && <span>✓</span>}
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {filteredTAs.length === 0 && (
+                                        ))
+                                    ) : (
                                         <div className="no-tas-found">
-                                            No TAs match your search criteria
+                                            {searchTerm ? 'No TAs found matching your search' : 'No TAs available'}
                                         </div>
                                     )}
                                 </div>

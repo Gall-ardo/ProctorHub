@@ -4,6 +4,7 @@ const { getMainPageData } = require('../controllers/Instructor/MainPageControlle
 const {listPending, approve, reject, totals} = require('../controllers/Instructor/InstructorWorkloadController');
 const examController = require('../controllers/Instructor/examController');
 const instructorController = require('../controllers/Instructor/instructorController');
+const taRequestController = require('../controllers/Instructor/InstructorTARequestController');
 
 // Test route without authentication
 router.get(
@@ -107,5 +108,42 @@ router.delete(
     authorizeRole(['instructor']),
     examController.deleteExam
 );
+
+// TA Request Routes
+router.get(
+    '/available-tas',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    taRequestController.getAvailableTAs
+);
+
+router.get(
+    '/instructor-courses',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    taRequestController.getInstructorCourses
+);
+
+router.get(
+    '/ta-requests',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    taRequestController.getInstructorTARequests
+);
+
+router.post(
+    '/ta-requests/',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    taRequestController.createTARequest
+);
+
+router.delete(
+    '/ta-requests/:requestId',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    taRequestController.deleteTARequest
+);
+
 
 module.exports = router;
