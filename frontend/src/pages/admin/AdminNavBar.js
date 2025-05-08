@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './AdminNavBar.module.css';
+import logo from '../../assets/bilkent-logo.png';
+import notificationIcon from '../../assets/notification-icon.png';
+import profileIcon from '../../assets/user-icon.png';
+
 
 const AdminNavBar = () => {
   const location = useLocation();
@@ -21,7 +25,7 @@ const AdminNavBar = () => {
   return (
     <div className={styles.topNavbar}>
       <div className={styles.logo}>
-        <img src="/logo.png" alt="Logo" />
+        <img src={logo} alt="Logo" />
       </div>
       <div className={styles.navLinks}>
         <Link to="/admin/logs" className={isActive('/admin/logs') ? styles.active : ''}>
@@ -48,10 +52,10 @@ const AdminNavBar = () => {
       </div>
       <div className={styles.navIcons}>
         <div className={styles.notificationIcon}>
-          <img src="/notification.png" alt="Notifications" />
+          <img src={notificationIcon} alt="Notifications" />
         </div>
         <div className={styles.profileIcon}>
-          <img src="/profile.png" alt="Profile" />
+          <img src={profileIcon} alt="Profile" />
         </div>
       </div>
     </div>
