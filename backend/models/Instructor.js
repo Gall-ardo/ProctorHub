@@ -7,9 +7,6 @@ const Instructor = sequelize.define("Instructor", {
     primaryKey: true,
   },
   department: DataTypes.STRING,
-  // Remove userId field since we're using id as the foreign key
 });
-
-// Remove any association here - it's defined in index.js
 
 module.exports = Instructor;

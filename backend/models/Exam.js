@@ -73,10 +73,6 @@ const Exam = sequelize.define("Exam", {
   department: {
     type: DataTypes.STRING,
     allowNull: false,
-  },
-  semester: {
-    type: DataTypes.STRING,
-    allowNull: false,
   }
 });
 

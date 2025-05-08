@@ -19,7 +19,7 @@ export default function InstructorMainPage() {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
         console.log('Fetching instructor dashboard with token:', token ? 'exists' : 'missing');

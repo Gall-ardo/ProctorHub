@@ -5,7 +5,8 @@ const Instructor = require("../../models/Instructor");
 const DepartmentChair = require("../../models/DepartmentChair");
 const DeansOffice = require("../../models/DeansOffice");
 const TeachingAssistant = require("../../models/TeachingAssistant");
-const Student = require("../../models/Student");
+const Secretary = require("../../models/Secretary");
+
 const Schedule = require("../../models/Schedule");
 const TimeSlot = require("../../models/TimeSlot");
 const Workload = require("../../models/Workload");
@@ -69,9 +70,10 @@ class UserService {
         throw new Error("Invalid email format");
       }
 
-      // Validate department for instructor, chair, and teaching assistant
-      if ((userData.userType === 'instructor' || userData.userType === 'chair' || userData.userType === 'ta') && !userData.department) {
-        throw new Error("Department is required for instructors, department chairs, and teaching assistants");
+      // Validate department for instructor, chair, secretary, and teaching assistant
+      if ((userData.userType === 'instructor' || userData.userType === 'chair' || 
+           userData.userType === 'secretary' || userData.userType === 'ta') && !userData.department) {
+        throw new Error("Department is required for instructors, department chairs, secretaries, and teaching assistants");
       }
 
       // Validate userType - prevent creating students through this service
@@ -106,6 +108,12 @@ class UserService {
             break;
           case "chair":
             await DepartmentChair.create({ 
+              id: user.id,
+              department: userData.department
+            }, { transaction: t });
+            break;
+          case "secretary":
+            await Secretary.create({ 
               id: user.id,
               department: userData.department
             }, { transaction: t });
@@ -219,8 +227,9 @@ class UserService {
       }
   
       // Check if department is required and provided for the new user type
-      if ((userData.userType === 'instructor' || userData.userType === 'chair' || userData.userType === 'ta') && !userData.department) {
-        throw new Error("Department is required for instructors, department chairs, and teaching assistants");
+      if ((userData.userType === 'instructor' || userData.userType === 'chair' || 
+           userData.userType === 'secretary' || userData.userType === 'ta') && !userData.department) {
+        throw new Error("Department is required for instructors, department chairs, secretaries, and teaching assistants");
       }
   
       let passwordForEmail = null;
@@ -258,6 +267,9 @@ class UserService {
           case "chair":
             await DepartmentChair.destroy({ where: { id }, transaction: t });
             break;
+          case "secretary":
+            await Secretary.destroy({ where: { id }, transaction: t });
+            break;
           case "dean":
             await DeansOffice.destroy({ where: { id }, transaction: t });
             break;
@@ -279,6 +291,12 @@ class UserService {
             break;
           case "chair":
             await DepartmentChair.create({ 
+              id,
+              department: userData.department
+            }, { transaction: t });
+            break;
+          case "secretary":
+            await Secretary.create({ 
               id,
               department: userData.department
             }, { transaction: t });
@@ -315,6 +333,12 @@ class UserService {
             const chair = await DepartmentChair.findByPk(user.id, { transaction: t });
             if (chair) {
               await chair.update({ department: userData.department }, { transaction: t });
+            }
+            break;
+          case "secretary":
+            const secretary = await Secretary.findByPk(user.id, { transaction: t });
+            if (secretary) {
+              await secretary.update({ department: userData.department }, { transaction: t });
             }
             break;
           case "ta":
@@ -395,6 +419,10 @@ class UserService {
           case "chair":
             const chair = await DepartmentChair.findByPk(id, { transaction: t });
             if (chair) await chair.destroy({ transaction: t });
+            break;
+          case "secretary":
+            const secretary = await Secretary.findByPk(id, { transaction: t });
+            if (secretary) await secretary.destroy({ transaction: t });
             break;
           case "dean":
             const dean = await DeansOffice.findByPk(id, { transaction: t });
@@ -504,6 +532,10 @@ class UserService {
             
           case "chair":
             await DepartmentChair.destroy({ where: { id }, transaction: t });
+            break;
+            
+          case "secretary":
+            await Secretary.destroy({ where: { id }, transaction: t });
             break;
             
           case "dean":

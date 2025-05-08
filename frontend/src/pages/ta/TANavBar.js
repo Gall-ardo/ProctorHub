@@ -147,37 +147,11 @@ const TANavBar = () => {
   
   // Handle log out function
   const handleLogout = () => {
-    // Add your logout logic here
-    console.log('Logging out...');
-    
-    /* 
-    BACKEND INTEGRATION COMMENT:
-    For logout functionality, you'll want to:
-    1. Call your backend API to invalidate the session token
-    2. Remove any local storage tokens/cookies
-    3. Redirect to login page
-    
-    Example implementation with fetch API:
-    
-    fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    .then(response => {
-      if (response.ok) {
-        localStorage.removeItem('token');
-        window.location.href = '/';  // Redirect to root where Login component is mounted
-      }
-    })
-    .catch(error => console.error('Logout error:', error));
-    */
-    
-    // For now, just redirect to the login page
-    window.location.href = '/';  // Redirect to root where Login component is mounted
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('role');
+    localStorage.removeItem('role');
+    window.location.href = '/';
   };
 
   const handlePasswordChange = (e) => {
@@ -198,7 +172,7 @@ const TANavBar = () => {
     }
 
     // Get the token from localStorage (ensure the token exists)
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) {
       setPasswordError('You must be logged in to change the password');
       return;

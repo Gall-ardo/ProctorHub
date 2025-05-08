@@ -7,6 +7,7 @@ const TeachingAssistant = require("./TeachingAssistant");
 const Instructor = require("./Instructor");
 const DepartmentChair = require("./DepartmentChair");
 const DeansOffice = require("./DeansOffice");
+const Secretary = require("./Secretary");
 const Student = require("./Student");
 const Course = require("./Course");
 const Offering = require("./Offering");
@@ -23,6 +24,7 @@ const Log = require("./Log");
 const Report = require("./Report");
 const PasswordResetToken = require("./passwordResetToken");
 const Proctoring = require("./Proctoring");
+const TARequest = require('./TARequest');
 
 
 // Inheritance (1-to-1 via shared ID)
@@ -31,7 +33,7 @@ TeachingAssistant.belongsTo(User, { foreignKey: "id", as: "taUser" });
 Instructor.belongsTo(User, { foreignKey: "id", as: "instructorUser" });
 DepartmentChair.belongsTo(User, { foreignKey: "id", as: "chairUser" });
 DeansOffice.belongsTo(User, { foreignKey: "id", as: "deanUser" });
-Student.belongsTo(User, { foreignKey: "id", as: "studentUser" });
+Secretary.belongsTo(User, { foreignKey: "id", as: "secretaryUser" });
 
 User.hasOne(TeachingAssistant, { foreignKey: "id", as: "taUser" }); // ✅ for TA → User
 
@@ -47,14 +49,13 @@ Course.hasMany(Exam, { foreignKey: "courseId" });
 Course.belongsTo(Semester, { foreignKey: "semesterId" });
 Semester.hasMany(Course, { foreignKey: "semesterId" });
 
-
 // Course ↔ TeachingAssistant (student TAs)
-Course.belongsToMany(TeachingAssistant, { through: "CourseTAs", as: "studentTAs" });
-TeachingAssistant.belongsToMany(Course, { through: "CourseTAs", as: "courses" });
+Course.belongsToMany(TeachingAssistant, { through: "TakenCourseTAs", as: "studentTAs" });
+TeachingAssistant.belongsToMany(Course, { through: "TakenCourseTAs", as: "courses" });
 
 // Course ↔ TA (assistants)
-Course.belongsToMany(TeachingAssistant, { through: "CourseTAs", as: "TAs" });
-TeachingAssistant.belongsToMany(Course, { through: "CourseTAs", as: "taCourses" });
+Course.belongsToMany(TeachingAssistant, { through: "GivenCourseTAs", as: "TAs" });
+TeachingAssistant.belongsToMany(Course, { through: "GivenCourseTAs", as: "taCourses" });
 
 // Course ↔ Student
 Course.belongsToMany(Student, { through: "CourseStudents", as: "students" });
@@ -85,8 +86,16 @@ Instructor.hasMany(Workload, { foreignKey: "instructorId" });
 Workload.belongsTo(Instructor, { foreignKey: "instructorId" });
 
 // Workload ↔ Course
-Course.hasMany(Workload, { foreignKey: "courseCode" });
-Workload.belongsTo(Course, { foreignKey: "courseCode" });
+Course.hasMany(Workload, { foreignKey: "courseId" });
+Workload.belongsTo(Course, { foreignKey: "courseId" });
+
+
+Workload.belongsTo(User, { as: 'instructor', foreignKey: 'instructorId' });
+User.hasMany(Workload, { foreignKey: 'instructorId' });
+
+Workload.belongsTo(User, { as: 'ta', foreignKey: 'taId' });
+User.hasMany(Workload, { foreignKey: 'taId' });
+
 
 // TA ↔ LeaveRequest
 TeachingAssistant.hasMany(LeaveRequest, { foreignKey: "taId" });
@@ -108,6 +117,18 @@ TeachingAssistant.hasMany(SwapRequest, { as: 'requestsReceived', foreignKey: 'ta
 SwapRequest.belongsTo(Exam, { foreignKey: "examId", as: "exam" });
 Exam.hasMany(SwapRequest, { foreignKey: "examId" });
 
+// TARequest ↔ Instructor
+TARequest.belongsTo(Instructor, {foreignKey: "instructorId"});
+Instructor.hasMany(TARequest, {foreignKey: "instructorId"});
+
+// TARequest ↔ Course
+TARequest.belongsTo(Course, {foreignKey: "courseId"});
+Course.hasMany(TARequest, {foreignKey: "courseId"});
+
+// TARequest ↔ TA
+TARequest.belongsTo(TeachingAssistant, {foreignKey: "taId"});
+TeachingAssistant.hasMany(TARequest, {foreignKey: "taId"});
+
 // Report ↔ TimeSlot
 Report.belongsTo(TimeSlot, { foreignKey: "timeSlotId" });
 TimeSlot.hasMany(Report, { foreignKey: "timeSlotId" });
@@ -121,7 +142,7 @@ Log.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Log, { foreignKey: "userId" });
 
 // Course ↔ Instructor
-Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "courses" });
+Course.belongsToMany(Instructor, { through: "InstructorCourses", as: "instructors" });
 Instructor.belongsToMany(Course, { through: "InstructorCourses", as: "courses" });
 
 Offering.belongsToMany(Instructor, { through: "InstructorOfferings", as: "offerings" });
@@ -145,6 +166,8 @@ module.exports = {
     TeachingAssistant,
     DepartmentChair,
     DeansOffice,
+    LeaveRequest,
     Workload,
     Offering,
+    TARequest
   };

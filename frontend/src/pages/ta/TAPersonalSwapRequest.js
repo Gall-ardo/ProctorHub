@@ -30,7 +30,7 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
     try {
       setLoading(true);
       // Get the token from localStorage
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');
@@ -90,7 +90,7 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
     try {
       setLoading(true);
       // Get the token from localStorage
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');

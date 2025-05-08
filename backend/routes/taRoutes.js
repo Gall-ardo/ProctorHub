@@ -1,3 +1,4 @@
+// backend/routes/taRoutes.js
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
@@ -6,6 +7,7 @@ const taLeaveController = require('../controllers/ta/taLeaveController');
 const upload = require('../middleware/upload');
 const swapRequestController = require('../controllers/ta/taSwapController');
 const taProctoringController = require('../controllers/ta/taProctoringController');
+const taProctoringScheduleController = require('../controllers/ta/taProctoringScheduleController');
 
 // Test route without authentication
 router.get('/test', (req, res) => {
@@ -47,5 +49,9 @@ router.put('/proctorings/:proctoringId/accept', taProctoringController.acceptPro
 router.put('/proctorings/:proctoringId/reject', taProctoringController.rejectProctoring);
 router.get('/proctorings/stats', taProctoringController.getProctoringStats);
 router.put('/profile/multidepartment', taProctoringController.updateMultidepartmentPreference);
+
+
+router.get('/proctoring-schedule', taProctoringScheduleController.getProctoringSchedule);
+router.get('/schedule/combined', taProctoringScheduleController.getCombinedSchedule);
 
 module.exports = router;

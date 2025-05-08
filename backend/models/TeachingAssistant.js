@@ -6,20 +6,7 @@ const TeachingAssistant = sequelize.define("TeachingAssistant", {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  department: DataTypes.STRING,
-  totalProctoringInDepartment: DataTypes.INTEGER,
-  totalNonDepartmentProctoring: DataTypes.INTEGER,
-  totalWorkload: DataTypes.INTEGER,
-  isPHD: DataTypes.BOOLEAN,
-  approvedAbsence: DataTypes.BOOLEAN,
-  waitingAbsenceRequest: DataTypes.BOOLEAN,
-  isPartTime: DataTypes.BOOLEAN,
-  isMultidepartmentExam: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
+  // other fields...
 });
-
-// Remove any association here - it's defined in index.js
 
 module.exports = TeachingAssistant;

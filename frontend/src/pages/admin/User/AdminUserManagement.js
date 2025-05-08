@@ -43,6 +43,7 @@ const AdminUserManagement = () => {
     { label: 'Admin', value: 'admin' },
     { label: 'Instructor', value: 'instructor' },
     { label: 'Department Chair', value: 'chair' },
+    { label: 'Secretary', value: 'secretary' },
     { label: 'Dean\'s Office', value: 'dean' },
     { label: 'Teaching Assistant', value: 'ta' }
   ];
@@ -106,8 +107,8 @@ const AdminUserManagement = () => {
       }
       
       // Department validation for instructor, chair and TA
-      if ((userType === 'instructor' || userType === 'chair' || userType === 'ta') && !department) {
-        setErrorMessage('Department is required for instructors, chairs, and teaching assistants');
+      if ((userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === "secretary") && !department) {
+        setErrorMessage('Department is required for instructors, chairs, departments secretary, and teaching assistants');
         setShowError(true);
         return false;
       }
@@ -139,7 +140,7 @@ const AdminUserManagement = () => {
       };
       
       // Add department for instructor, chair, and TA
-      if (userType === 'instructor' || userType === 'chair' || userType === 'ta') {
+      if (userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === "secretary") {
         userData.department = department;
       }
 
@@ -352,16 +353,11 @@ const AdminUserManagement = () => {
     setUserType(user.userType);
     
     // If user is instructor, chair, or TA, set department
-    if (user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta') {
-      // You would need to fetch department from the respective model
-      // This is a placeholder
+    if (user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta' || user.userType === "secretary") {
       setDepartment(user.department || '');
     }
     
-    // Fetch additional TA information if needed
     if (user.userType === 'ta') {
-      // Ideally we would fetch this information from the server
-      // For now, we'll leave with defaults
       setIsPhd(false);
       setIsPartTime(false);
     }
@@ -389,7 +385,7 @@ const AdminUserManagement = () => {
       };
       
       // Add department for instructor, chair, and TA
-      if (userType === 'instructor' || userType === 'chair' || userType === 'ta') {
+      if (userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === "secretary") {
         userData.department = department;
       }
 
@@ -594,7 +590,7 @@ const AdminUserManagement = () => {
                   </div>
                   
                   {/* Show department for instructor, chair, and TA */}
-                  {(userType === 'instructor' || userType === 'chair' || userType === 'ta') && (
+                  {(userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === 'secretary') && (
                     <div className={styles.formGroup}>
                       <label>Department <span className={styles.requiredField}>*</span></label>
                       <div className={styles.selectionList}>
@@ -699,7 +695,7 @@ const AdminUserManagement = () => {
                             <div><strong>Name:</strong> {user.name}</div>
                             <div><strong>Email:</strong> {user.email}</div>
                             <div><strong>Type:</strong> {user.userType}</div>
-                            {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta') && user.department && (
+                            {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta' || userType === 'secretary') && user.department && (
                               <div><strong>Department:</strong> {user.department}</div>
                             )}
                           </div>
@@ -763,7 +759,7 @@ const AdminUserManagement = () => {
                                 <div><strong>Name:</strong> {user.name}</div>
                                 <div><strong>Email:</strong> {user.email}</div>
                                 <div><strong>Type:</strong> {user.userType}</div>
-                                {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta') && user.department && (
+                                {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta' || user.userType === 'secretary') && user.department && (
                                   <div><strong>Department:</strong> {user.department}</div>
                                 )}
                               </div>
@@ -836,7 +832,7 @@ const AdminUserManagement = () => {
                       </div>
                       
                       {/* Show department for instructor, chair, and TA */}
-                      {(userType === 'instructor' || userType === 'chair' || userType === 'ta') && (
+                      {(userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === 'secretary') && (
                         <div className={styles.formGroup}>
                           <label>Department <span className={styles.requiredField}>*</span></label>
                           <div className={styles.selectionList}>
