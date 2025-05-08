@@ -169,5 +169,6 @@ module.exports = {
     LeaveRequest,
     Workload,
     Offering,
-    TARequest
+    TARequest,
+    Proctoring,
   };

@@ -37,16 +37,21 @@ export default function DeansOfficeLeaveRequestPage() {
 
   const handleView    = r => { setSelectedRequest(r); setIsDetailModalOpen(true); };
   const closeModal    = () => { setIsDetailModalOpen(false); setSelectedRequest(null); };
-  const sortByName    = () => setTasOnLeave(ts => [...ts].sort((a, b) => a.taName.localeCompare(b.taName)));
 
   const handleApprove = async () => {
     try {
       await axios.post(
         `${API}/dean/leave-requests/${selectedRequest.id}/approve`,
-        {}, { headers: authHeader() }
+        {},
+        { headers: authHeader() }
       );
-      const p = await axios.get(`${API}/dean/leave-requests/pending`, { headers: authHeader() });
-      setLeaveRequests(p.data.data);
+      // re-fetch both lists
+      const [pendingRes, currentRes] = await Promise.all([
+        axios.get(`${API}/dean/leave-requests/pending`, { headers: authHeader() }),
+        axios.get(`${API}/dean/leave-requests/current`, { headers: authHeader() })
+      ]);
+      setLeaveRequests(pendingRes.data.data);
+      setTasOnLeave(currentRes.data.data);
     } catch (err) {
       console.error('Approve failed:', err);
       alert(err.response?.data?.message || err.message);
@@ -55,16 +60,22 @@ export default function DeansOfficeLeaveRequestPage() {
     }
   };
 
-  const handleReject  = async () => {
+  const handleReject = async () => {
     const reason = prompt('Rejection reason:');
     if (!reason) return;
     try {
       await axios.post(
         `${API}/dean/leave-requests/${selectedRequest.id}/reject`,
-        { reason }, { headers: authHeader() }
+        { reason },
+        { headers: authHeader() }
       );
-      const p = await axios.get(`${API}/dean/leave-requests/pending`, { headers: authHeader() });
-      setLeaveRequests(p.data.data);
+      // re-fetch both lists
+      const [pendingRes, currentRes] = await Promise.all([
+        axios.get(`${API}/dean/leave-requests/pending`, { headers: authHeader() }),
+        axios.get(`${API}/dean/leave-requests/current`, { headers: authHeader() })
+      ]);
+      setLeaveRequests(pendingRes.data.data);
+      setTasOnLeave(currentRes.data.data);
     } catch (err) {
       console.error('Reject failed:', err);
       alert(err.response?.data?.message || err.message);
@@ -124,16 +135,17 @@ export default function DeansOfficeLeaveRequestPage() {
 
         {/* Current TAs On Leave */}
         <div className="panel tas-on-leave-panel">
-          <div className="panel-header">
-            <h2>TAs On Leave</h2>
-            <button className="sort-btn" onClick={sortByName}>
-              Sort by Name ▼
-            </button>
-          </div>
-          <div className="tas-list">
-            {tasOnLeave.map(t => (
-              <div className="ta-card" key={t.id}>
-                <div className="ta-name">{t.taName}</div>
+          <h2>Accepted Leave Requests</h2>
+          <div className="requests-list">
+            {tasOnLeave.map(r => (
+              <div className="request-card" key={r.id}>
+                <div className="request-info">
+                  <div className="request-name">{r.taName}</div>
+                  <div className="request-date">
+                    {new Date(r.startDate).toLocaleDateString()} –{' '}
+                    {new Date(r.endDate).toLocaleDateString()}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -147,16 +159,32 @@ export default function DeansOfficeLeaveRequestPage() {
             <div className="detail-modal-content">
               <button className="close-btn" onClick={closeModal}>×</button>
 
-              <h3 className="detail-title">{selectedRequest.taName}</h3>
+              {/* header with inline missed-proctorings */}
+              <div className="detail-header">
+                <h3 className="detail-title">{selectedRequest.taName}</h3>
 
               <p className="detail-label">
-                Leave Dates:{' '}
+                <strong>Leave Dates: </strong>{' '}
                 {new Date(selectedRequest.startDate).toLocaleDateString()} –{' '}
                 {new Date(selectedRequest.endDate).toLocaleDateString()}
               </p>
 
+              <div className="missed-inline">
+                  <strong>Missed Proctorings:</strong>{' '}
+                  {selectedRequest.affectedExams?.length > 0
+                    ? selectedRequest.affectedExams.map((ex, i) => (
+                        <span key={ex.id}>
+                          {ex.courseName} ({ex.examType}) –{' '}
+                          {new Date(ex.date).toLocaleDateString()}
+                          {i < selectedRequest.affectedExams.length - 1 ? ', ' : ''}
+                        </span>
+                      ))
+                    : 'None'}
+                </div>
+              </div>
+
               <p className="detail-label">
-                Requested by: {selectedRequest.taEmail}
+                <strong>Requested</strong>{selectedRequest.taEmail}
               </p>
 
               <div className="reason-box">
@@ -166,13 +194,12 @@ export default function DeansOfficeLeaveRequestPage() {
                 </div>
               </div>
 
-              {/* Download Attachment */}
               {selectedRequest.filePath && (
                 <button
                   className="download-btn small-btn"
                   onClick={handleDownload}
                 >
-                Download Attachment
+                  Download Attachment
                 </button>
               )}
 
