@@ -1,4 +1,4 @@
-const Workload = require('../../models/workload');
+const Workload = require('../../models/Workload');
 const User = require('../../models/User');
 const TeachingAssistant = require('../../models/TeachingAssistant');
 const Course = require('../../models/Course');
@@ -12,6 +12,11 @@ const taWorkloadService = {
     try {
       const workloads = await Workload.findAll({
         where: { taId },
+        include: [{ model: Course, attributes: ['courseId'] }, {
+          model: User,
+          as: 'instructor',
+          attributes: ['firstName', 'lastName', 'email']
+        }],
         order: [['date', 'DESC']] // Sort by date descending
       });
       
@@ -37,6 +42,11 @@ const taWorkloadService = {
           isApproved: false,
           rejectionReason: null // Null rejection reason means it's pending
         },
+        include: [{ model: Course, attributes: ['courseCode'] }, {
+          model: User,
+          as: 'instructor',
+          attributes: ['email']
+        }],
         order: [['date', 'ASC']] // Most immediate dates first
       });
       
@@ -61,7 +71,13 @@ const taWorkloadService = {
           taId,
           isApproved: true
         },
-        order: [['date', 'ASC']] // Sort by upcoming dates
+        order: [['date', 'ASC']], // Sort by upcoming dates
+        include: [{ model: Course, attributes: ['courseCode'] },
+        {
+          model: User,
+          as: 'instructor',
+          attributes: ['email']
+        }],
       });
       
       return {
@@ -120,7 +136,7 @@ const taWorkloadService = {
       // Create a new workload
       const newWorkload = await Workload.create({
         id: uuidv4(),
-        courseCode: workloadData.courseCode,
+        courseId: course.id,
         taskType: workloadData.workloadType,
         date: new Date(workloadData.date),
         duration: hours,

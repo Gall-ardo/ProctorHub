@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require('dotenv').config();
 require("./models"); // This ensures all models and associations are registered
 
@@ -20,6 +21,11 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'))
+);
 
 // API Routes
 app.use("/api/auth", authRoutes);

@@ -1,10 +1,10 @@
-// src/components/InstructorMainPage.jsx
+// src/components/SecretaryMainPage.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import InstructorNavBar from './InstructorNavBar';
-import './InstructorMainPage.css';
+import SecretaryNavBar from './SecretaryNavBar';
+import './SecretaryMainPage.css';
 
-export default function InstructorMainPage() {
+export default function SecretaryMainPage() {
   const [upcomingExams, setUpcomingExams] = useState([]);
   const [latestSwaps,   setLatestSwaps]   = useState([]);
   const [selectedInfo,  setSelectedInfo]  = useState(null);
@@ -22,10 +22,10 @@ export default function InstructorMainPage() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-        console.log('Fetching instructor dashboard with token:', token ? 'exists' : 'missing');
+        console.log('Fetching Secretary dashboard with token:', token ? 'exists' : 'missing');
 
         // Hit your single dashboard endpoint
-        const response = await axios.get(`${API_URL}/instructor/dashboard`, {
+        const response = await axios.get(`${API_URL}/secretary/dashboard`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -52,8 +52,8 @@ export default function InstructorMainPage() {
   const closeModal = () => { setIsModalOpen(false); setSelectedInfo(null); };
 
   return (
-    <div className="instructor-main-page">
-      <InstructorNavBar />
+    <div className="secretary-main-page">
+      <SecretaryNavBar />
 
       <main className="main-content">
         {/* Upcoming Exams */}

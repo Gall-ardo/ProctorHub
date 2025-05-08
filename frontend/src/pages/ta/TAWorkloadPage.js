@@ -18,7 +18,7 @@ const TAWorkloadPage = () => {
     const fetchWorkloads = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
         console.log('Fetching workloads with token:', token ? 'exists' : 'missing');
@@ -40,16 +40,20 @@ const TAWorkloadPage = () => {
             const date = new Date(workload.date);
             const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
             const hours = Math.round(workload.duration);
-
+          
+            const instructor = workload.instructor?.email || 'Unknown';
+          
             return {
               id: workload.id,
-              course: workload.courseCode,
+              course: workload.Course?.courseCode || 'Unknown',
               type: workload.taskType,
               date: formattedDate,
               hours: hours,
-              instructor: workload.instructorName || 'Unknown',
+              instructor: instructor
             };
           };
+          
+          
 
           setWaitingWorkloads(pendingResponse.data.data.map(formatWorkload));
           setApprovedWorkloads(approvedResponse.data.data.map(formatWorkload));
@@ -77,7 +81,7 @@ const TAWorkloadPage = () => {
 
   const handleSubmitWorkload = async (formData) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
 
       console.log('Submitting workload with token:', token ? 'exists' : 'missing');
@@ -102,7 +106,7 @@ const TAWorkloadPage = () => {
 
         const newWorkload = {
           id: workloadData.id,
-          course: formData.courseCode,
+          course: formData.courseId,
           type: formData.workloadType,
           date: formattedDate,
           hours: parseInt(formData.hours),

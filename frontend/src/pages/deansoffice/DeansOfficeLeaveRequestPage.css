@@ -41,23 +41,35 @@
 
 .panel-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 1rem;
-}
-
-.sort-btn {
+  }
+  
+  .sort-select {
+    /* remove default OS styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  
+    /* match our other buttons */
     background-color: var(--accent-color);
     color: var(--secondary-color);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     padding: 0.5rem 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     font-size: 0.9rem;
-}
+    cursor: pointer;
+  
+    /* pull the arrow into our color scheme */
+    background-image: url("data:image/svg+xml;charset=UTF8,%3Csvg%20width%3D%2210%22%20height%3D%226%22%20viewBox%3D%220%200%2010%206%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M0%200l5%206%205-6z%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 0.8rem) center;
+  }
+  
+  .sort-select::-ms-expand {
+    display: none;
+  }
 
 .dropdown-arrow {
     font-size: 0.8rem;
@@ -411,15 +423,22 @@ h3 {
     gap: 0.5rem;
 }
 
-.download-btn::before {
-    content: "↓";
-    font-weight: bold;
-}
+/* —— Add this to DeansOfficeLeaveRequestPage.css —— */
 
-.print-btn::before {
-    content: "🖨";
-    font-size: 0.9rem;
-}
+.download-btn {
+    background-color: var(--accent-color);
+    color: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;    /* smaller padding */
+    font-size: 0.9rem;        /* match other buttons */
+    cursor: pointer;
+    margin-bottom: 1rem;      /* keep some breathing room */
+    align-self: flex-start;   /* hug the left side */
+    transition: background-color 0.2s;
+  }
+
+  
 
 /* Improve responsive behavior */
 @media (max-width: 768px) {

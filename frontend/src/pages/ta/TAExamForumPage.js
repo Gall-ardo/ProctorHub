@@ -60,7 +60,7 @@ const TAExamForumPage = () => {
   const fetchUserExams = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');
@@ -93,7 +93,7 @@ const TAExamForumPage = () => {
   const fetchWaitingSwapRequests = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');
@@ -126,7 +126,7 @@ const TAExamForumPage = () => {
   const fetchForumItems = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         setError('Authentication required. Please log in again.');
