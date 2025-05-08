@@ -16,9 +16,10 @@
 .instructor-exams-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   background-color: var(--background-color);
   font-family: var(--font-family);
+  padding-top: 60px; /* Add padding for fixed navbar */
 }
 
 /* Top Navbar */

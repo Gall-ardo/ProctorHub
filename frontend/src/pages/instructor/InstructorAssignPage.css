@@ -24,6 +24,7 @@
     flex-direction: column;
     background-color: var(--background-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-top: 60px; /* Add padding for fixed navbar */
 }
 
 .instructor-content-container {

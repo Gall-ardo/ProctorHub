@@ -46,7 +46,8 @@ function DepartmentChairAssignPage() {
                     axios.get(`${API_URL}/chair/ta-requests`, { headers })
                 ]);
 
-                setDepartmentCourses(coursesResponse.data.data || []);
+                const courses = coursesResponse.data.data || [];
+                setDepartmentCourses(courses);
                 setAvailableTAs(tasResponse.data.data || []);
                 setTaRequests(requestsResponse.data.data || []);
             } catch (err) {
@@ -64,6 +65,14 @@ function DepartmentChairAssignPage() {
 
         fetchData();
     }, [API_URL]);
+    
+    // Preselect the first course when department courses are loaded
+    useEffect(() => {
+        if (departmentCourses.length > 0 && !selectedCourse) {
+            console.log('Preselecting the first available course:', departmentCourses[0].courseCode);
+            handleCourseSelect(departmentCourses[0]);
+        }
+    }, [departmentCourses, selectedCourse]);
 
     // Initialize with mock data for development or when API fails
     const initializeWithMockData = () => {
@@ -205,6 +214,8 @@ function DepartmentChairAssignPage() {
         setAvailableTAs(mockTAs);
         setDepartmentCourses(mockCourses);
         setTaRequests(mockRequests);
+        
+        // The course preselection will be handled by the useEffect
     };
 
     // Handle course selection
@@ -364,6 +375,11 @@ function DepartmentChairAssignPage() {
         try {
             const headers = getAuthHeader();
             
+            // Log the current selectedTAs for debugging
+            console.log(`FINALIZING: Currently selected TAs for ${selectedCourse.courseCode}:`, 
+                selectedTAs.map(ta => ({ id: ta.id, name: ta.name, wasAlreadyAssigned: ta.wasAlreadyAssigned }))
+            );
+            
             // Simplified data - just send the IDs of selected TAs
             // The backend will handle removing old assignments and adding new ones
             const assignmentData = {
@@ -372,6 +388,7 @@ function DepartmentChairAssignPage() {
             };
 
             console.log(`Sending assignment data for ${selectedCourse.courseCode}:`, assignmentData);
+            console.log(`This will REPLACE ALL existing TA assignments with only these ${assignmentData.taIds.length} TAs`);
 
             const response = await axios.post(
                 `${API_URL}/chair/assign-tas-to-course`,
@@ -380,6 +397,7 @@ function DepartmentChairAssignPage() {
             );
 
             if (response.data.success) {
+                console.log(`Successfully updated TA assignments for ${selectedCourse.courseCode}`, response.data);
                 alert(`TA assignments for ${selectedCourse.courseCode} have been updated.`);
                 
                 // Update the courses to reflect the new TA assignments
@@ -405,6 +423,7 @@ function DepartmentChairAssignPage() {
                 
                 setShowConfirmation(false);
             } else {
+                console.error("API returned error:", response.data);
                 alert(response.data.message || "Failed to assign TAs");
             }
         } catch (error) {

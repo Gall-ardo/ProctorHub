@@ -258,7 +258,9 @@ class DepartmentChairService {
         try {
             console.log(`Assigning TAs to course ${courseId}. TA IDs: ${taIds.join(', ')}`);
             
-            const course = await Course.findByPk(courseId);
+            const course = await Course.findByPk(courseId, {
+                include: [{ model: TeachingAssistant, as: 'TAs' }]
+            });
             
             if (!course) {
                 throw new Error('Course not found');
@@ -268,12 +270,56 @@ class DepartmentChairService {
             const existingTAs = await this.getCourseTAs(courseId);
             const existingTAIds = existingTAs.map(ta => ta.id);
             
-            console.log(`Existing TAs for course ${courseId}: ${existingTAIds.join(', ')}`);
+            console.log(`Existing TAs for course ${courseId}: ${existingTAIds.join(', ') || 'None'}`);
             
-            // Remove all existing TA assignments for this course
-            // Using removeTAs() with no arguments will remove ALL TAs
+            // IMPORTANT: Remove ALL existing TA assignments for this course using Sequelize methods
             console.log(`Removing all existing TA assignments for course ${courseId}`);
+            
+            // Method 1: If we have the TAs loaded on the course object, remove them specifically
+            if (course.TAs && course.TAs.length > 0) {
+                console.log(`Found ${course.TAs.length} TAs directly on course object to remove`);
+                // Remove each TA individually first to ensure thorough removal
+                for (const ta of course.TAs) {
+                    console.log(`Removing individual TA ${ta.id} from course ${courseId}`);
+                    await course.removeTA(ta);
+                }
+                
+                // Then do a bulk removal as well
+                console.log(`Doing bulk removal of all TAs from course ${courseId}`);
+                await course.removeTAs(course.TAs);
+            }
+            
+            // Method 2: Use the general removeTAs method with no arguments to remove all
+            console.log(`Using general removeTAs() method for course ${courseId}`);
             await course.removeTAs();
+            
+            // Double-check that TAs were removed
+            const courseAfterRemoval = await Course.findByPk(courseId, {
+                include: [{ model: TeachingAssistant, as: 'TAs' }]
+            });
+            
+            if (courseAfterRemoval.TAs && courseAfterRemoval.TAs.length > 0) {
+                console.log(`WARNING: Still found ${courseAfterRemoval.TAs.length} TAs after removal. Trying individual removal...`);
+                
+                // Last resort: try removing each one individually again
+                for (const ta of courseAfterRemoval.TAs) {
+                    console.log(`Final attempt: Removing TA ${ta.id} individually`);
+                    await courseAfterRemoval.removeTA(ta);
+                }
+                
+                // Get a fresh course object after all removal attempts
+                const finalCheckCourse = await Course.findByPk(courseId, {
+                    include: [{ model: TeachingAssistant, as: 'TAs' }]
+                });
+                
+                if (finalCheckCourse.TAs && finalCheckCourse.TAs.length > 0) {
+                    console.error(`CRITICAL: Unable to remove all TAs from course ${courseId} after multiple attempts`);
+                } else {
+                    console.log(`Successfully removed all TAs from course ${courseId} after multiple attempts`);
+                }
+            } else {
+                console.log(`Successfully removed all TAs from course ${courseId}`);
+            }
             
             if (taIds.length === 0) {
                 console.log(`No new TAs to assign for course ${courseId}`);
@@ -293,9 +339,15 @@ class DepartmentChairService {
             
             console.log(`Found ${tasToAssign.length} TAs to assign to course ${courseId}`);
 
+            // Get a fresh course object before adding new TAs
+            const freshCourse = await Course.findByPk(courseId);
+            
             // Assign TAs to the course
-            await course.addTAs(tasToAssign);
-            console.log(`Successfully assigned ${tasToAssign.length} TAs to course ${courseId}`);
+            if (tasToAssign.length > 0) {
+                console.log(`Adding ${tasToAssign.length} TAs to course ${courseId}`);
+                await freshCourse.addTAs(tasToAssign);
+                console.log(`Successfully assigned ${tasToAssign.length} TAs to course ${courseId}`);
+            }
 
             // Update all related TARequests to 'approved' if they match the assigned TAs
             await TARequest.update(
@@ -320,6 +372,18 @@ class DepartmentChairService {
                     }
                 }
             );
+
+            // Final verification
+            const finalCourse = await Course.findByPk(courseId, {
+                include: [{ model: TeachingAssistant, as: 'TAs' }]
+            });
+            
+            const finalTACount = finalCourse.TAs ? finalCourse.TAs.length : 0;
+            console.log(`FINAL verification: Course ${courseId} has ${finalTACount} TAs assigned`);
+            
+            if (finalTACount !== tasToAssign.length) {
+                console.log(`WARNING: Expected ${tasToAssign.length} TAs but found ${finalTACount}`);
+            }
 
             return {
                 courseId: course.id,
