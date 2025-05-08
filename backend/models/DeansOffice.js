@@ -10,6 +10,4 @@ const DeansOffice = sequelize.define("DeansOffice", {
   },
 });
 
-DeansOffice.belongsTo(User, { foreignKey: "id", as: "user" });
-
 module.exports = DeansOffice;

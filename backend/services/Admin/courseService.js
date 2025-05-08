@@ -1,6 +1,7 @@
 // services/Admin/courseService.js
 const Course = require("../../models/Course");
 const Instructor = require("../../models/Instructor");
+const TeachingAssistant = require("../../models/TeachingAssistant");
 const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
 const sequelize = require("../../config/db");
@@ -51,6 +52,31 @@ class CourseService {
         studentCount: courseData.studentCount || 0
       }, { transaction: t });
       
+      // Associate instructors if provided
+      if (courseData.instructorIds && Array.isArray(courseData.instructorIds) && courseData.instructorIds.length > 0) {
+        const instructors = await Instructor.findAll({
+          where: { id: courseData.instructorIds },
+          transaction: t
+        });
+        
+        if (instructors.length > 0) {
+          await course.addInstructors(instructors, { transaction: t });
+        }
+      }
+      
+      // Associate teaching assistants if provided
+      if (courseData.taIds && Array.isArray(courseData.taIds) && courseData.taIds.length > 0) {
+        const teachingAssistants = await TeachingAssistant.findAll({
+          where: { id: courseData.taIds },
+          transaction: t
+        });
+        
+        if (teachingAssistants.length > 0) {
+          // Use the 'TAs' alias to properly associate teaching assistants
+          await course.addTAs(teachingAssistants, { transaction: t });
+        }
+      }
+      
       await t.commit();
       return course;
     } catch (error) {
@@ -67,7 +93,12 @@ class CourseService {
    */
   async getCourseById(id) {
     try {
-      const course = await Course.findByPk(id);
+      const course = await Course.findByPk(id, {
+        include: [
+          { model: Instructor, as: 'instructors', through: { attributes: [] } },
+          { model: TeachingAssistant, as: 'TAs', through: { attributes: [] } }
+        ]
+      });
       
       if (!course) {
         throw new Error("Course not found");
@@ -90,7 +121,11 @@ class CourseService {
       const course = await Course.findOne({
         where: {
           courseCode: courseCode
-        }
+        },
+        include: [
+          { model: Instructor, as: 'instructors', through: { attributes: [] } },
+          { model: TeachingAssistant, as: 'TAs', through: { attributes: [] } }
+        ]
       });
       
       if (!course) {
@@ -127,6 +162,10 @@ class CourseService {
       
       return await Course.findAll({
         where: whereClause,
+        include: [
+          { model: Instructor, as: 'instructors', through: { attributes: [] } },
+          { model: TeachingAssistant, as: 'TAs', through: { attributes: [] } }
+        ],
         order: [['courseCode', 'ASC']]
       });
     } catch (error) {
@@ -150,7 +189,6 @@ class CourseService {
       if (!course) {
         throw new Error("Course not found");
       }
-
       
       // Check if courseCode is being updated and if it's already in use by another course
       if (courseData.courseCode && courseData.courseCode !== course.courseCode) {
@@ -171,25 +209,43 @@ class CourseService {
       if (!courseData.courseName && courseData.department && courseData.courseCode) {
         courseData.courseName = `${courseData.department}${courseData.courseCode}`;
       }
+      
       // Update the course
       await course.update(courseData, { transaction: t });
-      const instructorIds = courseData.instructorIds;
-
-      // If instructors are provided, associate them with the course
-      if (instructorIds.length > 0) {
+      
+      // Handle instructor associations if provided
+      if (courseData.instructorIds && Array.isArray(courseData.instructorIds)) {
         // Find all instructors that match the provided IDs
         const instructors = await Instructor.findAll({
-          where: { id: instructorIds },
+          where: { id: courseData.instructorIds },
           transaction: t
         });
-
-        // Based on your table structure and model associations
-        if (instructors.length > 0) {
-          await course.addInstructors(instructors, { transaction: t });
+        
+        // Replace existing instructors with the new set
+        if (instructors.length > 0 || courseData.instructorIds.length === 0) {
+          await course.setInstructors(instructors, { transaction: t });
         }
       }
+      
+      // Handle teaching assistant associations if provided
+      if (courseData.taIds && Array.isArray(courseData.taIds)) {
+        // Find all teaching assistants that match the provided IDs
+        const teachingAssistants = await TeachingAssistant.findAll({
+          where: { id: courseData.taIds },
+          transaction: t
+        });
+        
+        // Replace existing teaching assistants with the new set
+        // Use the 'TAs' alias to properly associate teaching assistants
+        if (teachingAssistants.length > 0 || courseData.taIds.length === 0) {
+          await course.setTAs(teachingAssistants, { transaction: t });
+        }
+      }
+      
       await t.commit();
-      return course;
+      
+      // Reload the course with associations to return
+      return await this.getCourseById(id);
     } catch (error) {
       console.error(`Transaction error in updateCourse for ID ${id}:`, error);
       await t.rollback();
@@ -224,6 +280,115 @@ class CourseService {
   }
 
   /**
+   * Add teaching assistants to a course
+   * @param {String} courseId - The course ID
+   * @param {Array} taIds - Array of teaching assistant IDs
+   * @returns {Promise<Object>} The updated course
+   */
+  async addTeachingAssistantsToCourse(courseId, taIds) {
+    const t = await sequelize.transaction();
+    
+    try {
+      const course = await Course.findByPk(courseId, { transaction: t });
+      
+      if (!course) {
+        throw new Error("Course not found");
+      }
+      
+      // Find all teaching assistants that match the provided IDs
+      const teachingAssistants = await TeachingAssistant.findAll({
+        where: { id: taIds },
+        transaction: t
+      });
+      
+      if (teachingAssistants.length === 0) {
+        throw new Error("No valid teaching assistants found with the provided IDs");
+      }
+      
+      // Add the teaching assistants to the course
+      // Use the 'TAs' alias to properly associate teaching assistants
+      await course.addTAs(teachingAssistants, { transaction: t });
+      
+      await t.commit();
+      
+      // Reload the course with associations
+      return await this.getCourseById(courseId);
+    } catch (error) {
+      console.error(`Transaction error in addTeachingAssistantsToCourse for ID ${courseId}:`, error);
+      await t.rollback();
+      throw error;
+    }
+  }
+
+  /**
+   * Remove a teaching assistant from a course
+   * @param {String} courseId - The course ID
+   * @param {String} taId - The teaching assistant ID
+   * @returns {Promise<Boolean>} Success status
+   */
+  async removeTeachingAssistantFromCourse(courseId, taId) {
+    const t = await sequelize.transaction();
+    
+    try {
+      const course = await Course.findByPk(courseId, { transaction: t });
+      
+      if (!course) {
+        throw new Error("Course not found");
+      }
+      
+      // Find the teaching assistant
+      const teachingAssistant = await TeachingAssistant.findByPk(taId, { transaction: t });
+      
+      if (!teachingAssistant) {
+        throw new Error("Teaching assistant not found");
+      }
+      
+      // Check if the teaching assistant is associated with the course
+      // Use the 'TAs' alias to properly check association
+      const association = await course.hasTAs(teachingAssistant, { transaction: t });
+      
+      if (!association) {
+        throw new Error("Teaching assistant is not assigned to this course");
+      }
+      
+      // Remove the teaching assistant from the course
+      // Use the 'TAs' alias to properly remove association
+      await course.removeTA(teachingAssistant, { transaction: t });
+      
+      await t.commit();
+      return true;
+    } catch (error) {
+      console.error(`Transaction error in removeTeachingAssistantFromCourse for course ID ${courseId} and TA ID ${taId}:`, error);
+      await t.rollback();
+      throw error;
+    }
+  }
+
+  /**
+   * Get all teaching assistants for a course
+   * @param {String} courseId - The course ID
+   * @returns {Promise<Array>} List of teaching assistants
+   */
+  async getTeachingAssistantsForCourse(courseId) {
+    try {
+      const course = await Course.findByPk(courseId, {
+        include: [
+          { model: TeachingAssistant, as: 'TAs', through: { attributes: [] } }
+        ]
+      });
+      
+      if (!course) {
+        throw new Error("Course not found");
+      }
+      
+      return course.TAs;
+    } catch (error) {
+      console.error(`Error getting teaching assistants for course ID ${courseId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Import courses from CSV data
    * @param {Array} coursesData - Array of course data objects
    * @returns {Promise<Object>} Result with success count and errors
@@ -248,7 +413,7 @@ class CourseService {
           continue;
         }
         
-        // Create course without sending individual emails
+        // Create course
         const course = await this.createCourse(courseData);
         createdCourses.push(course);
       } catch (error) {
@@ -282,6 +447,10 @@ class CourseService {
             { department: { [Op.like]: `%${query}%` } }
           ]
         },
+        include: [
+          { model: Instructor, as: 'instructors', through: { attributes: [] } },
+          { model: TeachingAssistant, as: 'TAs', through: { attributes: [] } }
+        ],
         limit: 20
       });
     } catch (error) {

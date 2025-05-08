@@ -212,6 +212,126 @@ class CourseController {
     }
   }
 
+  async addTeachingAssistant(req, res) {
+    try {
+      console.log(`Add TA request for course ID ${req.params.id}:`, JSON.stringify(req.body, null, 2));
+      
+      if (!req.body.taIds || !Array.isArray(req.body.taIds) || req.body.taIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Teaching assistant IDs are required",
+          error: "Missing required fields"
+        });
+      }
+      
+      // First check if the course exists
+      const course = await courseService.getCourseById(req.params.id);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+          error: "Course not found with the provided ID"
+        });
+      }
+      
+      const result = await courseService.addTeachingAssistantsToCourse(req.params.id, req.body.taIds);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Teaching assistants added successfully',
+        data: result
+      });
+    } catch (error) {
+      console.error("Error adding teaching assistants:", error);
+      
+      let statusCode = 400;
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: "Failed to add teaching assistants", 
+        error: error.message 
+      });
+    }
+  }
+
+  async removeTeachingAssistant(req, res) {
+    try {
+      console.log(`Remove TA request for course ID ${req.params.courseId} and TA ID ${req.params.taId}`);
+      
+      // First check if the course exists
+      const course = await courseService.getCourseById(req.params.courseId);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+          error: "Course not found with the provided ID"
+        });
+      }
+      
+      await courseService.removeTeachingAssistantFromCourse(req.params.courseId, req.params.taId);
+      
+      res.status(200).json({
+        success: true,
+        message: "Teaching assistant removed successfully"
+      });
+    } catch (error) {
+      console.error("Error removing teaching assistant:", error);
+      
+      let statusCode = 400;
+      let errorMessage = "Failed to remove teaching assistant";
+      
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+        errorMessage = error.message;
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: errorMessage, 
+        error: error.message
+      });
+    }
+  }
+
+  async getTeachingAssistants(req, res) {
+    try {
+      console.log(`Get TAs request for course ID ${req.params.id}`);
+      
+      // First check if the course exists
+      const course = await courseService.getCourseById(req.params.id);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+          error: "Course not found with the provided ID"
+        });
+      }
+      
+      const tas = await courseService.getTeachingAssistantsForCourse(req.params.id);
+      
+      res.status(200).json({
+        success: true,
+        data: tas
+      });
+    } catch (error) {
+      console.error("Error getting teaching assistants:", error);
+      
+      let statusCode = 500;
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: "Failed to get teaching assistants", 
+        error: error.message 
+      });
+    }
+  }
+
   async importCoursesFromCSV(req, res) {
     try {
       if (!req.file) {
@@ -251,6 +371,10 @@ class CourseController {
               transformedData.semesterId = data[key];
             } else if (lowerKey === 'studentcount' || lowerKey === 'students') {
               transformedData.studentCount = parseInt(data[key], 10);
+            } else if (lowerKey === 'instructorids' || lowerKey === 'instructors') {
+              transformedData.instructorIds = data[key].split(',').map(id => id.trim());
+            } else if (lowerKey === 'taids' || lowerKey === 'teachingassistants' || lowerKey === 'tas') {
+              transformedData.taIds = data[key].split(',').map(id => id.trim());
             }
           });
           

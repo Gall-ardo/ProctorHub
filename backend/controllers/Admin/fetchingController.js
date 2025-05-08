@@ -6,9 +6,7 @@ const courseFetchingService = require('../../services/Admin/courseFetchingServic
 
 
 class FetchingController {
-    /**
-     * Get all semesters
-     */
+
     async getAllSemesters(req, res) {
         try {
             const semesters = await semesterFetchingService.getAllSemesters();
