@@ -3,16 +3,15 @@ const sequelize = require("../config/db");
 
 const TARequest = sequelize.define("TARequest", {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.STRING,
     primaryKey: true,
   },
   instructorId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   taId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   courseId: {
@@ -33,4 +32,4 @@ const TARequest = sequelize.define("TARequest", {
   },
 });
 
-module.exports = TARequest; 
+module.exports = TARequest;
