@@ -1,4 +1,3 @@
-// CourseSelectionPopup.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './CourseSelectionPopup.module.css';
@@ -8,7 +7,7 @@ const CourseSelectionPopup = ({
   onClose, 
   onSelectCourses, 
   selectedCourses = [],
-  department 
+  department  // Still accepting department but not using it to filter courses
 }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,9 +17,9 @@ const CourseSelectionPopup = ({
   
   useEffect(() => {
     if (isOpen) {
-      fetchCourses();
+      fetchAllCourses();
     }
-  }, [isOpen, department]);
+  }, [isOpen]);
   
   useEffect(() => {
     // Filter courses based on search term
@@ -35,20 +34,17 @@ const CourseSelectionPopup = ({
     }
   }, [searchTerm, courses]);
   
-  const fetchCourses = async () => {
+  // Modified to fetch ALL courses, regardless of department
+  const fetchAllCourses = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('Current department:', department);
-      
-      // Create the API URL
+      // Always use the endpoint that fetches all courses
       const baseUrl = 'http://localhost:5001';
-      const endpoint = department 
-        ? `${baseUrl}/api/admin/fetch/courses/department/${department}`
-        : `${baseUrl}/api/admin/fetch/courses`;
+      const endpoint = `${baseUrl}/api/admin/fetch/courses`;
       
-      console.log(`Fetching courses from endpoint: ${endpoint}`);
+      console.log(`Fetching all courses from endpoint: ${endpoint}`);
       
       const response = await axios.get(endpoint);
       
@@ -131,7 +127,7 @@ const CourseSelectionPopup = ({
             ) : (
               filteredCourses.map(course => (
                 <div 
-                   key={course.id || `${course.department}-${course.courseCode}`} 
+                  key={course.id || `${course.department}-${course.courseCode}`} 
                   className={`${styles.courseItem} ${selectedCourses.includes(`${course.department} ${course.courseCode}`) ? styles.selected : ''}`}
                   onClick={() => toggleCourseSelection(course)}
                 >
