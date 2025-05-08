@@ -17,7 +17,7 @@ const TAMainPage = () => {
   const API_URL = 'http://localhost:5001/api';
   
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     return {
       headers: {
         'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ const TAMainPage = () => {
   const fetchScheduleData = async () => {
   try {
     setLoading(true);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) throw new Error('No authentication token found');
 
     const response = await axios.get(`${API_URL}/ta/schedule/combined`, {
@@ -56,7 +56,7 @@ const TAMainPage = () => {
   // Fetch swap requests
   const fetchSwapRequests = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
       if (!token) {
         throw new Error('Authentication token not found');
