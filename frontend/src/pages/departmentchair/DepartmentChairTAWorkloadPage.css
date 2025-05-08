@@ -1,9 +1,27 @@
+/* Add global variables for consistent styling */
+:root {
+    --primary-color: #c1272d; /* Red color from header */
+    --secondary-color: #ffffff;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --text-color: #333;
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --border-radius: 4px;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-size-normal: 16px;
+    --font-size-small: 14px;
+    --font-size-heading: 18px;
+}
+
 .ta-workload-page {
     display: flex;
     flex-direction: column;
     height: 100vh;
     background-color: #f5f5f5;
-    font-family: Arial, sans-serif;
+    font-family: var(--font-family);
+    padding-top: 60px; /* Add padding to account for fixed navbar */
 }
 
 /* Top navigation bar */

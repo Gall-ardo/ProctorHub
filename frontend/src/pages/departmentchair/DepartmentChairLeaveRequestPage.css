@@ -20,6 +20,7 @@
     flex-direction: column;
     background-color: var(--background-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-top: 60px; /* Add padding to account for fixed navbar */
 }
 
 /* Main Content Styles */
