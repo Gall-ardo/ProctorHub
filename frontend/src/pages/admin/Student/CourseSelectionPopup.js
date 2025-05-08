@@ -26,8 +26,8 @@ const CourseSelectionPopup = ({
     // Filter courses based on search term
     if (searchTerm.trim()) {
       const filtered = courses.filter(course => 
-        course.courseCode.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        (course.name && course.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        `${course.department} ${course.courseCode}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (course.courseName && course.courseName.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredCourses(filtered);
     } else {
@@ -40,51 +40,64 @@ const CourseSelectionPopup = ({
     setError(null);
     
     try {
-      // First try to get courses by department if a department is selected
-      let response;
-      if (department) {
-        response = await axios.get(`/api/admin/fetch/courses/department/${department}`);
-      } else {
-        response = await axios.get('/api/admin/fetch/courses');
-      }
+      console.log('Current department:', department);
       
-      if (response.data.success) {
-        setCourses(response.data.data || []);
-        setFilteredCourses(response.data.data || []);
+      // Create the API URL
+      const baseUrl = 'http://localhost:5001';
+      const endpoint = department 
+        ? `${baseUrl}/api/admin/fetch/courses/department/${department}`
+        : `${baseUrl}/api/admin/fetch/courses`;
+      
+      console.log(`Fetching courses from endpoint: ${endpoint}`);
+      
+      const response = await axios.get(endpoint);
+      
+      console.log('API Response:', response.data);
+      
+      if (response.data && response.data.success) {
+        if (response.data.data && response.data.data.length > 0) {
+          console.log(`Found ${response.data.data.length} courses from API`);
+          setCourses(response.data.data);
+          setFilteredCourses(response.data.data);
+          setError(null);
+        } else {
+          console.warn('API returned success but no courses');
+          setError('No courses found in database');
+          setCourses([]);
+          setFilteredCourses([]);
+        }
       } else {
-        // Fallback to mock data if API fails
-        const mockCourses = [
-          { courseCode: 'CS-101', name: 'Introduction to Computer Science' },
-          { courseCode: 'CS-102', name: 'Data Structures' },
-          { courseCode: 'EEE-101', name: 'Introduction to Electrical Engineering' },
-          { courseCode: 'IE-101', name: 'Introduction to Industrial Engineering' }
-        ];
-        setCourses(mockCourses);
-        setFilteredCourses(mockCourses);
-        console.warn('Using mock data due to API failure', response);
+        console.warn('API response not successful', response.data);
+        setError('Failed to fetch courses');
+        setCourses([]);
+        setFilteredCourses([]);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
-      // Fallback to mock data
-      const mockCourses = [
-        { courseCode: 'CS-101', name: 'Introduction to Computer Science' },
-        { courseCode: 'CS-102', name: 'Data Structures' },
-        { courseCode: 'EEE-101', name: 'Introduction to Electrical Engineering' },
-        { courseCode: 'IE-101', name: 'Introduction to Industrial Engineering' }
-      ];
-      setCourses(mockCourses);
-      setFilteredCourses(mockCourses);
-      setError('Failed to fetch courses. Using default courses.');
+      
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+      } else {
+        console.error('Error message:', error.message);
+      }
+      
+      setError('Failed to fetch courses');
+      setCourses([]);
+      setFilteredCourses([]);
     } finally {
       setLoading(false);
     }
   };
   
-  const toggleCourseSelection = (courseCode) => {
+  const toggleCourseSelection = (course) => {
+    const formattedCourseCode = `${course.department} ${course.courseCode}`;
     onSelectCourses(
-      selectedCourses.includes(courseCode) 
-        ? selectedCourses.filter(code => code !== courseCode)
-        : [...selectedCourses, courseCode]
+      selectedCourses.includes(formattedCourseCode) 
+        ? selectedCourses.filter(code => code !== formattedCourseCode)
+        : [...selectedCourses, formattedCourseCode]
     );
   };
   
@@ -94,7 +107,7 @@ const CourseSelectionPopup = ({
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h2>Select Course{selectedCourses.length !== 1 ? 's' : ''}</h2>
+          <h2>Select Courses</h2>
           <button className={styles.closeButton} onClick={onClose}>×</button>
         </div>
         
@@ -118,16 +131,16 @@ const CourseSelectionPopup = ({
             ) : (
               filteredCourses.map(course => (
                 <div 
-                  key={course.courseCode} 
-                  className={`${styles.courseItem} ${selectedCourses.includes(course.courseCode) ? styles.selected : ''}`}
-                  onClick={() => toggleCourseSelection(course.courseCode)}
+                   key={course.id || `${course.department}-${course.courseCode}`} 
+                  className={`${styles.courseItem} ${selectedCourses.includes(`${course.department} ${course.courseCode}`) ? styles.selected : ''}`}
+                  onClick={() => toggleCourseSelection(course)}
                 >
                   <div className={styles.courseInfo}>
-                    <div className={styles.courseCode}>{course.courseCode}</div>
-                    <div className={styles.courseName}>{course.name}</div>
+                    <div className={styles.courseCode}>{course.department} {course.courseCode}</div>
+                    <div className={styles.courseName}>{course.courseName}</div>
                   </div>
                   <div className={styles.selectionIndicator}>
-                    {selectedCourses.includes(course.courseCode) && <span>✓</span>}
+                    {selectedCourses.includes(`${course.department} ${course.courseCode}`) && <span>✓</span>}
                   </div>
                 </div>
               ))

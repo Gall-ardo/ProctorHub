@@ -11,22 +11,19 @@ class CourseFetchingService {
       return courses;
     } catch (error) {
       console.error('Error fetching all courses:', error);
-      throw error;
+      return []; 
     }
   }
 
   async getCoursesByDepartment(department) {
     try {
       if (!department) {
-        throw new Error('Department is required');
+        return [];
       }
       
-      // Get courses that match the department prefix
       const courses = await Course.findAll({
         where: {
-          courseCode: {
-            [Op.startsWith]: department
-          }
+          department: department
         },
         order: [['courseCode', 'ASC']]
       });
@@ -34,7 +31,7 @@ class CourseFetchingService {
       return courses;
     } catch (error) {
       console.error(`Error fetching courses for department ${department}:`, error);
-      throw error;
+      return []; 
     }
   }
 
@@ -48,16 +45,24 @@ class CourseFetchingService {
         };
       }
       
-      if (query.name) {
-        whereClause.name = {
-          [Op.iLike]: `%${query.name}%`
+      if (query.courseName) {
+        whereClause.courseName = {
+          [Op.iLike]: `%${query.courseName}%`
         };
       }
       
       if (query.department) {
-        whereClause.courseCode = {
-          [Op.startsWith]: query.department
-        };
+        whereClause.department = query.department;
+      }
+      
+      // Optional filter for graduate courses
+      if (query.isGradCourse !== undefined) {
+        whereClause.isGradCourse = query.isGradCourse === 'true';
+      }
+      
+      // Optional filter for semester
+      if (query.semesterId) {
+        whereClause.semesterId = query.semesterId;
       }
       
       const courses = await Course.findAll({
@@ -68,7 +73,41 @@ class CourseFetchingService {
       return courses;
     } catch (error) {
       console.error('Error searching courses:', error);
-      throw error;
+      return []; 
+    }
+  }
+  
+  // Additional helper method to get course by ID
+  async getCourseById(courseId) {
+    try {
+      const course = await Course.findByPk(courseId);
+      return course;
+    } catch (error) {
+      console.error(`Error fetching course with ID ${courseId}:`, error);
+      return null;
+    }
+  }
+  
+  // Get courses by multiple IDs (useful for batch operations)
+  async getCoursesByIds(courseIds) {
+    try {
+      if (!courseIds || !Array.isArray(courseIds) || courseIds.length === 0) {
+        return [];
+      }
+      
+      const courses = await Course.findAll({
+        where: {
+          id: {
+            [Op.in]: courseIds
+          }
+        },
+        order: [['courseCode', 'ASC']]
+      });
+      
+      return courses;
+    } catch (error) {
+      console.error('Error fetching courses by IDs:', error);
+      return [];
     }
   }
 }

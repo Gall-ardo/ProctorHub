@@ -29,7 +29,8 @@ const AdminStudentManagement = () => {
   const departmentOptions = [
     { label: 'CS', value: 'CS' },
     { label: 'IE', value: 'IE' },
-    { label: 'EEE', value: 'EEE' }
+    { label: 'EEE', value: 'EEE' },
+    { label: 'ME', value: 'ME' }
   ];
 
   const handleFileSelect = (event) => {
