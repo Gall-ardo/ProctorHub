@@ -284,3 +284,75 @@
     cursor: pointer;
     color: #666;
   }
+
+  /* Add these to your TAProctoringPage.css file */
+
+/* Styles for the rejection limit indicator */
+.ta-proctoring-page-limit-text {
+  font-size: 12px;
+  font-weight: normal;
+  color: #777;
+}
+
+.ta-proctoring-page-limit-text.limit-reached {
+  color: #F44336;
+  font-weight: bold;
+}
+
+.ta-proctoring-page-circle.rejected.limit-reached {
+  position: relative;
+}
+
+.ta-proctoring-page-limit-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background-color: #F44336;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.ta-proctoring-page-limit-icon {
+  line-height: 1;
+}
+
+/* Style for disabled reject button */
+.ta-proctoring-page-action-button.reject.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Error dialog */
+.ta-proctoring-page-dialog-icon.error span {
+  color: #F44336;
+}
+
+.ta-proctoring-page-dialog-button.okay {
+  background-color: #757575;
+  color: white;
+}

@@ -5,21 +5,28 @@ import axios from 'axios';
 import './TAProctoringPage.css';
 import TANavBar from './TANavBar';
 
-const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message }) => {
+const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message, isError = false }) => {
   if (!isOpen) return null;
 
   return (
     <div className="ta-proctoring-page-dialog-overlay">
       <div className="ta-proctoring-page-dialog-container">
-        <div className="ta-proctoring-page-dialog-icon">
-          <span>ⓘ</span>
+        <div className={`ta-proctoring-page-dialog-icon ${isError ? 'error' : ''}`}>
+          <span>{isError ? "⚠" : "ⓘ"}</span>
         </div>
         <div className="ta-proctoring-page-dialog-content">
-          <div className="ta-proctoring-page-dialog-title">Confirmation</div>
+          <div className="ta-proctoring-page-dialog-title">{isError ? "Warning" : "Confirmation"}</div>
           <div className="ta-proctoring-page-dialog-message">{message || "Are you sure you want to continue?"}</div>
           <div className="ta-proctoring-page-dialog-actions">
-            <button className="ta-proctoring-page-dialog-button confirm" onClick={onConfirm}>Yes</button>
-            <button className="ta-proctoring-page-dialog-button cancel" onClick={onClose}>Cancel</button>
+            {!isError && (
+              <button className="ta-proctoring-page-dialog-button confirm" onClick={onConfirm}>Yes</button>
+            )}
+            <button 
+              className={`ta-proctoring-page-dialog-button ${isError ? 'okay' : 'cancel'}`} 
+              onClick={onClose}
+            >
+              {isError ? 'Okay' : 'Cancel'}
+            </button>
           </div>
         </div>
         <button className="ta-proctoring-page-dialog-close" onClick={onClose}>×</button>
@@ -31,6 +38,8 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message }) => {
 const TAProctoringPage = () => {
   const [isMultidepartment, setIsMultidepartment] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [currentAction, setCurrentAction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,69 +49,71 @@ const TAProctoringPage = () => {
   const [proctoringStats, setProctoringStats] = useState({
     totalProctoringHours: 0,
     totalRejectedProctoring: 0,
+    maxRejectionsAllowed: 2,
+    isRejectionLimitReached: false,
     isMultidepartment: false
   });
 
   const API_URL = 'http://localhost:5001/api';
 
   useEffect(() => {
-    const fetchProctoringData = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
-
-        const pendingResponse = await axios.get(`${API_URL}/ta/proctorings/pending`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (pendingResponse.data.success) {
-          const formatted = pendingResponse.data.data.map(item => ({
-            id: item.id,
-            course: item.exam.Course?.courseCode || 'N/A',
-            type: item.exam.examType,
-            date: formatDate(item.exam.date),
-            time: formatTime(item.exam.date, item.exam.duration),
-            classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
-          }));
-          setWaitingProctorings(formatted);
-        }
-
-        const activeResponse = await axios.get(`${API_URL}/ta/proctorings/active`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (activeResponse.data.success) {
-          const formatted = activeResponse.data.data.map(item => ({
-            id: item.id,
-            course: item.exam.Course?.courseCode || 'N/A',
-            type: item.exam.examType,
-            date: formatDate(item.exam.date),
-            time: formatTime(item.exam.date, item.exam.duration),
-            classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
-          }));
-          setAssignedProctorings(formatted);
-        }
-
-        const statsResponse = await axios.get(`${API_URL}/ta/proctorings/stats`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (statsResponse.data.success) {
-          setProctoringStats(statsResponse.data.data);
-          setIsMultidepartment(statsResponse.data.data.isMultidepartment);
-        }
-
-        setLoading(false);
-      } catch (err) {
-        console.error('❌ Error fetching data:', err);
-        setError('Failed to load proctoring data.');
-        setLoading(false);
-      }
-    };
-
     fetchProctoringData();
   }, []);
+
+  const fetchProctoringData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const pendingResponse = await axios.get(`${API_URL}/ta/proctorings/pending`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (pendingResponse.data.success) {
+        const formatted = pendingResponse.data.data.map(item => ({
+          id: item.id,
+          course: item.exam.Course?.courseCode || 'N/A',
+          type: item.exam.examType,
+          date: formatDate(item.exam.date),
+          time: formatTime(item.exam.date, item.exam.duration),
+          classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
+        }));
+        setWaitingProctorings(formatted);
+      }
+
+      const activeResponse = await axios.get(`${API_URL}/ta/proctorings/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (activeResponse.data.success) {
+        const formatted = activeResponse.data.data.map(item => ({
+          id: item.id,
+          course: item.exam.Course?.courseCode || 'N/A',
+          type: item.exam.examType,
+          date: formatDate(item.exam.date),
+          time: formatTime(item.exam.date, item.exam.duration),
+          classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
+        }));
+        setAssignedProctorings(formatted);
+      }
+
+      const statsResponse = await axios.get(`${API_URL}/ta/proctorings/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (statsResponse.data.success) {
+        setProctoringStats(statsResponse.data.data);
+        setIsMultidepartment(statsResponse.data.data.isMultidepartment);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ Error fetching data:', err);
+      setError('Failed to load proctoring data.');
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -140,6 +151,12 @@ const TAProctoringPage = () => {
   };
 
   const handleProctoringAction = (action, id) => {
+    if (action === 'reject' && proctoringStats.isRejectionLimitReached) {
+      setErrorMessage(`You have reached the maximum number of allowed rejections (${proctoringStats.maxRejectionsAllowed}). Please accept proctoring assignments or contact your administrator.`);
+      setErrorDialogOpen(true);
+      return;
+    }
+    
     setCurrentAction({ action, id });
     setConfirmDialogOpen(true);
   };
@@ -163,11 +180,22 @@ const TAProctoringPage = () => {
           setWaitingProctorings(prev => prev.filter(p => p.id !== id));
         } else {
           setWaitingProctorings(prev => prev.filter(p => p.id !== id));
+          // Update rejection count in stats
+          setProctoringStats(prev => ({
+            ...prev,
+            totalRejectedProctoring: prev.totalRejectedProctoring + 1,
+            isRejectionLimitReached: prev.totalRejectedProctoring + 1 >= prev.maxRejectionsAllowed
+          }));
         }
       }
     } catch (err) {
       console.error(`Failed to ${action} proctoring:`, err);
-      setError(`Failed to ${action} proctoring.`);
+      if (err.response?.data?.maxRejectionsReached) {
+        setErrorMessage(err.response.data.message);
+        setErrorDialogOpen(true);
+      } else {
+        setError(`Failed to ${action} proctoring.`);
+      }
     }
 
     setConfirmDialogOpen(false);
@@ -177,6 +205,10 @@ const TAProctoringPage = () => {
   const closeConfirmDialog = () => {
     setConfirmDialogOpen(false);
     setCurrentAction(null);
+  };
+
+  const closeErrorDialog = () => {
+    setErrorDialogOpen(false);
   };
 
   const renderWaitingProctoringList = () => {
@@ -193,7 +225,13 @@ const TAProctoringPage = () => {
         </div>
         <div className="ta-proctoring-page-proctoring-actions">
           <button className="ta-proctoring-page-action-button accept" onClick={() => handleProctoringAction('accept', p.id)}>✓</button>
-          <button className="ta-proctoring-page-action-button reject" onClick={() => handleProctoringAction('reject', p.id)}>✕</button>
+          <button 
+            className={`ta-proctoring-page-action-button reject ${proctoringStats.isRejectionLimitReached ? 'disabled' : ''}`} 
+            onClick={() => handleProctoringAction('reject', p.id)}
+            disabled={proctoringStats.isRejectionLimitReached}
+          >
+            ✕
+          </button>
         </div>
       </div>
     ));
@@ -214,6 +252,14 @@ const TAProctoringPage = () => {
       </div>
     ));
   };
+
+  // Calculate percentage for rejected proctorings circle
+  const rejectionPercentage = proctoringStats.maxRejectionsAllowed > 0
+    ? (proctoringStats.totalRejectedProctoring / proctoringStats.maxRejectionsAllowed) * 100
+    : 0;
+  
+  // Clip to 100% maximum
+  const clippedRejectionPercentage = Math.min(rejectionPercentage, 100);
 
   return (
     <div className="ta-proctoring-page-main-page">
@@ -237,13 +283,29 @@ const TAProctoringPage = () => {
 
           <div className="ta-proctoring-page-middle-stat">
             <div className="ta-proctoring-page-stat-item">
-              <div className="ta-proctoring-page-stat-label">Total Rejected Proctoring Number</div>
-              <div className="ta-proctoring-page-circle rejected">
+              <div className="ta-proctoring-page-stat-label">
+                Total Rejected Proctoring 
+                <br />
+                <span className={`ta-proctoring-page-limit-text ${proctoringStats.isRejectionLimitReached ? 'limit-reached' : ''}`}>
+                  ({proctoringStats.totalRejectedProctoring}/{proctoringStats.maxRejectionsAllowed} limit)
+                </span>
+              </div>
+              <div className={`ta-proctoring-page-circle rejected ${proctoringStats.isRejectionLimitReached ? 'limit-reached' : ''}`}>
                 <svg viewBox="0 0 36 36" className="ta-proctoring-page-circular-chart">
                   <path className="ta-proctoring-page-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="ta-proctoring-page-circle" strokeDasharray={`${proctoringStats.totalRejectedProctoring}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="#F44336" />
+                  <path 
+                    className="ta-proctoring-page-circle" 
+                    strokeDasharray={`${clippedRejectionPercentage}, 100`} 
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                    stroke={proctoringStats.isRejectionLimitReached ? "#F44336" : "#FF9800"}
+                  />
                   <text x="18" y="20.35" className="ta-proctoring-page-percentage">{proctoringStats.totalRejectedProctoring}</text>
                 </svg>
+                {proctoringStats.isRejectionLimitReached && (
+                  <div className="ta-proctoring-page-limit-indicator">
+                    <span className="ta-proctoring-page-limit-icon">!</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -283,6 +345,13 @@ const TAProctoringPage = () => {
             ? "Are you sure you want to accept this proctoring assignment?" 
             : "Are you sure you want to reject this proctoring assignment?"
         }
+      />
+      
+      <ConfirmationDialog 
+        isOpen={errorDialogOpen}
+        onClose={closeErrorDialog}
+        message={errorMessage}
+        isError={true}
       />
     </div>
   );

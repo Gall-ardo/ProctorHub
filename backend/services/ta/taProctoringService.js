@@ -6,6 +6,9 @@ const Classroom = require('../../models/Classroom');
 const Course = require('../../models/Course');
 const { v4: uuidv4 } = require('uuid');
 
+// Configure the maximum number of rejections allowed
+const MAX_REJECTIONS_ALLOWED = 2;
+
 const taProctoringService = {
     // Get all proctorings for a specific TA
     getAllProctoringsByTaId: async (taId) => {
@@ -184,6 +187,22 @@ const taProctoringService = {
   // Reject a proctoring assignment
   rejectProctoring: async (proctoringId, taId) => {
     try {
+      // First check if the TA has already reached max rejections
+      const rejectedCount = await Proctoring.count({
+        where: {
+          taId,
+          status: 'REJECTED'
+        }
+      });
+      
+      if (rejectedCount >= MAX_REJECTIONS_ALLOWED) {
+        return {
+          success: false,
+          message: `You have reached the maximum number of allowed rejections (${MAX_REJECTIONS_ALLOWED})`,
+          maxRejectionsReached: true
+        };
+      }
+      
       const proctoring = await Proctoring.findOne({
         where: { 
           id: proctoringId,
@@ -205,7 +224,9 @@ const taProctoringService = {
       return {
         success: true,
         data: proctoring,
-        message: 'Proctoring assignment rejected successfully'
+        message: 'Proctoring assignment rejected successfully',
+        rejectionCount: rejectedCount + 1,
+        maxRejectionsAllowed: MAX_REJECTIONS_ALLOWED
       };
     } catch (error) {
       console.error('Error rejecting proctoring:', error);
@@ -267,6 +288,8 @@ const taProctoringService = {
         data: {
           totalProctoringHours: Math.round(totalHours),
           totalRejectedProctoring: rejectedCount,
+          maxRejectionsAllowed: MAX_REJECTIONS_ALLOWED,
+          isRejectionLimitReached: rejectedCount >= MAX_REJECTIONS_ALLOWED,
           isMultidepartment: isMultidepartment
         }
       };
