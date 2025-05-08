@@ -11,65 +11,129 @@ const TAWorkloadPage = () => {
   const [approvedWorkloads, setApprovedWorkloads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [assignedCourses, setAssignedCourses] = useState([]);
+  const [courseInstructors, setCourseInstructors] = useState({});
+  // Track when workloads should be refreshed
+  const [refreshWorkloads, setRefreshWorkloads] = useState(0);
 
   const API_URL = 'http://localhost:5001/api';
 
-  useEffect(() => {
-    const fetchWorkloads = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
+  // Fetch assigned courses for the TA
+  const fetchAssignedCourses = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
 
-        console.log('Fetching workloads with token:', token ? 'exists' : 'missing');
+      const response = await axios.get(`${API_URL}/ta/courses/assigned`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const pendingResponse = await axios.get(`${API_URL}/ta/workloads/pending`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const approvedResponse = await axios.get(`${API_URL}/ta/workloads/approved`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (pendingResponse.data.success && approvedResponse.data.success) {
-          const formatWorkload = (workload) => {
-            const date = new Date(workload.date);
-            const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
-            const hours = Math.round(workload.duration);
-          
-            const instructor = workload.instructor?.email || 'Unknown';
-          
-            return {
-              id: workload.id,
-              course: workload.Course?.courseCode || 'Unknown',
-              type: workload.taskType,
-              date: formattedDate,
-              hours: hours,
-              instructor: instructor
-            };
-          };
-          
-          
-
-          setWaitingWorkloads(pendingResponse.data.data.map(formatWorkload));
-          setApprovedWorkloads(approvedResponse.data.data.map(formatWorkload));
-        } else {
-          setError('Failed to fetch workload data');
-        }
-      } catch (err) {
-        console.error('Error fetching workloads:', err);
-        setError(err.message || 'An error occurred');
-      } finally {
-        setLoading(false);
+      if (response.data.success) {
+        setAssignedCourses(response.data.data);
+        return response.data.data;
+      } else {
+        console.error('Failed to fetch assigned courses:', response.data.message);
+        return [];
       }
-    };
+    } catch (error) {
+      console.error('Error fetching assigned courses:', error);
+      return [];
+    }
+  };
 
+  // Fetch instructors for a course
+  const fetchCourseInstructors = async (courseId) => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const response = await axios.get(`${API_URL}/ta/courses/${courseId}/instructors`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setCourseInstructors(prev => ({
+          ...prev,
+          [courseId]: response.data.data
+        }));
+        return response.data.data;
+      } else {
+        console.error('Failed to fetch course instructors:', response.data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching course instructors:', error);
+      return [];
+    }
+  };
+
+  // Fetch all workloads
+  const fetchWorkloads = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      console.log('Fetching workloads with token:', token ? 'exists' : 'missing');
+
+      const pendingResponse = await axios.get(`${API_URL}/ta/workloads/pending`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const approvedResponse = await axios.get(`${API_URL}/ta/workloads/approved`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (pendingResponse.data.success && approvedResponse.data.success) {
+        const formatWorkload = (workload) => {
+          const date = new Date(workload.date);
+          const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+          const hours = Math.round(workload.duration);
+        
+          const instructor = workload.instructor?.email || 'Unknown';
+        
+          return {
+            id: workload.id,
+            course: workload.Course?.courseCode || 'Unknown',
+            type: workload.taskType,
+            date: formattedDate,
+            hours: hours,
+            instructor: instructor
+          };
+        };
+        
+        setWaitingWorkloads(pendingResponse.data.data.map(formatWorkload));
+        setApprovedWorkloads(approvedResponse.data.data.map(formatWorkload));
+      } else {
+        setError('Failed to fetch workload data');
+      }
+    } catch (err) {
+      console.error('Error fetching workloads:', err);
+      setError(err.message || 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch workloads when component mounts or when refreshWorkloads changes
+  useEffect(() => {
     fetchWorkloads();
-  }, []);
+  }, [refreshWorkloads]);
+
+  // When popup is opened, fetch assigned courses
+  useEffect(() => {
+    if (isPopupOpen) {
+      fetchAssignedCourses();
+    }
+  }, [isPopupOpen]);
 
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
@@ -83,37 +147,18 @@ const TAWorkloadPage = () => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
-
+  
       console.log('Submitting workload with token:', token ? 'exists' : 'missing');
-
+  
       const response = await axios.post(`${API_URL}/ta/workloads`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (response.data.success) {
-        const workloadData = response.data.data;
-
-        const instructorName = formData.instructorEmail
-          .split('@')[0]
-          .split('.')
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(' ');
-
-        const dateObj = new Date(formData.date);
-        const formattedDate = `${dateObj.getDate().toString().padStart(2, '0')}.${(dateObj.getMonth() + 1).toString().padStart(2, '0')}.${dateObj.getFullYear()}`;
-
-        const newWorkload = {
-          id: workloadData.id,
-          course: formData.courseId,
-          type: formData.workloadType,
-          date: formattedDate,
-          hours: parseInt(formData.hours),
-          instructor: instructorName,
-        };
-
-        setWaitingWorkloads((prev) => [newWorkload, ...prev]);
+        // Instead of manually constructing a workload item, simply refresh all workloads
+        setRefreshWorkloads(prev => prev + 1);
       } else {
         alert(response.data.message || 'Failed to submit workload request');
       }

@@ -1,33 +1,118 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './AddWorkloadPopup.css';
 
 const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    instructorEmail: '',
-    courseCode: '',
+    instructorId: '',
+    courseId: '',
     date: '',
     hours: '04',
     minutes: '00',
     workloadType: 'Lab Work'
   });
   
+  const [assignedCourses, setAssignedCourses] = useState([]);
+  const [courseInstructors, setCourseInstructors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Reset form data when the popup is opened
+  const API_URL = 'http://localhost:5001/api';
+
+  // Fetch TA's assigned courses when popup opens
   useEffect(() => {
     if (isOpen) {
+      fetchAssignedCourses();
+      
+      // Reset form data
       setFormData({
-        instructorEmail: '',
-        courseCode: '',
+        instructorId: '',
+        courseId: '',
         date: '',
         hours: '04',
         minutes: '00',
         workloadType: 'Lab Work'
       });
+      setCourseInstructors([]);
       setValidationError('');
     }
   }, [isOpen]);
+
+  // Fetch instructors when course selection changes
+  useEffect(() => {
+    if (formData.courseId) {
+      fetchCourseInstructors(formData.courseId);
+    } else {
+      setCourseInstructors([]);
+    }
+  }, [formData.courseId]);
+
+  // Fetch TA's assigned courses
+  const fetchAssignedCourses = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const response = await axios.get(`${API_URL}/ta/courses/assigned`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setAssignedCourses(response.data.data);
+      } else {
+        setValidationError('Failed to fetch assigned courses');
+      }
+    } catch (error) {
+      console.error('Error fetching assigned courses:', error);
+      setValidationError(error.message || 'Failed to fetch assigned courses');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch instructors for selected course
+  const fetchCourseInstructors = async (courseId) => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const response = await axios.get(`${API_URL}/ta/courses/${courseId}/instructors`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setCourseInstructors(response.data.data);
+        
+        // If there's only one instructor, automatically select it
+        if (response.data.data.length === 1) {
+          setFormData(prev => ({
+            ...prev,
+            instructorId: response.data.data[0].id
+          }));
+        } else {
+          // Reset instructor selection if multiple instructors
+          setFormData(prev => ({
+            ...prev,
+            instructorId: ''
+          }));
+        }
+      } else {
+        setValidationError('Failed to fetch course instructors');
+      }
+    } catch (error) {
+      console.error('Error fetching course instructors:', error);
+      setValidationError(error.message || 'Failed to fetch course instructors');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,16 +129,15 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const validateForm = () => {
-    // Check if email is in valid format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.instructorEmail)) {
-      setValidationError('Please enter a valid email address');
+    // Check if course is selected
+    if (!formData.courseId) {
+      setValidationError('Please select a course');
       return false;
     }
     
-    // Check course code format (simple validation)
-    if (formData.courseCode.trim().length < 2) {
-      setValidationError('Please enter a valid course code');
+    // Check if instructor is selected
+    if (!formData.instructorId) {
+      setValidationError('Please select an instructor');
       return false;
     }
     
@@ -96,8 +180,19 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
     setIsSubmitting(true);
     
     try {
-      console.log('Submitting workload from popup:', formData);
-      await onSubmit(formData);
+      // Calculate total hours (including minutes portion)
+      const totalHours = parseInt(formData.hours) + (parseInt(formData.minutes) / 60);
+      
+      const submitData = {
+        instructorId: formData.instructorId,
+        courseId: formData.courseId,
+        date: formData.date,
+        hours: totalHours.toFixed(2), // Format with 2 decimal places
+        workloadType: formData.workloadType
+      };
+      
+      console.log('Submitting workload from popup:', submitData);
+      await onSubmit(submitData);
       onClose();
     } catch (error) {
       console.error('Error submitting workload from popup:', error);
@@ -108,10 +203,14 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const handleClose = () => {
-    onClose(); // This will close the popup when the "X" is clicked
+    onClose();
   };
 
   if (!isOpen) return null;
+
+  // Find the selected course for display
+  const selectedCourse = assignedCourses.find(course => course.id === formData.courseId);
+  const selectedInstructor = courseInstructors.find(instructor => instructor.id === formData.instructorId);
 
   return (
     <div className="ta-add-workload-popup-popup-overlay">
@@ -130,27 +229,75 @@ const AddWorkloadPopup = ({ isOpen, onClose, onSubmit }) => {
         
         <form onSubmit={handleSubmit}>
           <div className="ta-add-workload-popup-form-group">
-            <label>Instructor Email</label>
-            <input
-              type="email"
-              name="instructorEmail"
-              placeholder="Enter instructor e-mail"
-              value={formData.instructorEmail}
-              onChange={handleChange}
-              required
-            />
+            <label>Course</label>
+            {isLoading && !formData.courseId ? (
+              <div className="ta-add-workload-popup-loading">Loading courses...</div>
+            ) : (
+              <div className="ta-add-workload-popup-custom-select">
+                <div className="ta-add-workload-popup-selected-option" onClick={() => {
+                  // Toggle dropdown here if needed
+                }}>
+                  {selectedCourse ? 
+                    `${selectedCourse.courseCode} - ${selectedCourse.courseName || ''}` : 
+                    'Select a course'
+                  }
+                  <span className="ta-add-workload-popup-dropdown-arrow">▼</span>
+                </div>
+                <select
+                  name="courseId"
+                  value={formData.courseId}
+                  onChange={handleChange}
+                  required
+                  className="ta-add-workload-popup-hidden-select"
+                >
+                  <option value="">Select a course</option>
+                  {assignedCourses.map(course => (
+                    <option key={course.id} value={course.id}>
+                      {course.courseCode} - {course.courseName || ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="ta-add-workload-popup-form-group">
-            <label>Course Code</label>
-            <input
-              type="text"
-              name="courseCode"
-              placeholder="Enter course code"
-              value={formData.courseCode}
-              onChange={handleChange}
-              required
-            />
+            <label>Instructor</label>
+            {!formData.courseId ? (
+              <div className="ta-add-workload-popup-disabled-select">
+                Please select a course first
+              </div>
+            ) : isLoading ? (
+              <div className="ta-add-workload-popup-loading">Loading instructors...</div>
+            ) : courseInstructors.length === 0 ? (
+              <div className="ta-add-workload-popup-no-data">No instructors found for this course</div>
+            ) : (
+              <div className="ta-add-workload-popup-custom-select">
+                <div className="ta-add-workload-popup-selected-option" onClick={() => {
+                  // Toggle dropdown here if needed
+                }}>
+                  {selectedInstructor ? 
+                    `${selectedInstructor.name || selectedInstructor.email}` : 
+                    'Select an instructor'
+                  }
+                  <span className="ta-add-workload-popup-dropdown-arrow">▼</span>
+                </div>
+                <select
+                  name="instructorId"
+                  value={formData.instructorId}
+                  onChange={handleChange}
+                  required
+                  className="ta-add-workload-popup-hidden-select"
+                >
+                  <option value="">Select an instructor</option>
+                  {courseInstructors.map(instructor => (
+                    <option key={instructor.id} value={instructor.id}>
+                      {instructor.name || instructor.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="ta-add-workload-popup-form-group">

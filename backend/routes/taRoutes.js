@@ -25,6 +25,8 @@ router.get('/workloads', taWorkloadController.getWorkloads);
 router.get('/workloads/pending', taWorkloadController.getPendingWorkloads);
 router.get('/workloads/approved', taWorkloadController.getApprovedWorkloads);
 router.post('/workloads', taWorkloadController.createWorkload);
+router.get('/courses/assigned', taWorkloadController.getTAAssignedCourses);
+router.get('/courses/:courseId/instructors', taWorkloadController.getCourseInstructors);
 
 // Leave of Absence routes
 router.get('/leave-requests', taLeaveController.getLeaveRequests);
