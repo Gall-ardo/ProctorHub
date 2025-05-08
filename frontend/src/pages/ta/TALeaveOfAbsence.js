@@ -212,6 +212,15 @@ const TALeaveOfAbsence = () => {
                   </a>
                 </p>
               )}
+
+              {request.status === 'rejected' && (
+                <p>
+                  Rejection Reason:{' '}
+                  {request.rejectionReason?.trim()
+                    ? request.rejectionReason
+                    : 'None'}
+                </p>
+              )}
             </div>
             
             <div className="ta-leave-of-absence-request-status">
