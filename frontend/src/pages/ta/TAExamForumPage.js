@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './TAExamForumPage.css';
 import TAPersonalSwapRequest from './TAPersonalSwapRequest';
 import TASwapExamDetailsPopup from './TASwapExamDetailsPopup';
@@ -36,6 +37,8 @@ const TAExamForumPage = () => {
   const [selectedForumExam, setSelectedForumExam] = useState(null);
   const [submitForumModalOpen, setSubmitForumModalOpen] = useState(false);
   
+  const API_URL = 'http://localhost:5001/api';
+
   // States for loading and errors
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -68,18 +71,16 @@ const TAExamForumPage = () => {
         return;
       }
 
-      const response = await fetch('/api/ta/swap/my-exams', {
+      const response = await axios.get(`${API_URL}/ta/swaps/my-exams`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setCurrentUserExams(data.data);
+      if (response.data.success) {
+        setCurrentUserExams(response.data.data);
       } else {
-        setError(data.message || 'Failed to fetch exams');
+        setError(response.data.message || 'Failed to fetch exams');
       }
     } catch (err) {
       setError('Error fetching your exams. Please try again.');
@@ -101,18 +102,16 @@ const TAExamForumPage = () => {
         return;
       }
 
-      const response = await fetch('/api/ta/swap/my-requests', {
+      const response = await axios.get(`${API_URL}/ta/swaps/mine`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setWaitingSwapRequests(data.data);
+      if (response.data.success) {
+        setWaitingSwapRequests(response.data.data);
       } else {
-        setError(data.message || 'Failed to fetch swap requests');
+        setError(response.data.message || 'Failed to fetch swap requests');
       }
     } catch (err) {
       setError('Error fetching swap requests. Please try again.');
@@ -134,18 +133,17 @@ const TAExamForumPage = () => {
         return;
       }
 
-      const response = await fetch('/api/ta/swap/forum-items', {
+      // Note: This endpoint needs to be implemented on the backend
+      const response = await axios.get(`${API_URL}/ta/swaps/forum-items`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setSwapForumItems(data.data);
+      if (response.data.success) {
+        setSwapForumItems(response.data.data);
       } else {
-        setError(data.message || 'Failed to fetch forum items');
+        setError(response.data.message || 'Failed to fetch forum items');
       }
     } catch (err) {
       setError('Error fetching forum items. Please try again.');

@@ -35,6 +35,8 @@ DepartmentChair.belongsTo(User, { foreignKey: "id", as: "chairUser" });
 DeansOffice.belongsTo(User, { foreignKey: "id", as: "deanUser" });
 Secretary.belongsTo(User, { foreignKey: "id", as: "secretaryUser" });
 
+User.hasOne(TeachingAssistant, { foreignKey: "id", as: "taUser" }); // ✅ for TA → User
+
 // Notifications
 Notification.belongsTo(User, { as: "recipient", foreignKey: "recipientId" });
 User.hasMany(Notification, { as: "notifications", foreignKey: "recipientId" });
@@ -101,13 +103,18 @@ LeaveRequest.belongsTo(TeachingAssistant, { foreignKey: "taId" });
 
 // TA ↔ SwapRequest
 SwapRequest.belongsTo(TeachingAssistant, { as: "requester", foreignKey: "requesterId" });
-SwapRequest.belongsTo(TeachingAssistant, { as: "recipient", foreignKey: "recipientId" });
+//SwapRequest.belongsTo(TeachingAssistant, { as: "recipient", foreignKey: "recipientId" });
 
 TeachingAssistant.hasMany(SwapRequest, { as: "requestsSent", foreignKey: "requesterId" });
-TeachingAssistant.hasMany(SwapRequest, { as: "requestsReceived", foreignKey: "recipientId" });
+//TeachingAssistant.hasMany(SwapRequest, { as: "requestsReceived", foreignKey: "recipientId" });
+
+SwapRequest.belongsTo(TeachingAssistant, { as: 'targetTa', foreignKey: 'targetTaId' });
+TeachingAssistant.hasMany(SwapRequest, { as: 'requestsReceived', foreignKey: 'targetTaId' });
+
 
 // SwapRequest ↔ Exam
-SwapRequest.belongsTo(Exam, { foreignKey: "examId" });
+//SwapRequest.belongsTo(Exam, { foreignKey: "examId" });
+SwapRequest.belongsTo(Exam, { foreignKey: "examId", as: "exam" });
 Exam.hasMany(SwapRequest, { foreignKey: "examId" });
 
 // TARequest ↔ Instructor

@@ -33,11 +33,14 @@ router.get('/leave-requests/approved', taLeaveController.getApprovedLeaveRequest
 router.post('/leave-requests', upload.single('file'), taLeaveController.createLeaveRequest); 
 router.delete('/leave-requests/:leaveRequestId', taLeaveController.deleteLeaveRequest);
 
-router.post('/swaps', swapRequestController.createPersonalSwapRequest);                   // POST /swaps
-router.get('/swaps/mine', swapRequestController.getMySwapRequests);                      // GET /swaps/mine
-router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);                  // GET /swaps/my-exams
-router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /swaps/respond
-router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /swaps/:swapRequestId
+// Swap routes
+router.post('/swaps', swapRequestController.createPersonalSwapRequest);                   // POST /api/ta/swaps
+router.get('/swaps/mine', swapRequestController.getMySwapRequests);                       // GET /api/ta/swaps/mine
+router.get('/swaps/my-exams', swapRequestController.getMyExamsForSwap);                  // GET /api/ta/swaps/my-exams
+router.post('/swaps/respond', swapRequestController.respondToSwapRequest);               // POST /api/ta/swaps/respond
+router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /api/ta/swaps/:swapRequestId
+router.get('/swaps/forum-items', swapRequestController.getForumSwapRequests);            // GET /api/ta/swaps/forum-items
+router.post('/swaps/forum', swapRequestController.createForumSwapRequest); // POST /api/ta/swaps/forum
 
 router.get('/proctorings', taProctoringController.getAllProctorings);
 router.get('/proctorings/pending', taProctoringController.getPendingProctorings);
@@ -47,10 +50,8 @@ router.put('/proctorings/:proctoringId/reject', taProctoringController.rejectPro
 router.get('/proctorings/stats', taProctoringController.getProctoringStats);
 router.put('/profile/multidepartment', taProctoringController.updateMultidepartmentPreference);
 
+
 router.get('/proctoring-schedule', taProctoringScheduleController.getProctoringSchedule);
 router.get('/schedule/combined', taProctoringScheduleController.getCombinedSchedule);
-
-
-
 
 module.exports = router;

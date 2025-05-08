@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './TAPersonalSwapRequest.css';
 
 const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
@@ -12,6 +13,8 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
 
   // Get user's exams from props or fetch them if not provided
   const [exams, setExams] = useState([]);
+
+  const API_URL = 'http://localhost:5001/api';
 
   useEffect(() => {
     // If current user exams were provided as props, use those
@@ -35,22 +38,29 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
         return;
       }
 
-      const response = await fetch('/api/ta/swap/my-exams', {
+      const response = await axios.get(`${API_URL}/ta/swaps/my-exams`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setExams(data.data);
+      if (response.data.success) {
+        setExams(response.data.data);
       } else {
-        setError(data.message || 'Failed to fetch exams');
+        setError(response.data.message || 'Failed to fetch exams');
       }
     } catch (err) {
-      setError('Error fetching your exams. Please try again.');
-      console.error('Error fetching exams:', err);
+      if (err.response) {
+        console.error('Server error:', err.response.data);
+        setError(err.response.data.message || 'Server error');
+      } else if (err.request) {
+        console.error('No response received:', err.request);
+        setError('No response from server.');
+      } else {
+        console.error('Error', err.message);
+        setError('Unexpected error: ' + err.message);
+      }
+      
     } finally {
       setLoading(false);
     }
@@ -97,18 +107,14 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
       };
       
       // Send API request
-      const response = await fetch('/api/ta/swap/personal', {
-        method: 'POST',
+      const response = await axios.post(`${API_URL}/ta/swaps`, requestData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(requestData)
+        }
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
+      if (response.data.success) {
         setSuccess('Swap request sent successfully');
         // Reset form and close modal after a brief delay to show success message
         setTimeout(() => {
@@ -116,10 +122,10 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
           onClose();
         }, 1500);
       } else {
-        setError(data.message || 'Failed to send swap request');
+        setError(response.data.message || 'Failed to send swap request');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(err.response?.data?.message || 'An error occurred. Please try again.');
       console.error('Error sending swap request:', err);
     } finally {
       setLoading(false);
