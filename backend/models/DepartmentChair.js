@@ -9,6 +9,4 @@ const DepartmentChair = sequelize.define("DepartmentChair", {
   department: DataTypes.STRING,
 });
 
-// Remove any association here - it's defined in index.js
-
 module.exports = DepartmentChair;

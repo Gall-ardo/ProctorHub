@@ -1,0 +1,311 @@
+/* SelectUserPopup.module.css */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 550px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: #333;
+}
+
+.searchContainer {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.resultsContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  border-bottom: 1px solid #eee;
+  max-height: 200px;
+}
+
+.loadingMessage,
+.errorMessage,
+.noResultsMessage {
+  padding: 15px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.errorMessage {
+  color: #c42626;
+}
+
+.userList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.userItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.userItem:hover {
+  background-color: #f5f5f5;
+}
+
+.userItem.selected {
+  background-color: #f2f8ff;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: 500;
+  color: #333;
+}
+
+.userId {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.userDepartment {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkmark {
+  color: #c42626;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.selectionsContainer {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.selectionsContainer h3 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.selectionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.selectedItem {
+  background-color: #f2f8ff;
+  border: 1px solid #d1e6ff;
+  border-radius: 20px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: #c42626;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.noSelectionsMessage {
+  color: #666;
+  font-style: italic;
+}
+
+.actionsContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+}
+
+.cancelButton,
+.confirmButton {
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+.confirmButton {
+  background-color: #c42626;
+  border: 1px solid #c42626;
+  color: white;
+}
+
+.cancelButton:hover {
+  background-color: #eee;
+}
+
+.confirmButton:hover {
+  background-color: #a52020;
+}
+
+/* Add these CSS classes to your existing SelectUserPopup.module.css file */
+
+.departmentFilter {
+  background-color: #f0f8ff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.departmentFilter strong {
+  color: #0056b3;
+}
+
+/* Enhance the header to display the department filter */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f5f5f5;
+}
+
+.header h2 {
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Update the user item to highlight department */
+.userDepartment {
+  background-color: #e6f7ff;
+  color: #0066cc;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+/* Make the filter warning more prominent */
+.warningMessage {
+  color: #856404;
+  background-color: #fff3cd;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  text-align: center;
+  border: 1px solid #ffeeba;
+}
+/* Add these styles to your SelectUserPopup.module.css file */
+
+.debugInfo {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.debugInfo details {
+  cursor: pointer;
+}
+
+.debugInfo summary {
+  font-weight: bold;
+  color: #555;
+}
+
+.debugInfo pre {
+  margin-top: 8px;
+  background-color: #eee;
+  padding: 8px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 200px;
+  font-family: monospace;
+  font-size: 0.8rem;
+}

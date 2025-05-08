@@ -7,6 +7,7 @@ const TeachingAssistant = require("./TeachingAssistant");
 const Instructor = require("./Instructor");
 const DepartmentChair = require("./DepartmentChair");
 const DeansOffice = require("./DeansOffice");
+const Secretary = require("./Secretary");
 const Student = require("./Student");
 const Course = require("./Course");
 const Offering = require("./Offering");
@@ -32,7 +33,7 @@ TeachingAssistant.belongsTo(User, { foreignKey: "id", as: "taUser" });
 Instructor.belongsTo(User, { foreignKey: "id", as: "instructorUser" });
 DepartmentChair.belongsTo(User, { foreignKey: "id", as: "chairUser" });
 DeansOffice.belongsTo(User, { foreignKey: "id", as: "deanUser" });
-Student.belongsTo(User, { foreignKey: "id", as: "studentUser" });
+Secretary.belongsTo(User, { foreignKey: "id", as: "secretaryUser" });
 
 // Notifications
 Notification.belongsTo(User, { as: "recipient", foreignKey: "recipientId" });
@@ -46,14 +47,13 @@ Course.hasMany(Exam, { foreignKey: "courseId" });
 Course.belongsTo(Semester, { foreignKey: "semesterId" });
 Semester.hasMany(Course, { foreignKey: "semesterId" });
 
-
 // Course ↔ TeachingAssistant (student TAs)
-Course.belongsToMany(TeachingAssistant, { through: "CourseTAs", as: "studentTAs" });
-TeachingAssistant.belongsToMany(Course, { through: "CourseTAs", as: "courses" });
+Course.belongsToMany(TeachingAssistant, { through: "TakenCourseTAs", as: "studentTAs" });
+TeachingAssistant.belongsToMany(Course, { through: "TakenCourseTAs", as: "courses" });
 
 // Course ↔ TA (assistants)
-Course.belongsToMany(TeachingAssistant, { through: "CourseTAs", as: "TAs" });
-TeachingAssistant.belongsToMany(Course, { through: "CourseTAs", as: "taCourses" });
+Course.belongsToMany(TeachingAssistant, { through: "GivenCourseTAs", as: "TAs" });
+TeachingAssistant.belongsToMany(Course, { through: "GivenCourseTAs", as: "taCourses" });
 
 // Course ↔ Student
 Course.belongsToMany(Student, { through: "CourseStudents", as: "students" });

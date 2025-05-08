@@ -78,7 +78,8 @@ app.use((err, req, res, next) => {
 });
 
 const syncOptions = {
-  alter: true
+  alter: false,
+  force: process.env.NODE_ENV === 'development'
 };
 
 sequelize.sync(syncOptions)

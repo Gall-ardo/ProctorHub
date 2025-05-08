@@ -1,0 +1,138 @@
+/* CourseSelectionPopup.module.css */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modalContent {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .modalHeader h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+  }
+  
+  .closeButton {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #777;
+  }
+  
+  .modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh;
+  }
+  
+  .searchContainer {
+    margin-bottom: 15px;
+  }
+  
+  .searchInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .courseList {
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .courseItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eaeaea;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .courseItem:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .courseItem.selected {
+    background-color: #f0f7ff;
+  }
+  
+  .courseInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .courseCode {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 3px;
+  }
+  
+  .courseName {
+    font-size: 13px;
+    color: #666;
+  }
+  
+  .selectionIndicator {
+    color: #2196F3;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  
+  .modalFooter {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #eaeaea;
+  }
+  
+  .cancelButton {
+    padding: 8px 15px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .loading, .error, .emptyMessage {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+  }
+  
+  .error {
+    color: #d32f2f;
+  }
