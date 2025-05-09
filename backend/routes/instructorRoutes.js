@@ -117,6 +117,14 @@ router.get(
     taRequestController.getAvailableTAs
 );
 
+// New route for exam-specific TA availability including leave status
+router.get(
+    '/available-tas-for-exam',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.getAvailableTAsForExam
+);
+
 router.get(
     '/instructor-courses',
     authenticateToken,
@@ -145,5 +153,35 @@ router.delete(
     taRequestController.deleteTARequest
 );
 
+// Proctor assignment route
+router.post(
+    '/exams/assign-proctors',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.assignProctors
+);
+
+// Leave check route
+router.get(
+    '/check-ta-leave',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.checkTALeaveStatus
+);
+
+// Exam proctor swap routes
+router.post(
+    '/exams/:examId/swap-proctor',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.swapProctor
+);
+
+router.get(
+    '/exams/:examId/swap-history',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.getSwapHistory
+);
 
 module.exports = router;

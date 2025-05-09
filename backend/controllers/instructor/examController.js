@@ -226,6 +226,255 @@ class ExamController {
             });
         }
     }
+
+    /**
+     * Assign proctors to an exam
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async assignProctors(req, res) {
+        try {
+            const instructorId = req.user.id;
+            const { 
+                examId, 
+                courseName, 
+                manuallySelectedTAs, 
+                proctorNum, 
+                prioritizeCourseAssistants, 
+                autoAssignRemainingTAs,
+                department,
+                examDate,
+                checkLeaveRequests,
+                strictLeaveCheck
+            } = req.body;
+
+            // Validation checks
+            if (!examId && !courseName) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Either examId or courseName must be provided'
+                });
+            }
+
+            // If examId is provided, validate ownership/access
+            if (examId) {
+                const existingExam = await examService.getExamById(examId);
+                
+                // Check if the exam belongs to the authenticated instructor
+                if (existingExam.instructorId !== instructorId) {
+                    // Check if the exam is for a course taught by this instructor
+                    const isCourseInstructor = await examService.isInstructorForExamCourse(
+                        instructorId,
+                        existingExam.courseName
+                    );
+
+                    if (!isCourseInstructor) {
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Not authorized to assign proctors to this exam'
+                        });
+                    }
+                }
+            }
+
+            // Call the service to assign proctors
+            const result = await examService.assignProctors({
+                examId,
+                courseName,
+                instructorId,
+                manuallySelectedTAs: manuallySelectedTAs || [],
+                proctorNum: proctorNum || 1,
+                prioritizeCourseAssistants: prioritizeCourseAssistants || false,
+                autoAssignRemainingTAs: autoAssignRemainingTAs || false,
+                department: department || req.user.department,
+                examDate: examDate,
+                checkLeaveRequests: checkLeaveRequests !== false,
+                strictLeaveCheck: strictLeaveCheck === true
+            });
+
+            return res.status(200).json({
+                success: true,
+                data: result,
+                message: 'Proctors assigned successfully'
+            });
+        } catch (error) {
+            console.error('Error assigning proctors:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to assign proctors'
+            });
+        }
+    }
+
+    /**
+     * Swap a proctor for an exam
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async swapProctor(req, res) {
+        try {
+            const { examId } = req.params;
+            const { oldProctorId, newProctorId } = req.body;
+            const instructorId = req.user.id;
+
+            // Validate input
+            if (!oldProctorId || !newProctorId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Both oldProctorId and newProctorId are required'
+                });
+            }
+
+            // Get the exam to check ownership/access
+            const existingExam = await examService.getExamById(examId);
+            
+            // Check if the exam belongs to the authenticated instructor
+            if (existingExam.instructorId !== instructorId) {
+                // Check if the exam is for a course taught by this instructor
+                const isCourseInstructor = await examService.isInstructorForExamCourse(
+                    instructorId,
+                    existingExam.courseName
+                );
+
+                if (!isCourseInstructor) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Not authorized to swap proctors for this exam'
+                    });
+                }
+            }
+
+            // Call the service to swap proctors
+            const result = await examService.swapProctor(examId, oldProctorId, newProctorId, instructorId);
+
+            return res.status(200).json({
+                success: true,
+                data: result,
+                message: 'Proctor swapped successfully'
+            });
+        } catch (error) {
+            console.error('Error swapping proctor:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to swap proctor'
+            });
+        }
+    }
+
+    /**
+     * Get swap history for an exam
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async getSwapHistory(req, res) {
+        try {
+            const { examId } = req.params;
+            const instructorId = req.user.id;
+
+            // Get the exam to check ownership/access
+            const existingExam = await examService.getExamById(examId);
+            
+            // Check if the exam belongs to the authenticated instructor
+            if (existingExam.instructorId !== instructorId) {
+                // Check if the exam is for a course taught by this instructor
+                const isCourseInstructor = await examService.isInstructorForExamCourse(
+                    instructorId,
+                    existingExam.courseName
+                );
+
+                if (!isCourseInstructor) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Not authorized to view swap history for this exam'
+                    });
+                }
+            }
+
+            // Call the service to get swap history
+            const swapHistory = await examService.getSwapHistory(examId);
+
+            return res.status(200).json({
+                success: true,
+                data: swapHistory
+            });
+        } catch (error) {
+            console.error('Error getting swap history:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to get swap history'
+            });
+        }
+    }
+
+    /**
+     * Check for TAs with approved leave on a specific date
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async checkTALeaveStatus(req, res) {
+        try {
+            const { examDate } = req.query;
+            
+            if (!examDate) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Exam date is required'
+                });
+            }
+            
+            // Get all TAs with approved leave on the specified date
+            const tasWithLeave = await examService.getTAsWithLeaveOnDate(examDate);
+            
+            return res.status(200).json({
+                success: true,
+                data: tasWithLeave,
+                message: `Found ${tasWithLeave.length} TAs with approved leave on ${examDate}`
+            });
+        } catch (error) {
+            console.error('Error checking TA leave status:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to check TA leave status'
+            });
+        }
+    }
+
+    /**
+     * Get available TAs for exam proctoring with leave status check
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async getAvailableTAsForExam(req, res) {
+        try {
+            const { department, courseId, examDate, checkLeaveRequests } = req.query;
+            
+            // Default to instructor's department if not specified
+            const deptFilter = department || req.user.department;
+            
+            // Convert checkLeaveRequests to boolean
+            const shouldCheckLeave = checkLeaveRequests !== 'false';
+            
+            // Pass query parameters to the service
+            const tas = await examService.getAvailableTAsForExam({
+                department: deptFilter,
+                courseId,
+                examDate,
+                checkLeaveRequests: shouldCheckLeave
+            });
+
+            return res.status(200).json({
+                success: true,
+                data: tas,
+                message: `Found ${tas.length} available TAs${shouldCheckLeave ? ' (with leave check)' : ''}`
+            });
+        } catch (error) {
+            console.error('Error getting available TAs for exam:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to get available TAs for exam'
+            });
+        }
+    }
 }
 
 module.exports = new ExamController();

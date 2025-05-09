@@ -96,7 +96,7 @@ function DepartmentChairAssignPage() {
                 assignedTAs: 2,  // This course already has 2 TAs assigned
                 assignedTAIds: ['1', '2'] // IDs of TAs assigned to this course
             },
-            { 
+            {
                 id: '202', 
                 courseCode: 'CS202', 
                 courseName: 'Data Structures',
@@ -107,7 +107,7 @@ function DepartmentChairAssignPage() {
                 assignedTAs: 1,  // This course already has 1 TA assigned
                 assignedTAIds: ['3'] // IDs of TAs assigned to this course
             },
-            { 
+            {
                 id: '301', 
                 courseCode: 'CS301', 
                 courseName: 'Algorithms',
@@ -421,7 +421,7 @@ function DepartmentChairAssignPage() {
                 }));
                 setSelectedTAs(updatedTAs);
                 
-                setShowConfirmation(false);
+        setShowConfirmation(false);
             } else {
                 console.error("API returned error:", response.data);
                 alert(response.data.message || "Failed to assign TAs");
@@ -513,15 +513,15 @@ function DepartmentChairAssignPage() {
                                                         👑
                                                     </span>
                                                 )}
-                                                <button
-                                                    className="remove-ta-btn"
+                                            <button
+                                                className="remove-ta-btn"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         toggleTASelection(ta);
                                                     }}
-                                                >
-                                                    ✕
-                                                </button>
+                                            >
+                                                ✕
+                                            </button>
                                             </div>
                                         </div>
                                     ))}
@@ -551,32 +551,32 @@ function DepartmentChairAssignPage() {
                 </div>
 
                 <div className="right-panels-container">
-                    <div className="available-tas-panel">
-                        <h2>Available Teaching Assistants</h2>
-                        <div className="filter-container">
-                            <input
-                                type="text"
+                <div className="available-tas-panel">
+                    <h2>Available Teaching Assistants</h2>
+                    <div className="filter-container">
+                        <input
+                            type="text"
                                 placeholder="Search TAs by name or email..."
-                                className="search-input"
+                            className="search-input"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
+                        />
+                    </div>
 
-                        <div className="tas-grid">
+                    <div className="tas-grid">
                             {filteredTAs.map(ta => (
-                                <div
+                            <div
                                     className={`ta-card ${isTASelected(ta.id) ? 'selected' : ''} ${!selectedCourse ? 'disabled' : ''}`}
-                                    key={ta.id}
+                                key={ta.id}
                                     onClick={() => selectedCourse && toggleTASelection(ta)}
-                                >
-                                    <div className="selection-indicator">
-                                        {isTASelected(ta.id) && <span>✓</span>}
-                                    </div>
-                                    <div className="ta-info">
-                                        <h3>{ta.name}</h3>
+                            >
+                                <div className="selection-indicator">
+                                    {isTASelected(ta.id) && <span>✓</span>}
+                                </div>
+                                <div className="ta-info">
+                                    <h3>{ta.name}</h3>
                                         <p><strong>Email:</strong> {ta.email}</p>
-                                        <p><strong>Department:</strong> {ta.department}</p>
+                                    <p><strong>Department:</strong> {ta.department}</p>
                                     </div>
                                 </div>
                             ))}
@@ -616,10 +616,10 @@ function DepartmentChairAssignPage() {
                                                             >
                                                                 {isTASelected(request.taId) ? 'Remove' : 'Add'}
                                                             </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                                         </div>
                                     ))}
                                 </>
@@ -674,8 +674,8 @@ function DepartmentChairAssignPage() {
                                                             Select
                                                         </button>
                                                     )}
-                                                </div>
-                                            </div>
+                                        </div>
+                                    </div>
                                         );
                                     })}
                                 </div>
