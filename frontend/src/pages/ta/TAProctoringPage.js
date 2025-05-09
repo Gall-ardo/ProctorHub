@@ -1,4 +1,4 @@
-// TAProctoringPage.jsx
+// Revised TAProctoringPage.jsx with departmental breakdown
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -35,19 +35,60 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message, isError = fal
   );
 };
 
+const SuccessDialog = ({ isOpen, onClose, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="ta-proctoring-page-dialog-overlay">
+      <div className="ta-proctoring-page-dialog-container">
+        <div className="ta-proctoring-page-dialog-icon" style={{ backgroundColor: "#4CAF50" }}>
+          <span>✓</span>
+        </div>
+        <div className="ta-proctoring-page-dialog-content">
+          <div className="ta-proctoring-page-dialog-title">Success</div>
+          <div className="ta-proctoring-page-dialog-message">{message}</div>
+          <div className="ta-proctoring-page-dialog-actions">
+            <button 
+              className="ta-proctoring-page-dialog-button okay" 
+              onClick={onClose}
+              style={{
+                backgroundColor: "#2196F3", 
+                color: "white", 
+                border: "none", 
+                padding: "8px 16px", 
+                borderRadius: "4px", 
+                cursor: "pointer", 
+                fontWeight: "500"
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+        <button className="ta-proctoring-page-dialog-close" onClick={onClose}>×</button>
+      </div>
+    </div>
+  );
+};
+
 const TAProctoringPage = () => {
   const [isMultidepartment, setIsMultidepartment] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentAction, setCurrentAction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [taDepartment, setTaDepartment] = useState('');
   
   const [waitingProctorings, setWaitingProctorings] = useState([]);
   const [assignedProctorings, setAssignedProctorings] = useState([]);
   const [proctoringStats, setProctoringStats] = useState({
     totalProctoringHours: 0,
+    departmentProctoringHours: 0,
+    nonDepartmentProctoringHours: 0,
     totalRejectedProctoring: 0,
     maxRejectionsAllowed: 2,
     isRejectionLimitReached: false,
@@ -58,7 +99,27 @@ const TAProctoringPage = () => {
 
   useEffect(() => {
     fetchProctoringData();
+    fetchTAInfo();
   }, []);
+
+  const fetchTAInfo = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      // This is a placeholder - in a real application, you'd fetch the TA info with department
+      // For now, we'll assume the TA department is available in the stats response
+      const response = await axios.get(`${API_URL}/ta/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setTaDepartment(response.data.data.department);
+      }
+    } catch (err) {
+      console.error('Error fetching TA info:', err);
+    }
+  };
 
   const fetchProctoringData = async () => {
     try {
@@ -77,7 +138,9 @@ const TAProctoringPage = () => {
           type: item.exam.examType,
           date: formatDate(item.exam.date),
           time: formatTime(item.exam.date, item.exam.duration),
-          classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
+          classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A',
+          duration: item.exam.duration || 0, // Store duration in minutes
+          department: item.exam.department // Store department for comparison
         }));
         setWaitingProctorings(formatted);
       }
@@ -93,7 +156,9 @@ const TAProctoringPage = () => {
           type: item.exam.examType,
           date: formatDate(item.exam.date),
           time: formatTime(item.exam.date, item.exam.duration),
-          classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A'
+          classrooms: item.exam.examRooms?.map(room => room.name).join(', ') || 'N/A',
+          duration: item.exam.duration || 0, // Store duration in minutes
+          department: item.exam.department // Store department for comparison
         }));
         setAssignedProctorings(formatted);
       }
@@ -105,6 +170,11 @@ const TAProctoringPage = () => {
       if (statsResponse.data.success) {
         setProctoringStats(statsResponse.data.data);
         setIsMultidepartment(statsResponse.data.data.isMultidepartment);
+        
+        // If we didn't get the department from profile, try to use it from stats
+        if (!taDepartment && statsResponse.data.data.department) {
+          setTaDepartment(statsResponse.data.data.department);
+        }
       }
 
       setLoading(false);
@@ -157,13 +227,29 @@ const TAProctoringPage = () => {
       return;
     }
     
-    setCurrentAction({ action, id });
+    // Find the proctoring to get information about it
+    const proctoring = waitingProctorings.find(p => p.id === id);
+    
+    if (action === 'accept') {
+      const hours = Math.ceil(proctoring.duration / 60);
+      const isDepartmentProctoring = proctoring.department === taDepartment;
+      const departmentLabel = isDepartmentProctoring ? 'your department' : 'another department';
+      
+      const confirmMessage = `Are you sure you want to accept this proctoring assignment? 
+      \nThis will add ${hours} hour${hours !== 1 ? 's' : ''} to your ${departmentLabel} proctoring hours and total workload.`;
+      
+      setCurrentAction({ action, id, proctoring, isDepartmentProctoring, hours });
+      setConfirmDialogOpen(true);
+      return;
+    }
+    
+    setCurrentAction({ action, id, proctoring });
     setConfirmDialogOpen(true);
   };
 
   const confirmAction = async () => {
     if (!currentAction) return;
-    const { action, id } = currentAction;
+    const { action, id, proctoring, isDepartmentProctoring, hours } = currentAction;
 
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -176,8 +262,28 @@ const TAProctoringPage = () => {
       if (response.data.success) {
         if (action === 'accept') {
           const accepted = waitingProctorings.find(p => p.id === id);
+          
           setAssignedProctorings(prev => [...prev, accepted]);
           setWaitingProctorings(prev => prev.filter(p => p.id !== id));
+          
+          // Show success message with workload hours information
+          const departmentText = isDepartmentProctoring ? 'your department' : 'non-department';
+          setSuccessMessage(`Proctoring assignment accepted successfully! ${hours} hour${hours !== 1 ? 's' : ''} has been added to your ${departmentText} proctoring count and total workload.`);
+          setSuccessDialogOpen(true);
+          
+          // Update statistics
+          setProctoringStats(prev => {
+            const updatedStats = { ...prev };
+            
+            if (isDepartmentProctoring) {
+              updatedStats.departmentProctoringHours += hours;
+            } else {
+              updatedStats.nonDepartmentProctoringHours += hours;
+            }
+            
+            updatedStats.totalProctoringHours = updatedStats.departmentProctoringHours + updatedStats.nonDepartmentProctoringHours;
+            return updatedStats;
+          });
         } else {
           setWaitingProctorings(prev => prev.filter(p => p.id !== id));
           // Update rejection count in stats
@@ -210,47 +316,111 @@ const TAProctoringPage = () => {
   const closeErrorDialog = () => {
     setErrorDialogOpen(false);
   };
+  
+  const closeSuccessDialog = () => {
+    setSuccessDialogOpen(false);
+  };
 
   const renderWaitingProctoringList = () => {
     if (loading) return <div className="ta-proctoring-page-loading">Loading...</div>;
     if (waitingProctorings.length === 0) return <div className="ta-proctoring-page-empty-list">No pending proctoring assignments</div>;
-    return waitingProctorings.map((p) => (
-      <div key={p.id} className="ta-proctoring-page-proctoring-item">
-        <div className="ta-proctoring-page-proctoring-details">
-          <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
-          <div className="ta-proctoring-page-proctoring-meta">
-            <div>{p.date} {p.time}</div>
-            <div>Classrooms: {p.classrooms}</div>
+    return waitingProctorings.map((p) => {
+      const isDepartmentProctoring = p.department === taDepartment;
+      return (
+        <div key={p.id} className="ta-proctoring-page-proctoring-item">
+          <div className="ta-proctoring-page-proctoring-details">
+            <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
+            <div className="ta-proctoring-page-proctoring-meta">
+              <div>{p.date} {p.time}</div>
+              <div>Classrooms: {p.classrooms}</div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginTop: '5px'
+              }}>
+                <div style={{
+                  backgroundColor: '#e3f2fd',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '0.85rem',
+                  color: '#1565c0',
+                  display: 'inline-block'
+                }}>
+                  Workload: {Math.ceil(p.duration / 60)} hour{Math.ceil(p.duration / 60) !== 1 ? 's' : ''}
+                </div>
+                <div style={{
+                  backgroundColor: isDepartmentProctoring ? '#e8f5e9' : '#fff3e0',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '0.85rem',
+                  color: isDepartmentProctoring ? '#2e7d32' : '#ef6c00',
+                  display: 'inline-block'
+                }}>
+                  {isDepartmentProctoring ? 'Department Exam' : 'Non-Department Exam'}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="ta-proctoring-page-proctoring-actions">
+            <button className="ta-proctoring-page-action-button accept" onClick={() => handleProctoringAction('accept', p.id)}>✓</button>
+            <button 
+              className={`ta-proctoring-page-action-button reject ${proctoringStats.isRejectionLimitReached ? 'disabled' : ''}`} 
+              onClick={() => handleProctoringAction('reject', p.id)}
+              disabled={proctoringStats.isRejectionLimitReached}
+            >
+              ✕
+            </button>
           </div>
         </div>
-        <div className="ta-proctoring-page-proctoring-actions">
-          <button className="ta-proctoring-page-action-button accept" onClick={() => handleProctoringAction('accept', p.id)}>✓</button>
-          <button 
-            className={`ta-proctoring-page-action-button reject ${proctoringStats.isRejectionLimitReached ? 'disabled' : ''}`} 
-            onClick={() => handleProctoringAction('reject', p.id)}
-            disabled={proctoringStats.isRejectionLimitReached}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    ));
+      );
+    });
   };
 
   const renderAssignedProctoringList = () => {
     if (loading) return <div className="ta-proctoring-page-loading">Loading...</div>;
     if (assignedProctorings.length === 0) return <div className="ta-proctoring-page-empty-list">No active proctoring assignments</div>;
-    return assignedProctorings.map((p) => (
-      <div key={p.id} className="ta-proctoring-page-proctoring-item">
-        <div className="ta-proctoring-page-proctoring-details">
-          <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
-          <div className="ta-proctoring-page-proctoring-meta">
-            <div>{p.date} {p.time}</div>
-            <div>Classrooms: {p.classrooms}</div>
+    return assignedProctorings.map((p) => {
+      const isDepartmentProctoring = p.department === taDepartment;
+      return (
+        <div key={p.id} className="ta-proctoring-page-proctoring-item">
+          <div className="ta-proctoring-page-proctoring-details">
+            <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
+            <div className="ta-proctoring-page-proctoring-meta">
+              <div>{p.date} {p.time}</div>
+              <div>Classrooms: {p.classrooms}</div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginTop: '5px'
+              }}>
+                <div style={{
+                  backgroundColor: '#e3f2fd',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '0.85rem',
+                  color: '#1565c0',
+                  display: 'inline-block'
+                }}>
+                  Workload: {Math.ceil(p.duration / 60)} hour{Math.ceil(p.duration / 60) !== 1 ? 's' : ''}
+                </div>
+                <div style={{
+                  backgroundColor: isDepartmentProctoring ? '#e8f5e9' : '#fff3e0',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '0.85rem',
+                  color: isDepartmentProctoring ? '#2e7d32' : '#ef6c00',
+                  display: 'inline-block'
+                }}>
+                  {isDepartmentProctoring ? 'Department Exam' : 'Non-Department Exam'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   // Calculate percentage for rejected proctorings circle
@@ -261,6 +431,11 @@ const TAProctoringPage = () => {
   // Clip to 100% maximum
   const clippedRejectionPercentage = Math.min(rejectionPercentage, 100);
 
+  // Get breakdown of department vs non-department hours
+  const departmentProctoringHours = proctoringStats.departmentProctoringHours || 0;
+  const nonDepartmentProctoringHours = proctoringStats.nonDepartmentProctoringHours || 0;
+  const totalProctoringHours = departmentProctoringHours + nonDepartmentProctoringHours;
+
   return (
     <div className="ta-proctoring-page-main-page">
       <TANavBar />
@@ -270,14 +445,41 @@ const TAProctoringPage = () => {
         <div className="ta-proctoring-page-proctoring-stats-vertical">
           <div className="ta-proctoring-page-stat-container">
             <div className="ta-proctoring-page-stat-item">
-              <div className="ta-proctoring-page-stat-label">Total Proctoring Hours</div>
+              <div className="ta-proctoring-page-stat-label">
+                Total Proctoring Hours
+              </div>
               <div className="ta-proctoring-page-circle proctoring">
                 <svg viewBox="0 0 36 36" className="ta-proctoring-page-circular-chart">
                   <path className="ta-proctoring-page-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="ta-proctoring-page-circle" strokeDasharray={`${proctoringStats.totalProctoringHours}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="#4CAF50" />
-                  <text x="18" y="20.35" className="ta-proctoring-page-percentage">{proctoringStats.totalProctoringHours}</text>
+                  <path className="ta-proctoring-page-circle" strokeDasharray={`${totalProctoringHours}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="#4CAF50" />
+                  <text x="18" y="20.35" className="ta-proctoring-page-percentage">{totalProctoringHours}</text>
                 </svg>
               </div>
+              
+              {/* Department Hours Breakdown */}
+              {totalProctoringHours > 0 && (
+                <div style={{
+                  marginTop: '10px',
+                  width: '100%',
+                  fontSize: '0.85rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '4px'
+                  }}>
+                    <span style={{ color: '#2e7d32' }}>Department:</span>
+                    <span style={{ fontWeight: 'bold' }}>{departmentProctoringHours}</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span style={{ color: '#ef6c00' }}>Non-Department:</span>
+                    <span style={{ fontWeight: 'bold' }}>{nonDepartmentProctoringHours}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -342,7 +544,7 @@ const TAProctoringPage = () => {
         onConfirm={confirmAction}
         message={
           currentAction?.action === 'accept' 
-            ? "Are you sure you want to accept this proctoring assignment?" 
+            ? `Are you sure you want to accept this proctoring assignment? This will add ${currentAction.hours} hour${currentAction.hours !== 1 ? 's' : ''} to your ${currentAction.isDepartmentProctoring ? 'department' : 'non-department'} proctoring hours and total workload.` 
             : "Are you sure you want to reject this proctoring assignment?"
         }
       />
@@ -352,6 +554,12 @@ const TAProctoringPage = () => {
         onClose={closeErrorDialog}
         message={errorMessage}
         isError={true}
+      />
+      
+      <SuccessDialog
+        isOpen={successDialogOpen}
+        onClose={closeSuccessDialog}
+        message={successMessage}
       />
     </div>
   );

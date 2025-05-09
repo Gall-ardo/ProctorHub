@@ -172,7 +172,7 @@ const taWorkloadService = {
     }
   },
   
-  // Create a new workload request (modified to use courseId and instructorId directly)
+  // Create a new workload request - FIXED to not update totalWorkload immediately
   createWorkload: async (workloadData, taId) => {
     try {
       const { instructorId, courseId, date, hours, workloadType } = workloadData;
@@ -211,7 +211,7 @@ const taWorkloadService = {
         };
       }
       
-      // Create a new workload
+      // Create a new workload - status starts as unapproved
       const newWorkload = await Workload.create({
         id: uuidv4(),
         courseId: courseId,
@@ -223,18 +223,9 @@ const taWorkloadService = {
         instructorId: instructorId
       });
       
-      // Try to update total workload hours for the TA if that data exists
-      try {
-        const ta = await TeachingAssistant.findByPk(taId);
-        if (ta) {
-          const additionalHours = durationHours;
-          const totalWorkload = (ta.totalWorkload || 0) + additionalHours;
-          await ta.update({ totalWorkload });
-        }
-      } catch (error) {
-        console.error('Error updating TA total workload:', error);
-        // Continue with the workload creation even if updating total fails
-      }
+      // FIXED: Don't update totalWorkload here - it will be updated when approved
+      // Only log the creation of the workload request
+      console.log(`Created workload request for TA ${taId}: ${durationHours} hours for ${workloadType}`);
       
       return {
         success: true,
@@ -246,6 +237,93 @@ const taWorkloadService = {
       return {
         success: false,
         message: 'Failed to create workload request'
+      };
+    }
+  },
+  
+  // NEW: Method to approve a workload (this would be called by an instructor)
+  approveWorkload: async (workloadId) => {
+    try {
+      const workload = await Workload.findByPk(workloadId);
+      
+      if (!workload) {
+        return {
+          success: false,
+          message: 'Workload not found'
+        };
+      }
+      
+      if (workload.isApproved) {
+        return {
+          success: false,
+          message: 'Workload is already approved'
+        };
+      }
+      
+      // Update workload status
+      await workload.update({ isApproved: true });
+      
+      // NOW update the TA's total workload
+      try {
+        const ta = await TeachingAssistant.findByPk(workload.taId);
+        if (ta) {
+          const additionalHours = workload.duration;
+          const totalWorkload = (ta.totalWorkload || 0) + additionalHours;
+          await ta.update({ totalWorkload });
+          console.log(`Updated TA totalWorkload: ${totalWorkload} (added ${additionalHours} hours)`);
+        }
+      } catch (error) {
+        console.error('Error updating TA total workload:', error);
+      }
+      
+      return {
+        success: true,
+        data: workload,
+        message: 'Workload approved successfully'
+      };
+    } catch (error) {
+      console.error('Error approving workload:', error);
+      return {
+        success: false,
+        message: 'Failed to approve workload'
+      };
+    }
+  },
+  
+  // NEW: Method to reject a workload (this would be called by an instructor)
+  rejectWorkload: async (workloadId, rejectionReason) => {
+    try {
+      const workload = await Workload.findByPk(workloadId);
+      
+      if (!workload) {
+        return {
+          success: false,
+          message: 'Workload not found'
+        };
+      }
+      
+      if (workload.isApproved) {
+        return {
+          success: false,
+          message: 'Cannot reject an already approved workload'
+        };
+      }
+      
+      // Update workload status with rejection reason
+      await workload.update({ 
+        rejectionReason: rejectionReason || 'Rejected by instructor' 
+      });
+      
+      return {
+        success: true,
+        data: workload,
+        message: 'Workload rejected successfully'
+      };
+    } catch (error) {
+      console.error('Error rejecting workload:', error);
+      return {
+        success: false,
+        message: 'Failed to reject workload'
       };
     }
   }

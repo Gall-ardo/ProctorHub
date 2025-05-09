@@ -9,10 +9,17 @@ const TAWorkloadPage = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [waitingWorkloads, setWaitingWorkloads] = useState([]);
   const [approvedWorkloads, setApprovedWorkloads] = useState([]);
+  const [proctoringWorkloads, setProctoringWorkloads] = useState([]); // New state to track proctoring workloads
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [assignedCourses, setAssignedCourses] = useState([]);
   const [courseInstructors, setCourseInstructors] = useState({});
+  const [proctoringStats, setProctoringStats] = useState({
+    totalProctoringHours: 0,
+    totalRejectedProctoring: 0,
+    maxRejectionsAllowed: 2,
+    isRejectionLimitReached: false
+  });
   // Track when workloads should be refreshed
   const [refreshWorkloads, setRefreshWorkloads] = useState(0);
 
@@ -71,6 +78,73 @@ const TAWorkloadPage = () => {
     }
   };
 
+  // Fetch proctoring statistics for TA
+  const fetchProctoringStats = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const response = await axios.get(`${API_URL}/ta/proctorings/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setProctoringStats(response.data.data);
+        return response.data.data;
+      } else {
+        console.error('Failed to fetch proctoring stats:', response.data.message);
+        return { totalProctoringHours: 0 };
+      }
+    } catch (error) {
+      console.error('Error fetching proctoring stats:', error);
+      return { totalProctoringHours: 0 };
+    }
+  };
+
+  // Fetch active proctorings and add to workload list
+  const fetchActiveProctorings = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const response = await axios.get(`${API_URL}/ta/proctorings/active`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        // Format proctoring data to match workload format
+        const proctoringWorkloads = response.data.data.map(item => {
+          const date = new Date(item.exam?.date);
+          const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+          const hours = item.exam?.duration ? Math.ceil(item.exam.duration / 60) : 0;
+          
+          return {
+            id: item.id,
+            course: item.exam?.Course?.courseCode || 'Unknown',
+            type: `Proctoring: ${item.exam?.examType || 'Exam'}`,
+            date: formattedDate,
+            hours: hours,
+            instructor: 'Proctoring Duty',
+            isProctoring: true
+          };
+        });
+        
+        setProctoringWorkloads(proctoringWorkloads);
+        return proctoringWorkloads;
+      } else {
+        console.error('Failed to fetch active proctorings:', response.data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching active proctorings:', error);
+      return [];
+    }
+  };
+
   // Fetch all workloads
   const fetchWorkloads = async () => {
     try {
@@ -80,6 +154,7 @@ const TAWorkloadPage = () => {
 
       console.log('Fetching workloads with token:', token ? 'exists' : 'missing');
 
+      // Fetch workload data
       const pendingResponse = await axios.get(`${API_URL}/ta/workloads/pending`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -91,6 +166,10 @@ const TAWorkloadPage = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      // Fetch proctoring data
+      await fetchProctoringStats();
+      await fetchActiveProctorings();
 
       if (pendingResponse.data.success && approvedResponse.data.success) {
         const formatWorkload = (workload) => {
@@ -170,7 +249,9 @@ const TAWorkloadPage = () => {
 
   const renderWorkloadIcon = (type) => {
     const typeLC = type.toLowerCase();
-    if (typeLC.includes('lab')) {
+    if (typeLC.includes('proctoring')) {
+      return <div className="ta-workload-page-default-icon"></div>; // Use the default icon for proctoring
+    } else if (typeLC.includes('lab')) {
       return <div className="ta-workload-page-flask-icon"></div>;
     } else if (typeLC.includes('grading')) {
       return <div className="ta-workload-page-pencil-icon"></div>;
@@ -204,8 +285,19 @@ const TAWorkloadPage = () => {
     ));
   };
 
-  const totalApprovedHours = approvedWorkloads.reduce((sum, workload) => sum + workload.hours, 0);
+  // Calculate total approved hours from regular workloads
+  const totalRegularApprovedHours = approvedWorkloads.reduce((sum, workload) => sum + workload.hours, 0);
+  
+  // Calculate total proctoring hours
+  const totalProctoringHours = proctoringStats.totalProctoringHours || 0;
+  
+  // Combined total of regular workload and proctoring hours
+  const totalApprovedHours = totalRegularApprovedHours + totalProctoringHours;
+  
   const totalWaitingHours = waitingWorkloads.reduce((sum, workload) => sum + workload.hours, 0);
+
+  // Combine approved workloads and proctoring workloads for display
+  const combinedApprovedWorkloads = [...approvedWorkloads, ...proctoringWorkloads];
 
   return (
     <div className="ta-workload-page-ta-main-page">
@@ -292,10 +384,12 @@ const TAWorkloadPage = () => {
                 <div className="ta-workload-page-loading">Loading workloads...</div>
               ) : error ? (
                 <div className="ta-workload-page-error">{error}</div>
-              ) : approvedWorkloads.length === 0 ? (
+              ) : combinedApprovedWorkloads.length === 0 ? (
                 <div className="ta-workload-page-no-workloads">No approved workloads found</div>
               ) : (
-                renderWorkloadList(approvedWorkloads)
+                <>
+                  {renderWorkloadList(combinedApprovedWorkloads)}
+                </>
               )}
             </div>
           </div>
@@ -306,6 +400,9 @@ const TAWorkloadPage = () => {
         isOpen={isPopupOpen}
         onClose={handleClosePopup}
         onSubmit={handleSubmitWorkload}
+        assignedCourses={assignedCourses}
+        courseInstructors={courseInstructors}
+        fetchCourseInstructors={fetchCourseInstructors}
       />
     </div>
   );

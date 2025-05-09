@@ -18,7 +18,7 @@ const taProctoringService = {
           include: [{
             model: Exam,
             as: 'exam',
-            attributes: ['examType', 'date', 'duration'],
+            attributes: ['examType', 'date', 'duration', 'department'],
             include: [
               {
                 model: Course,
@@ -58,7 +58,7 @@ const taProctoringService = {
           include: [{
             model: Exam,
             as: 'exam',
-            attributes: ['examType', 'date', 'duration'],
+            attributes: ['examType', 'date', 'duration', 'department'],
             include: [
               {
                 model: Course,
@@ -98,7 +98,7 @@ const taProctoringService = {
           include: [{
             model: Exam,
             as: 'exam',
-            attributes: ['examType', 'date', 'duration'],
+            attributes: ['examType', 'date', 'duration', 'department'],
             include: [
               {
                 model: Course,
@@ -127,15 +127,21 @@ const taProctoringService = {
       }
     },
 
-  // Accept a proctoring assignment
+  // Accept a proctoring assignment - FIXED to properly handle department comparison
   acceptProctoring: async (proctoringId, taId) => {
     try {
+      // Fetch the proctoring with exam details including department
       const proctoring = await Proctoring.findOne({
         where: { 
           id: proctoringId,
           taId: taId,
           status: 'PENDING'
-        }
+        },
+        include: [{
+          model: Exam,
+          as: 'exam',
+          attributes: ['examType', 'date', 'duration', 'department']
+        }]
       });
       
       if (!proctoring) {
@@ -148,25 +154,51 @@ const taProctoringService = {
       // Update proctoring status
       await proctoring.update({ status: 'ACCEPTED' });
       
-      // Update TA's proctoring count
+      // Update TA's proctoring count and total workload
       try {
+        // First get the TA record to access their department
         const ta = await TeachingAssistant.findByPk(taId);
-        if (ta) {
-          // Determine if the proctoring is for the TA's department or not
-          const exam = await Exam.findByPk(proctoring.examId);
+        if (ta && proctoring.exam) {
+          // Get exam duration (in minutes)
+          const examDuration = proctoring.exam.duration || 0;
           
-          if (exam) {
-            if (exam.department === ta.department) {
-              const totalProctoringInDepartment = (ta.totalProctoringInDepartment || 0) + 1;
-              await ta.update({ totalProctoringInDepartment });
-            } else {
-              const totalNonDepartmentProctoring = (ta.totalNonDepartmentProctoring || 0) + 1;
-              await ta.update({ totalNonDepartmentProctoring });
-            }
+          // Convert minutes to hours (rounded to nearest hour)
+          const examHours = Math.ceil(examDuration / 60);
+          
+          // Get departments for comparison
+          const taDepartment = ta.department;
+          const examDepartment = proctoring.exam.department;
+          
+          console.log(`TA Department: ${taDepartment}, Exam Department: ${examDepartment}`);
+          
+          let updatedDepartmentHours = ta.totalProctoringInDepartment || 0;
+          let updatedNonDepartmentHours = ta.totalNonDepartmentProctoring || 0;
+          
+          // Update department-specific proctoring count (FIXED the comparison)
+          if (examDepartment && taDepartment && examDepartment === taDepartment) {
+            // It's a department proctoring
+            updatedDepartmentHours += examHours;
+            await ta.update({ 
+              totalProctoringInDepartment: updatedDepartmentHours 
+            });
+            console.log(`Updated department proctoring hours: ${updatedDepartmentHours}`);
+          } else {
+            // It's a non-department proctoring
+            updatedNonDepartmentHours += examHours;
+            await ta.update({ 
+              totalNonDepartmentProctoring: updatedNonDepartmentHours 
+            });
+            console.log(`Updated non-department proctoring hours: ${updatedNonDepartmentHours}`);
           }
+          
+          // Add proctoring hours to total workload as well
+          const totalWorkload = (ta.totalWorkload || 0) + examHours;
+          await ta.update({ totalWorkload });
+          
+          console.log(`Updated TA workload with ${examHours} hours from proctoring. New total: ${totalWorkload}`);
         }
       } catch (error) {
-        console.error('Error updating TA proctoring count:', error);
+        console.error('Error updating TA proctoring and workload stats:', error);
         // Continue with the proctoring update even if updating count fails
       }
       
@@ -237,7 +269,7 @@ const taProctoringService = {
     }
   },
 
-  // Get proctoring statistics for a TA
+  // Get proctoring statistics for a TA - Returns TA department for comparison
   getProctoringStatsByTaId: async (taId) => {
     try {
       const ta = await TeachingAssistant.findByPk(taId);
@@ -257,28 +289,10 @@ const taProctoringService = {
         }
       });
       
-      // Calculate total proctoring hours
-      // Assumes each accepted proctoring is for the duration specified in the exam
-      const acceptedProctorings = await Proctoring.findAll({
-        where: {
-          taId,
-          status: 'ACCEPTED'
-        },
-        include: [{
-          model: Exam,
-          as: 'exam',
-          attributes: ['duration']
-        }]
-      });
-      
-      let totalHours = 0;
-      
-      for (const proctoring of acceptedProctorings) {
-        if (proctoring.exam && proctoring.exam.duration) {
-          // Convert minutes to hours
-          totalHours += proctoring.exam.duration / 60;
-        }
-      }
+      // Get total proctoring hours from department and non-department counts
+      const departmentProctorings = ta.totalProctoringInDepartment || 0;
+      const nonDepartmentProctorings = ta.totalNonDepartmentProctoring || 0;
+      const totalProctoringHours = departmentProctorings + nonDepartmentProctorings;
       
       // Get the multidepartment status
       const isMultidepartment = ta.isMultidepartmentExam;
@@ -286,11 +300,14 @@ const taProctoringService = {
       return {
         success: true,
         data: {
-          totalProctoringHours: Math.round(totalHours),
+          totalProctoringHours: totalProctoringHours,
+          departmentProctoringHours: departmentProctorings,
+          nonDepartmentProctoringHours: nonDepartmentProctorings,
           totalRejectedProctoring: rejectedCount,
           maxRejectionsAllowed: MAX_REJECTIONS_ALLOWED,
           isRejectionLimitReached: rejectedCount >= MAX_REJECTIONS_ALLOWED,
-          isMultidepartment: isMultidepartment
+          isMultidepartment: isMultidepartment,
+          department: ta.department  // Return the TA's department for client-side comparison
         }
       };
     } catch (error) {
