@@ -200,7 +200,6 @@ const respondToSwapRequest = async (responseData) => {
   await swapRequest.save();
 
   // Perform the actual swap in the database
-  // This would involve updating the exam assignments
   // Find the original exam's TA assignment
   const originalExamAssignment = await Proctoring.findOne({
     where: {
@@ -220,6 +219,26 @@ const respondToSwapRequest = async (responseData) => {
   if (!originalExamAssignment || !swapExamAssignment) {
     throw new Error('Exam assignments not found');
   }
+
+  // Check if both proctorings are accepted
+  if (originalExamAssignment.status !== 'ACCEPTED' || swapExamAssignment.status !== 'ACCEPTED') {
+    throw new Error('Both proctorings must be accepted before swapping. Please check your proctoring status.');
+  }
+
+  console.log('Swapping proctorings:', {
+    original: {
+      id: originalExamAssignment.id,
+      examId: originalExamAssignment.examId,
+      taId: originalExamAssignment.taId,
+      status: originalExamAssignment.status
+    },
+    swap: {
+      id: swapExamAssignment.id,
+      examId: swapExamAssignment.examId,
+      taId: swapExamAssignment.taId,
+      status: swapExamAssignment.status
+    }
+  });
 
   // Swap the assignments
   originalExamAssignment.taId = respondentId;
@@ -257,19 +276,20 @@ const respondToSwapRequest = async (responseData) => {
 
   return {
     success: true,
-    message: 'Swap successfully completed'
+    message: 'Swap successfully completed. Both proctoring assignments have been updated.'
   };
 };
 
 /**
- * Get all user's exams for swap
+ * Get all user's exams for swap - Only show ACCEPTED proctorings
  * @param {string} taId - ID of the TA
  * @returns {Promise<Array>} - list of exams
  */
 const getUserExamsForSwap = async (taId) => {
   const examAssignments = await Proctoring.findAll({
     where: {
-      taId: taId
+      taId: taId,
+      status: 'ACCEPTED' // Only include accepted proctorings
     },
     include: [
       {
@@ -294,6 +314,8 @@ const getUserExamsForSwap = async (taId) => {
     ]
   });
 
+  console.log(`Found ${examAssignments.length} accepted exam assignments for TA ID ${taId}`);
+  
   return examAssignments.map(assignment => {
     const examDate = new Date(assignment.exam.date);
     return {
@@ -301,7 +323,9 @@ const getUserExamsForSwap = async (taId) => {
       course: assignment.exam.courseName,
       date: examDate.toLocaleDateString(),
       time: `${examDate.getHours().toString().padStart(2, '0')}.${examDate.getMinutes().toString().padStart(2, '0')}-${new Date(examDate.getTime() + assignment.exam.duration * 60000).getHours().toString().padStart(2, '0')}.${new Date(examDate.getTime() + assignment.exam.duration * 60000).getMinutes().toString().padStart(2, '0')}`,
-      classrooms: assignment.exam.classrooms
+      classrooms: assignment.exam.classrooms,
+      proctoringId: assignment.id, // Include the proctoring ID for reference
+      proctoringStatus: assignment.status // Include status for logging/debugging
     };
   });
 };
@@ -370,7 +394,7 @@ const cancelSwapRequest = async (swapRequestId, userId) => {
  * Get forum swap requests
  * @returns {Promise<Array>} - list of forum swap requests
  */
-const getForumSwapRequests = async () => {
+/*const getForumSwapRequests = async () => {
   const forumRequests = await SwapRequest.findAll({
     where: {
       isForumPost: true,
@@ -415,6 +439,57 @@ const getForumSwapRequests = async () => {
       requesterId: request.requesterId
     };
   });
+};*/
+
+/**
+ * Get forum swap requests
+ * @returns {Promise<Array>} - list of forum swap requests
+ */
+const getForumSwapRequests = async () => {
+  const forumRequests = await SwapRequest.findAll({
+    where: {
+      isForumPost: true,
+      status: 'PENDING'
+    },
+    include: [
+      {
+        model: Exam,
+        as: 'exam',
+        attributes: ['id', 'courseName', 'date', 'duration'],
+        include: [
+          {
+            model: Classroom,
+            as: 'examRooms', // must match alias in association
+            attributes: ['name'] // or ['id', 'name'] depending on your model
+          }
+        ]
+      },
+      {
+        model: TeachingAssistant,
+        as: 'requester',
+        include: {
+          model: User,
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
+        }
+      }
+    ],
+    order: [['requestDate', 'DESC']]
+  });
+
+  return forumRequests.map(request => {
+    const examDate = new Date(request.exam.date);
+    return {
+      id: request.id,
+      course: request.exam.courseName,
+      date: examDate.toLocaleDateString(),
+      time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
+      classroom: request.exam.examRooms.map(room => room.name).join(', '),
+      submitter: request.requester.taUser.name,
+      submitTime: request.requestDate.toLocaleDateString(),
+      requesterId: request.requesterId // Ensure requesterId is included
+    };
+  });
 };
 
 /**
@@ -446,6 +521,123 @@ const createForumSwapRequest = async (requestData) => {
 };
 
 
+/**
+ * Get submitted swap requests for a specific TA
+ * @param {string} taId - ID of the TA
+ * @returns {Promise<Array>} - list of swap requests
+ */
+const getSubmittedSwapRequests = async (taId) => {
+  const swapRequests = await SwapRequest.findAll({
+    where: {
+      requesterId: taId,
+      status: ['PENDING', 'APPROVED', 'CANCELLED'] // Get all statuses
+    },
+    include: [
+      {
+        model: Exam,
+        as: 'exam',
+        attributes: ['id', 'courseName', 'date', 'duration'],
+        include: [
+          {
+            model: Classroom,
+            as: 'examRooms',
+            attributes: ['name']
+          }
+        ]
+      },
+      {
+        model: TeachingAssistant,
+        as: 'targetTa',
+        include: {
+          model: User,
+          as: 'taUser',
+          attributes: ['name', 'email']
+        }
+      }
+    ],
+    order: [['requestDate', 'DESC']]
+  });
+
+  return swapRequests.map(request => {
+    const examDate = new Date(request.exam.date);
+    return {
+      id: request.id,
+      course: request.exam.courseName,
+      date: examDate.toLocaleDateString(),
+      time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
+      classroom: request.exam.examRooms.map(room => room.name).join(', '),
+      targetTaName: request.targetTa?.taUser?.name || "Forum Post",
+      targetTaEmail: request.targetTa?.taUser?.email || "N/A",
+      submitTime: request.requestDate.toLocaleDateString(),
+      isForumPost: request.isForumPost,
+      status: request.status
+    };
+  });
+};
+
+/**
+ * Get teaching assistants from the same department as the requesting TA
+ * @param {string} taId - ID of the requesting TA
+ * @returns {Promise<Array>} - list of TAs from the same department
+ */
+const getSameDepartmentTAs = async (taId) => {
+  try {
+    // Get the current TA's department info
+    const currentTA = await TeachingAssistant.findByPk(taId, {
+      include: [
+        {
+          model: User,
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
+        }
+      ]
+    });
+
+    if (!currentTA) {
+      throw new Error('Current TA information not found');
+    }
+
+    // Get department directly from TeachingAssistant model
+    const department = currentTA.department;
+    console.log(`Current TA department: ${department}`);
+    
+    // If no department is set, return an empty array
+    if (!department) {
+      console.log('No department found for current TA');
+      return [];
+    }
+
+    // Find all TAs from the same department, except the current TA
+    const departmentTAs = await TeachingAssistant.findAll({
+      where: {
+        department: department,
+        id: { [Op.ne]: taId } // Exclude the current TA
+      },
+      include: [
+        {
+          model: User,
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
+        }
+      ]
+    });
+
+    console.log(`Found ${departmentTAs.length} TAs in department ${department}`);
+
+    // Format the results for easier consumption by the frontend
+    return departmentTAs.map(ta => ({
+      id: ta.id,
+      name: ta.taUser?.name || 'Unknown',
+      email: ta.taUser?.email || 'No email'
+    }));
+  } catch (error) {
+    console.error('Error fetching TAs from the same department:', error);
+    // Instead of propagating the error, return an empty array
+    return [];
+  }
+};
+
+// Don't forget to export the new function
 module.exports = {
   createPersonalSwapRequest,
   createForumSwapRequest,
@@ -453,5 +645,7 @@ module.exports = {
   respondToSwapRequest,
   getUserExamsForSwap,
   cancelSwapRequest,
-  getForumSwapRequests
+  getForumSwapRequests,
+  getSubmittedSwapRequests,
+  getSameDepartmentTAs  
 };

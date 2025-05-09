@@ -1,11 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './ProctorSwapForum.css';
-import ExamInfoPopup from './ExamInfoPopup';
+import TASwapExamDetailsPopup from './TASwapExamDetailsPopup';
 
-const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
+const ProctorSwapForum = ({ scheduleEvents }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [forumSwapRequests, setForumSwapRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userExams, setUserExams] = useState([]);
   
+  // API base URL
+  const API_URL = 'http://localhost:5001/api';
+  
+  // Set up headers with authentication
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchForumSwapRequests();
+    fetchUserExams();
+    
+    // Set up auto-refresh every 5 minutes
+    const intervalId = setInterval(() => {
+      fetchForumSwapRequests();
+    }, 300000); // 5 minutes
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
   // Format date for display
   const formatDate = (date) => {
     if (!date) return 'N/A';
@@ -14,11 +47,21 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
       return date;
     }
     
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).replace(/\//g, '.');
+    if (typeof date === 'string' && date.includes('-')) {
+      // Convert YYYY-MM-DD to DD/MM/YYYY
+      const [year, month, day] = date.split('-');
+      return `${day}/${month}/${year}`;
+    }
+    
+    if (date instanceof Date) {
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).replace(/\//g, '.');
+    }
+    
+    return date;
   };
 
   // Format time for display
@@ -31,7 +74,100 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
       };
       return `${formatHour(startTime)}-${formatHour(endTime)}`;
     }
-    return 'N/A';
+    return startTime; // Return as is if not numeric
+  };
+  
+  // Parse time string to float
+  const parseTimeToFloat = (timeStr) => {
+    if (!timeStr) return null;
+    if (typeof timeStr === 'number') return timeStr;
+    
+    // Handle formats like "13:30" or "13.30"
+    const separator = timeStr.includes(':') ? ':' : '.';
+    const [hours, minutes] = timeStr.split(separator).map(Number);
+    
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      return hours + (minutes / 60);
+    }
+    
+    return null;
+  };
+
+  // Fetch forum swap requests
+  const fetchForumSwapRequests = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication token not found');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await axios.get(`${API_URL}/ta/swaps/forum-items`, getAuthHeaders());
+      
+      if (response.data.success) {
+        // Process API response to match the required format
+        const processedRequests = response.data.data.map(item => ({
+          id: item.id,
+          requesterName: item.submitter || item.requesterName || 'Anonymous TA',
+          exam: {
+            id: item.examId || item.id,
+            examDate: formatDate(item.date || item.examDate),
+            title: `${item.course} Exam`,
+            startTime: parseTimeToFloat(item.startTime || item.time),
+            endTime: parseTimeToFloat(item.endTime),
+            course: { code: item.course },
+            examRooms: item.classroom ? [item.classroom] : (item.examRooms || [])
+          },
+          requestDate: new Date(item.submitTime || item.requestDate || Date.now()),
+          availableTimeStart: item.availableTimeStart || item.startDate || item.date,
+          availableTimeEnd: item.availableTimeEnd || item.endDate || item.date,
+          // Additional properties to match TASwapExamDetailsPopup format
+          course: item.course,
+          date: formatDate(item.date || item.examDate),
+          time: formatTime(
+            parseTimeToFloat(item.startTime || item.time), 
+            parseTimeToFloat(item.endTime)
+          ),
+          classroom: item.classroom || (Array.isArray(item.examRooms) ? item.examRooms.join(', ') : '')
+        }));
+        
+        console.log('Processed forum requests:', processedRequests);
+        setForumSwapRequests(processedRequests);
+      } else {
+        console.warn('Failed to fetch forum items:', response.data.message);
+        setForumSwapRequests([]);
+      }
+    } catch (err) {
+      console.error('Error fetching forum items:', err);
+      setError('Failed to fetch swap requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch user's exams for swap
+  const fetchUserExams = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      if (!token) {
+        console.warn('Token not found for fetching user exams');
+        return;
+      }
+      
+      const response = await axios.get(`${API_URL}/ta/swaps/my-exams`, getAuthHeaders());
+      
+      if (response.data.success) {
+        setUserExams(response.data.data);
+      } else {
+        console.warn('Failed to fetch user exams:', response.data.message);
+      }
+    } catch (err) {
+      console.error('Error fetching user exams:', err);
+    }
   };
 
   // Handler for when the info button is clicked
@@ -43,25 +179,28 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
   // Handler for when the popup is closed
   const handleClosePopup = () => {
     setShowPopup(false);
-  };
-
-  // Handler for when a swap is requested
-  const handleRequestSwap = (myExamId) => {
-    // In a real app, this would send the swap request to the backend
-    console.log(`Swap requested between my exam ${myExamId} and ${selectedRequest.exam.id} from ${selectedRequest.requesterName}`);
-    
-    // Close the popup after the request is made
-    setShowPopup(false);
-    
-    // You would typically show a success message or notification here
-    alert('Swap request accepted successfully!');
+    // Refresh data after popup is closed
+    fetchForumSwapRequests();
   };
 
   // Parse date string in DD/MM/YYYY format
   const parseDate = (dateStr) => {
     if (!dateStr) return null;
-    const [day, month, year] = dateStr.split('/').map(Number);
-    return new Date(year, month - 1, day);
+    
+    if (dateStr instanceof Date) {
+      return dateStr;
+    }
+    
+    if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      const [day, month, year] = dateStr.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    
+    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+      return new Date(dateStr);
+    }
+    
+    return null;
   };
 
   // Get my exams from schedule that are within the requester's time window
@@ -72,95 +211,96 @@ const ProctorSwapForum = ({ scheduleEvents, swapRequests }) => {
     const startDate = parseDate(request.availableTimeStart);
     const endDate = parseDate(request.availableTimeEnd);
     
-    if (!startDate || !endDate) return [];
+    if (!startDate || !endDate) return userExams || [];
     
     // Set end date to end of day
     endDate.setHours(23, 59, 59, 999);
     
-    // Filter my exams that fall within the requester's time window
+    // If we have user exams from API, filter them by date
+    if (userExams && userExams.length > 0) {
+      return userExams.filter(exam => {
+        const examDate = parseDate(exam.date || exam.examDate);
+        if (!examDate) return false;
+        return examDate >= startDate && examDate <= endDate;
+      });
+    }
+    
+    // Fallback to scheduled events
     return scheduleEvents.filter(event => {
-      // Only include proctoring exams (isExam = true)
       if (!event.isExam) return false;
       
-      // Parse the exam date
       const eventDate = parseDate(event.examDate);
       if (!eventDate) return false;
       
-      // Check if within time window
       return eventDate >= startDate && eventDate <= endDate;
     });
-  };
-
-  // Get course code from title or course object
-  const getCourseCode = (exam) => {
-    if (exam.course && exam.course.code) {
-      return exam.course.code;
-    } else if (exam.title) {
-      const parts = exam.title.split(' - ');
-      return parts[0];
-    }
-    return 'Unknown';
   };
 
   return (
     <div className="ta-main-page-proctor-swap-forum-proctor-swap-forum">
       <h2>Proctoring Swap Forum</h2>
       
-      <div className="ta-main-page-proctor-swap-forum-swap-requests">
-        {swapRequests && swapRequests.map(request => (
-          <div key={request.id} className="ta-main-page-proctor-swap-forum-swap-request-card">
-            <div className="ta-main-page-proctor-swap-forum-request-header">
-              <div className="ta-main-page-proctor-swap-forum-requester-info">
-                {request.requesterName} wants to swap:
-              </div>
-              
-            </div>
-            
-            <div className="ta-main-page-proctor-swap-forum-exam-card">
-              <div className="ta-main-page-proctor-swap-forum-exam-header">
+      {loading ? (
+        <div className="ta-main-page-proctor-swap-forum-loading-message">
+          Loading swap requests...
+        </div>
+      ) : error ? (
+        <div className="ta-main-page-proctor-swap-forum-error-message">
+          {error}
+        </div>
+      ) : (
+        <div className="ta-main-page-proctor-swap-forum-swap-requests">
+          {forumSwapRequests && forumSwapRequests.length > 0 ? (
+            forumSwapRequests.map(request => (
+              <div key={request.id} className="ta-main-page-proctor-swap-forum-swap-request-card">
+                <div className="ta-main-page-proctor-swap-forum-request-header">
+                  <div className="ta-main-page-proctor-swap-forum-requester-info">
+                    {request.requesterName} wants to swap:
+                  </div>
+                </div>
                 
-                <div className="ta-main-page-proctor-swap-forum-exam-title">
-                    {request.exam.title}
+                <div className="ta-main-page-proctor-swap-forum-exam-card">
+                  <div className="ta-main-page-proctor-swap-forum-exam-header">
+                    <div className="ta-main-page-proctor-swap-forum-exam-title">
+                      {request.exam.title}
+                    </div>
+                    
+                    <button 
+                      className="ta-main-page-proctor-swap-forum-info-button"
+                      onClick={() => handleInfoClick(request)}
+                      title="View details and possible swaps"
+                    >
+                      i
+                    </button>
+                  </div>
+                  
+                  <div className="ta-main-page-proctor-swap-forum-exam-details">
+                    <div className="ta-main-page-proctor-swap-forum-exam-date">{request.exam.examDate}</div>
+                    <div className="ta-main-page-proctor-swap-forum-exam-time">
+                      {request.time}
+                    </div>
+                    <div className="ta-main-page-proctor-swap-forum-swap-window">
+                      Available: {formatDate(request.availableTimeStart)} to {formatDate(request.availableTimeEnd)}
+                    </div>
+                  </div>
                 </div>
-
-                
-                <button 
-                  className="ta-main-page-proctor-swap-forum-info-button"
-                  onClick={() => handleInfoClick(request)}
-                  title="View details and possible swaps"
-                >
-                  i
-                </button>
               </div>
-              
-              <div className="ta-main-page-proctor-swap-forum-exam-details">
-                <div className="ta-main-page-proctor-swap-forum-exam-date">{formatDate(request.exam.examDate)}</div>
-                <div className="ta-main-page-proctor-swap-forum-exam-time">
-                  {formatTime(request.exam.startTime, request.exam.endTime)}
-                </div>
-                <div className="ta-main-page-proctor-swap-forum-swap-window">
-                  Available: {formatDate(request.availableTimeStart)} to {formatDate(request.availableTimeEnd)}
-                </div>
-              </div>
+            ))
+          ) : (
+            <div className="ta-main-page-proctor-swap-forum-no-requests-message">
+              No swap requests available at this time.
             </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Display message if no swap requests */}
-      {(!swapRequests || swapRequests.length === 0) && (
-        <div className="ta-main-page-proctor-swap-forum-no-requests-message">
-          No swap requests available at this time.
+          )}
         </div>
       )}
       
-      {/* Render the popup when a request is selected and showPopup is true */}
+      {/* Use TASwapExamDetailsPopup for exam details */}
       {showPopup && selectedRequest && (
-        <ExamInfoPopup 
-          request={selectedRequest}
+        <TASwapExamDetailsPopup 
+          isOpen={showPopup}
           onClose={handleClosePopup}
-          onRequestSwap={handleRequestSwap}
-          myCompatibleExams={getCompatibleMyExams(selectedRequest)}
+          examDetails={selectedRequest}
+          userExams={getCompatibleMyExams(selectedRequest)}
         />
       )}
     </div>

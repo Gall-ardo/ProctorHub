@@ -30,7 +30,7 @@ const TASubmitForumRequest = ({ isOpen, onClose, userExams = [] }) => {
   const handleSubmit = async () => {
     if (!selectedExam || !startDate || !endDate) return;
   
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) {
       alert('Authentication required. Please log in again.');
       return;

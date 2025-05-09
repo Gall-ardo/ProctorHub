@@ -95,13 +95,21 @@ const respondToSwapRequest = async (req, res, next) => {
       examIdToSwap
     };
     
-    const result = await swapRequestService.respondToSwapRequest(responseData);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Swap request accepted and processed successfully',
-      data: result
-    });
+    try {
+      const result = await swapRequestService.respondToSwapRequest(responseData);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Swap request accepted and processed successfully',
+        data: result
+      });
+    } catch (serviceError) {
+      // Return a more specific error message to the client
+      return res.status(400).json({
+        success: false,
+        message: serviceError.message
+      });
+    }
   } catch (error) {
     console.error('Error in respondToSwapRequest:', error);
     next(error);
@@ -225,6 +233,63 @@ const createForumSwapRequest = async (req, res, next) => {
 };
 
 
+/**
+ * Get submitted swap requests for the authenticated TA
+ */
+const getMySubmittedSwapRequests = async (req, res, next) => {
+  try {
+    // Check if user is authenticated as a TA
+    if (!req.user || req.user.userType !== 'ta') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teaching assistants can view submitted swap requests'
+      });
+    }
+    
+    // Use user id directly if teachingAssistant object is not available
+    const taId = req.user.teachingAssistant?.id || req.user.id;
+    
+    const swapRequests = await swapRequestService.getSubmittedSwapRequests(taId);
+    
+    res.status(200).json({
+      success: true,
+      data: swapRequests
+    });
+  } catch (error) {
+    console.error('Error in getMySubmittedSwapRequests:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get teaching assistants from the same department as the authenticated TA
+ */
+const getSameDepartmentTAs = async (req, res, next) => {
+  try {
+    // Check if user is authenticated as a TA
+    if (!req.user || req.user.userType !== 'ta') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teaching assistants can access this resource'
+      });
+    }
+    
+    // Use user id directly if teachingAssistant object is not available
+    const taId = req.user.teachingAssistant?.id || req.user.id;
+    
+    const departmentTAs = await swapRequestService.getSameDepartmentTAs(taId);
+    
+    res.status(200).json({
+      success: true,
+      data: departmentTAs
+    });
+  } catch (error) {
+    console.error('Error in getSameDepartmentTAs:', error);
+    next(error);
+  }
+};
+
+// Add the new function to the exports
 module.exports = {
   createPersonalSwapRequest,
   createForumSwapRequest,
@@ -233,4 +298,6 @@ module.exports = {
   getMyExamsForSwap,
   cancelSwapRequest,
   getForumSwapRequests,
+  getMySubmittedSwapRequests,
+  getSameDepartmentTAs 
 };

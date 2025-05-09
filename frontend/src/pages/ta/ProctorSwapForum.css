@@ -1,355 +1,168 @@
+/* ProctorSwapForum.css - Improved styling */
+
 .ta-main-page-proctor-swap-forum-proctor-swap-forum {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  margin-bottom: 20px;
 }
 
-/* Ensure the header stays visible */
 .ta-main-page-proctor-swap-forum-proctor-swap-forum h2 {
-  padding: 15px 20px;
-  margin: 0;
-  border-bottom: 1px solid #eee;
+  color: #333;
   font-size: 18px;
-  font-weight: 500;
-  background-color: white; /* Keep it visible when scrolling */
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.ta-main-page-proctor-swap-forum-proctor-swap-forum h3 {
-  padding: 10px 15px;
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  background-color: #f9f9f9;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #eee;
+  font-weight: 600;
 }
 
-/* Ensures all swap request cards have the same height */
-.ta-main-page-proctor-swap-forum-swap-request-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  padding: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  min-height: 150px; /* Ensures all cards maintain the same height */
-}
-
-.ta-main-page-proctor-swap-forum-swap-request-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.ta-main-page-proctor-swap-forum-request-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.ta-main-page-proctor-swap-forum-requester-info {
-  font-weight: 500;
+.ta-main-page-proctor-swap-forum-loading-message,
+.ta-main-page-proctor-swap-forum-error-message,
+.ta-main-page-proctor-swap-forum-no-requests-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
   font-size: 14px;
 }
 
-.ta-main-page-proctor-swap-forum-request-date {
-  font-size: 12px;
-  color: #666;
+.ta-main-page-proctor-swap-forum-error-message {
+  color: #d32f2f;
+  background-color: #ffeaea;
+  border-radius: 4px;
 }
 
-/* Ensures exam cards inside swap requests are uniform */
-.ta-main-page-proctor-swap-forum-exam-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 12px;
+.ta-main-page-proctor-swap-forum-swap-requests {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd #f5f5f5;
+}
+
+.ta-main-page-proctor-swap-forum-swap-requests::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ta-main-page-proctor-swap-forum-swap-requests::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.ta-main-page-proctor-swap-forum-swap-requests::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 10px;
+}
+
+.ta-main-page-proctor-swap-forum-swap-request-card {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ta-main-page-proctor-swap-forum-swap-request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+}
+
+.ta-main-page-proctor-swap-forum-request-header {
+  background-color: #f2f7ff;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #555;
+}
+
+.ta-main-page-proctor-swap-forum-requester-info {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex-grow: 1; /* Ensures uniform stretching */
+  align-items: center;
+  gap: 6px;
+}
+
+.ta-main-page-proctor-swap-forum-requester-name {
+  font-weight: 600;
+  color: #1e88e5;
+}
+
+.ta-main-page-proctor-swap-forum-exam-card {
+  padding: 12px;
 }
 
 .ta-main-page-proctor-swap-forum-exam-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 10px;
 }
 
-.ta-main-page-proctor-swap-forum-course-code {
+.ta-main-page-proctor-swap-forum-exam-title {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
+  color: #333;
 }
 
 .ta-main-page-proctor-swap-forum-info-button {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: 1px solid #999;
-  background: none;
-  color: #333;
-  font-style: italic;
+  background-color: #1976D2;
+  color: white;
+  border: none;
   font-weight: bold;
+  font-style: italic;
   cursor: pointer;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  transition: background-color 0.2s;
 }
 
-.ta-main-page-proctor-swap-forum-info-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  border-color: #ccc;
-  color: #999;
+.ta-main-page-proctor-swap-forum-info-button:hover {
+  background-color: #0d47a1;
 }
 
 .ta-main-page-proctor-swap-forum-exam-details {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  font-size: 13px;
+  color: #555;
 }
 
-.ta-main-page-proctor-swap-forum-exam-date, .ta-main-page-proctor-swap-forum-exam-time {
+.ta-main-page-proctor-swap-forum-exam-date-time {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 8px;
+}
+
+.ta-main-page-proctor-swap-forum-exam-date, 
+.ta-main-page-proctor-swap-forum-exam-time,
+.ta-main-page-proctor-swap-forum-exam-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.ta-main-page-proctor-swap-forum-date-icon,
+.ta-main-page-proctor-swap-forum-time-icon,
+.ta-main-page-proctor-swap-forum-location-icon {
   font-size: 14px;
 }
 
 .ta-main-page-proctor-swap-forum-swap-window {
-  font-size: 13px;
-  color: #1976d2;
-  margin-top: 5px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-restriction {
-  font-size: 12px;
-  color: #e53935;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-}
-
-.ta-main-page-proctor-swap-forum-swap-restriction::before {
-  content: "🔒";
-  margin-right: 5px;
-}
-
-.ta-main-page-proctor-swap-forum-no-requests-message {
-  padding: 20px;
-  text-align: center;
-  color: #757575;
-  font-style: italic;
   margin-top: 10px;
-}
-
-/* Popup Styles */
-.ta-main-page-proctor-swap-forum-exam-info-popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  padding-top: 8px;
+  border-top: 1px dashed #ddd;
+  font-size: 12px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  gap: 5px;
 }
 
-.ta-main-page-proctor-swap-forum-exam-info-popup {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  width: 500px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.ta-main-page-proctor-swap-forum-popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.ta-main-page-proctor-swap-forum-popup-header h3 {
-  margin: 0;
-  font-size: 18px;
+.ta-main-page-proctor-swap-forum-window-label {
   font-weight: 600;
-  background-color: transparent;
-  padding: 0;
-  border: none;
-}
-
-.ta-main-page-proctor-swap-forum-close-button {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
   color: #666;
 }
 
-.ta-main-page-proctor-swap-forum-close-button:hover {
-  color: #333;
-}
-
-.ta-main-page-proctor-swap-forum-popup-content {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.ta-main-page-proctor-swap-forum-requester-exam-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.ta-main-page-proctor-swap-forum-requester-exam-section h4 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #eee;
-}
-
-.ta-main-page-proctor-swap-forum-exam-details-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ta-main-page-proctor-swap-forum-exam-details-section p {
-  margin: 0;
-  font-size: 14px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-window-section {
-  background-color: #e3f2fd;
-  padding: 12px 15px;
-  border-radius: 6px;
-  border-left: 4px solid #2196f3;
-}
-
-.ta-main-page-proctor-swap-forum-swap-window-section p {
-  margin: 0;
-  font-size: 14px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-section h4 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #eee;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exams-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exam-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  cursor: pointer;
-  position: relative;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exam-item:hover {
-  background-color: #f9f9f9;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exam-item.selected {
-  border-color: #2196f3;
-  background-color: #e3f2fd;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exam-course {
-  font-weight: 500;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exam-time {
-  color: #666;
-  font-size: 13px;
-}
-
-.ta-main-page-proctor-swap-forum-selection-indicator {
-  position: absolute;
-  right: -1px;
-  top: -1px;
-  bottom: -1px;
-  width: 4px;
-  background-color: transparent;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-
-.ta-main-page-proctor-swap-forum-possible-exam-item.selected .ta-main-page-proctor-swap-forum-selection-indicator {
-  background-color: #2196f3;
-}
-
-.ta-main-page-proctor-swap-forum-no-exams-message {
-  padding: 15px;
-  text-align: center;
-  color: #757575;
-  font-style: italic;
-  border: 1px dashed #e0e0e0;
-  border-radius: 4px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-action {
-  display: flex;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-button {
-  background-color: #c62828;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 4px;
-  cursor: pointer;
-  min-width: 120px;
-}
-
-.ta-main-page-proctor-swap-forum-swap-button:hover {
-  background-color: #b71c1c;
-}
-
-.ta-main-page-proctor-swap-forum-swap-button:disabled {
-  background-color: #e0e0e0;
-  color: #9e9e9e;
-  cursor: not-allowed;
+.ta-main-page-proctor-swap-forum-window-dates {
+  color: #0d47a1;
 }

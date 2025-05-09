@@ -367,3 +367,34 @@
   cursor: pointer;
   color: #666;
 }
+
+/* TAExamForumPage.css - Add styles for the new Submitted Requests button */
+
+/* Add this after the existing .ta-exam-forum-page-submit-icon styles */
+
+.ta-exam-forum-page-submitted-requests-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #4a5568;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ta-exam-forum-page-submitted-requests-icon span {
+  color: white;
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Additional style for button container spacing */
+.ta-exam-forum-page-sidebar-actions {
+  gap: 20px; /* Reduce the gap to fit three buttons */
+}
+
+.ta-exam-forum-page-button-container {
+  margin-top: 20px; /* Reduce top margin for better spacing */
+}

@@ -43,6 +43,8 @@ router.post('/swaps/respond', swapRequestController.respondToSwapRequest);      
 router.delete('/swaps/:swapRequestId', swapRequestController.cancelSwapRequest);         // DELETE /api/ta/swaps/:swapRequestId
 router.get('/swaps/forum-items', swapRequestController.getForumSwapRequests);            // GET /api/ta/swaps/forum-items
 router.post('/swaps/forum', swapRequestController.createForumSwapRequest); // POST /api/ta/swaps/forum
+router.get('/swaps/submitted', swapRequestController.getMySubmittedSwapRequests);        // GET /api/ta/swaps/submitted (new route)
+router.get('/swaps/department-tas', swapRequestController.getSameDepartmentTAs);  // GET /api/ta/swaps/department-tas
 
 router.get('/proctorings', taProctoringController.getAllProctorings);
 router.get('/proctorings/pending', taProctoringController.getPendingProctorings);

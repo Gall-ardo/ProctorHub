@@ -4,6 +4,7 @@ import './TAExamForumPage.css';
 import TAPersonalSwapRequest from './TAPersonalSwapRequest';
 import TASwapExamDetailsPopup from './TASwapExamDetailsPopup';
 import TASubmitForumRequest from './TASubmitForumRequest';
+import TASubmittedSwapRequests from './TASubmittedSwapRequests';
 import TANavBar from './TANavBar';
 
 const ConfirmationDialog = ({ isOpen, onClose, onConfirm, type }) => {
@@ -36,6 +37,8 @@ const TAExamForumPage = () => {
   const [examDetailsModalOpen, setExamDetailsModalOpen] = useState(false);
   const [selectedForumExam, setSelectedForumExam] = useState(null);
   const [submitForumModalOpen, setSubmitForumModalOpen] = useState(false);
+  const [submittedRequestsModalOpen, setSubmittedRequestsModalOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   
   const API_URL = 'http://localhost:5001/api';
 
@@ -54,10 +57,74 @@ const TAExamForumPage = () => {
 
   // Fetch data on component mount
   useEffect(() => {
+    // Get user ID from token first - this is most reliable
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (token) {
+      const userId = getUserIdFromToken(token);
+      if (userId) {
+        console.log('User ID from token:', userId);
+        setCurrentUserId(userId);
+      }
+    }
+
     fetchUserExams();
     fetchWaitingSwapRequests();
-    fetchForumItems();
+    fetchCurrentUserId().then(() => {
+      fetchForumItems();
+    });
   }, []);
+
+  // Extract user ID from JWT token
+  const getUserIdFromToken = (token) => {
+    try {
+      // JWT tokens consist of three parts separated by dots
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      
+      // The second part contains the payload
+      const payload = JSON.parse(atob(parts[1]));
+      
+      // Get user ID - adjust property name based on your token structure
+      // Common fields are 'id', 'userId', 'sub', etc.
+      return payload.id || payload.userId || payload.sub || payload.teachingAssistant?.id;
+    } catch (err) {
+      console.error('Error parsing token:', err);
+      return null;
+    }
+  };
+
+  // Identify the current user's ID
+  const fetchCurrentUserId = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return null;
+      
+      // Try to get user ID from token first
+      const tokenUserId = getUserIdFromToken(token);
+      if (tokenUserId) {
+        setCurrentUserId(tokenUserId);
+        return tokenUserId;
+      }
+      
+      // If not available in token, try to get from submitted requests
+      const response = await axios.get(`${API_URL}/ta/swaps/submitted`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.data.success && response.data.data.length > 0) {
+        // Get the requesterId from the first submitted request
+        const fetchedUserId = response.data.data[0].requesterId;
+        console.log('User ID from submitted requests:', fetchedUserId);
+        setCurrentUserId(fetchedUserId);
+        return fetchedUserId;
+      }
+    } catch (err) {
+      console.error('Error identifying current user:', err);
+    }
+    return null;
+  };
 
   // Fetch user's exams
   const fetchUserExams = async () => {
@@ -121,7 +188,7 @@ const TAExamForumPage = () => {
     }
   };
 
-  // Fetch forum items
+  // Fetch forum items - improved implementation with better filtering
   const fetchForumItems = async () => {
     try {
       setLoading(true);
@@ -133,7 +200,7 @@ const TAExamForumPage = () => {
         return;
       }
 
-      // Note: This endpoint needs to be implemented on the backend
+      // Fetch all forum items
       const response = await axios.get(`${API_URL}/ta/swaps/forum-items`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -141,7 +208,54 @@ const TAExamForumPage = () => {
       });
       
       if (response.data.success) {
-        setSwapForumItems(response.data.data);
+        // Log all forum items for debugging
+        console.log('All forum items:', response.data.data);
+        
+        // Get all submitted requests to identify user's own forum posts
+        const submittedResponse = await axios.get(`${API_URL}/ta/swaps/submitted`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        let userId = currentUserId;
+        
+        // If we don't have currentUserId yet, try to get it from submitted requests
+        if (!userId && submittedResponse.data.success && submittedResponse.data.data.length > 0) {
+          userId = submittedResponse.data.data[0].requesterId;
+          setCurrentUserId(userId);
+        }
+        
+        // Double-check by comparing forum items with submitted forum requests
+        if (submittedResponse.data.success) {
+          const userForumRequestIds = new Set();
+          
+          // Collect IDs of user's forum requests
+          submittedResponse.data.data.forEach(request => {
+            if (request.isForumPost) {
+              userForumRequestIds.add(request.id);
+            }
+          });
+          
+          console.log('User forum request IDs:', [...userForumRequestIds]);
+          
+          // Filter out forum items that match user's submitted forum requests
+          const filteredItems = response.data.data.filter(item => {
+            return !userForumRequestIds.has(item.id) && item.requesterId !== userId;
+          });
+          
+          console.log('Filtered forum items:', filteredItems);
+          setSwapForumItems(filteredItems);
+        } else if (userId) {
+          // Fall back to filtering by requesterId if we have userId
+          console.log('Filtering with user ID:', userId);
+          const filteredItems = response.data.data.filter(item => item.requesterId !== userId);
+          setSwapForumItems(filteredItems);
+        } else {
+          // If all else fails, show all forum items
+          console.log('No user identification possible, showing all forum items');
+          setSwapForumItems(response.data.data);
+        }
       } else {
         setError(response.data.message || 'Failed to fetch forum items');
       }
@@ -151,6 +265,13 @@ const TAExamForumPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Refresh data after submitting new requests or responding to requests
+  const refreshData = () => {
+    fetchUserExams();
+    fetchWaitingSwapRequests();
+    fetchForumItems();
   };
 
   // Confirm action
@@ -186,7 +307,7 @@ const TAExamForumPage = () => {
   const closeSwapRequestModal = () => {
     setSwapRequestModalOpen(false);
     // Refresh data after modal closes
-    fetchWaitingSwapRequests();
+    refreshData();
   };
 
   // Open exam details modal - now used for both forum and waiting items
@@ -200,8 +321,7 @@ const TAExamForumPage = () => {
     setExamDetailsModalOpen(false);
     setSelectedForumExam(null);
     // Refresh data after modal closes
-    fetchWaitingSwapRequests();
-    fetchForumItems();
+    refreshData();
   };
 
   // Open submit forum modal
@@ -212,8 +332,20 @@ const TAExamForumPage = () => {
   // Close submit forum modal
   const closeSubmitForumModal = () => {
     setSubmitForumModalOpen(false);
-    // Refresh forum items after modal closes
-    fetchForumItems();
+    // Refresh data after modal closes
+    refreshData();
+  };
+
+  // Open submitted requests modal
+  const openSubmittedRequestsModal = () => {
+    setSubmittedRequestsModalOpen(true);
+  };
+
+  // Close submitted requests modal
+  const closeSubmittedRequestsModal = () => {
+    setSubmittedRequestsModalOpen(false);
+    // Refresh data after modal closes
+    refreshData();
   };
 
   // Render waiting swap requests
@@ -242,7 +374,7 @@ const TAExamForumPage = () => {
           </div>
           <div className="ta-exam-forum-page-swap-meta">
             <div>{request.date}      {request.time}</div>
-            <div>Clasrooms: {request.classrooms}</div>
+            <div>Clasrooms: {request.classroom || request.classrooms}</div>
           </div>
         </div>
         <div className="ta-exam-forum-page-submitter-info">
@@ -312,11 +444,25 @@ const TAExamForumPage = () => {
           </div>
           
           {/* Submit Forum Request Button */}
-          <div className="ta-exam-forum-page-submit-container">
+          <div className="ta-exam-forum-page-button-container">
             <div className="ta-exam-forum-page-submit-forum-container">
               <div className="ta-exam-forum-page-submit-button-label">Submit Swap Request on Forum</div>
               <div className="ta-exam-forum-page-submit-icon" onClick={openSubmitForumModal}>
                 <span>+</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Submitted Swap Requests Button */}
+          <div className="ta-exam-forum-page-button-container">
+            <div className="ta-exam-forum-page-send-request-container">
+              <div className="ta-exam-forum-page-send-button-label">View My Submitted Requests</div>
+              <div 
+                className="ta-exam-forum-page-send-icon" 
+                onClick={openSubmittedRequestsModal}
+                style={{ backgroundColor: '#4a5568' }}
+              >
+                <span style={{ color: 'white', fontSize: '24px' }}>⊙</span>
               </div>
             </div>
           </div>
@@ -374,6 +520,12 @@ const TAExamForumPage = () => {
         isOpen={submitForumModalOpen}
         onClose={closeSubmitForumModal}
         userExams={currentUserExams}
+      />
+
+      {/* Submitted Swap Requests Modal */}
+      <TASubmittedSwapRequests
+        isOpen={submittedRequestsModalOpen}
+        onClose={closeSubmittedRequestsModal}
       />
     </div>
   );
