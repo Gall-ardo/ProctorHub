@@ -1,85 +1,343 @@
 .instructor-nav-top-navbar {
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    height: 60px;
-    background-color: var(--primary-color);
-    color: var(--secondary-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .instructor-nav-logo {
-    display: flex;
-    align-items: center;
-  }
-  
-  .instructor-nav-logo img {
-    height: 40px;
-    width: auto;
-    margin-right: 20px;
-  }
-  
-  .instructor-nav-links {
-    display: flex;
-    gap: 30px;
-  }
-  
-  .instructor-nav-links a {
-    color: var(--secondary-color);
-    text-decoration: none;
-    font-size: 16px;
-    padding: 5px 0;
-  }
-  
-  .instructor-nav-links a.active {
-    font-weight: bold;
-  }
-  
-  .instructor-nav-icons {
-    display: flex;
-    gap: 15px;
-  }
-  
-  .instructor-nav-notification-icon img,
-  .instructor-nav-profile-icon img {
-    height: 24px;
-    width: 24px;
-    cursor: pointer;
-  }
-  
-  .instructor-nav-profile-container {
-    position: relative;
-  }
-  
-  .instructor-nav-profile-dropdown {
-    position: absolute;
-    top: 40px;
-    right: 0;
-    width: 180px;
-    background-color: white;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 100;
-    overflow: hidden;
-  }
-  
-  .dropdown-item {
-    padding: 12px 16px;
-    font-size: 14px;
-    color: #333;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .dropdown-item:hover {
-    background-color: var(--background-color);
-  }
-  
-  .dropdown-item:not(:last-child) {
-    border-bottom: 1px solid #eee;
-  }
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  background-color: #c62828;
+  color: white;
+}
+
+.instructor-nav-logo {
+  display: flex;
+  align-items: center;
+}
+
+.instructor-nav-logo img {
+  height: 40px;
+  width: auto;
+  margin-right: 20px;
+}
+
+.instructor-nav-top-navbar {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  right: 0;       /* this + left:0 makes it fill the viewport */
+  height: 60px;
+  background-color: var(--primary-color);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.instructor-nav-links {
+  display: flex;
+  gap: 30px;
+  margin-left: 10px;
+}
+
+.instructor-nav-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 5px 0;
+}
+
+.instructor-nav-links a.active {
+  font-weight: bold;
+}
+
+.instructor-nav-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.instructor-nav-notification-icon img, 
+.instructor-nav-profile-icon img {
+  height: 24px;
+  width: 24px;
+  cursor: pointer;
+}
+
+/* Profile dropdown styles */
+.instructor-nav-profile-container {
+  position: relative;
+}
+
+.instructor-nav-profile-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 180px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  color: #333;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-icon {
+  margin-right: 8px;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Add a subtle divider between dropdown items */
+.dropdown-item:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+
+/* NOTIFICATION DROPDOWN STYLES */
+.instructor-nav-notification-container {
+  position: relative;
+}
+
+.instructor-nav-notification-dropdown {
+  position: absolute;
+  top: 40px;
+  right: -50px; /* Adjusted from -100px to -50px to move left */
+  width: 380px;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.notification-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+}
+
+.notification-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: flex-start;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f9f9f9;
+}
+
+.notification-icon {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-text {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.notification-meta {
+  color: #888;
+  text-align: right;
+  font-size: 12px;
+}
+
+.no-notifications {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+/* Password Modal Styles */
+.password-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.password-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.password-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.password-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-modal-btn:hover {
+  color: #c62828;
+}
+
+.password-modal form {
+  padding: 20px;
+}
+
+.password-input-group {
+  margin-bottom: 20px;
+}
+
+.password-input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.password-input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.password-input-group input:focus {
+  border-color: #c62828;
+  outline: none;
+}
+
+.password-error {
+  color: #c62828;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.change-password-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #c62828;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.change-password-btn:hover {
+  background-color: #b71c1c;
+}
+
+/* Confirmation Modal Styles */
+.confirmation-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.confirmation-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.confirmation-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.confirmation-content {
+  padding: 20px;
+}
+
+.confirmation-content p {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.confirmation-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  padding: 10px 15px;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.confirm-btn {
+  padding: 10px 15px;
+  background-color: #c62828;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-btn:hover {
+  background-color: #b71c1c;
+}

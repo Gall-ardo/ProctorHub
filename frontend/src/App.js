@@ -19,6 +19,7 @@ import TALeaveOfAbsence from './pages/ta/TALeaveOfAbsence';
 import InstructorMainPage from './pages/instructor/InstructorMainPage';
 import InstructorTAWorkloadPage from './pages/instructor/InstructorTAWorkloadPage';
 import InstructorExamsPage from './pages/instructor/InstructorExamsPage';
+import InstructorNavBar from './pages/instructor/InstructorNavBar';
 import TAExamForumPage from './pages/ta/TAExamForumPage';
 import DepartmentChairMainPage from "./pages/departmentchair/DepartmentChairMainPage";
 import DepartmentChairExamsPage from "./pages/departmentchair/DepartmentChairExamsPage";
@@ -112,6 +113,11 @@ function App() {
         <Route path="/instructor/assign" element={
           <ProtectedRoute allowedRoles={['instructor']}>
             <InstructorAssignPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/instructor/navbar" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorNavBar />
           </ProtectedRoute>
         } />
         

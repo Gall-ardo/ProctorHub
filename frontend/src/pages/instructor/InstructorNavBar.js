@@ -1,86 +1,118 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import './InstructorNavBar.css';
+// Import the icons
 import bilkentIcon from '../../assets/bilkent-logo.png';
 import notificationIcon from '../../assets/notification-icon.png';
 import userIcon from '../../assets/user-icon.png';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_URL = 'http://localhost:5001/api';
 
-export default function InstructorNavBar() {
+const InstructorNavBar = () => {
   const location = useLocation();
   const path = location.pathname;
 
-  // UI state
+  // dropdown & modal sinstructorte
+  const [showProfileDropdown, setShowProfileDropdown]     = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [showProfileDropdown, setShowProfileDropdown]       = useState(false);
-  const [showPasswordModal, setShowPasswordModal]           = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm]           = useState(false);
+  const [showPasswordModal, setShowPasswordModal]         = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm]         = useState(false);
 
-  // Password form state
+  // password form sinstructorte
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword]         = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError]     = useState('');
   const [loading, setLoading]                 = useState(false);
 
-  // Sample notifications; swap these out for a real fetch if you like
-  const [notifications] = useState([
-    { id:1, type:'workload', icon:'👍', text:'Workload approved', date:'07.03.2025', time:'15:30' },
-    { id:2, type:'swap',     icon:'💬', text:'Swap request received', date:'07.03.2025', time:'16:00' },
-    // …etc
-  ]);
+  // notifications from DB
+  const [notifications, setNotifications]         = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
 
-  const notificationRef = useRef(null);
-  const profileRef      = useRef(null);
-  const modalRef        = useRef(null);
+  const profileDropdownRef      = useRef(null);
+  const notificationDropdownRef = useRef(null);
+  const modalRef                = useRef(null);
 
-  // Helpers
-  const isActive = navPath => path.includes(navPath);
-  const getToken = () =>
-    localStorage.getItem('token') || sessionStorage.getItem('token');
+  // active‐link helper
+  const isActive = (navPath) => path.startsWith(navPath);
 
-  // Outside-click handlers
+  // icon mapper
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'workload':   return '👍';
+      case 'personal':   return '↩';
+      case 'swap':       return '💬';
+      case 'proctoring': return '💬';
+      case 'leave':      return '📅';
+      default:           return '📣';
+    }
+  };
+
+  // fetch notifications once on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      setLoadingNotifications(false);
+      return;
+    }
+
+    axios
+      .get(`${API_URL}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        if (res.dainstructor.success) {
+          // map raw DB rows to your dropdown shape
+          const mapped = res.dainstructor.dainstructor.map(n => {
+            const d = new Date(n.date);
+            return {
+              id:   n.id,
+              icon: getNotificationIcon(n.subject.toLowerCase()),
+              text: n.message,
+              date: d.toLocaleDateString(),
+              time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+          });
+          setNotifications(mapped);
+        }
+      })
+      .catch(err => console.error('Could not load notifications', err))
+      .finally(() => setLoadingNotifications(false));
+  }, []);
+
+  // click‐outside handler for both dropdowns
   useEffect(() => {
     const handleClickOutside = e => {
-      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
-        setShowNotificationDropdown(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
         setShowProfileDropdown(false);
+      }
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(e.target)) {
+        setShowNotificationDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Logout
-  const confirmLogout = () => {
-    setShowLogoutConfirm(true);
-    setShowProfileDropdown(false);
+  // toggles
+  const toggleProfileDropdown = () => {
+    setShowProfileDropdown(!showProfileDropdown);
+    if (showNotificationDropdown) setShowNotificationDropdown(false);
   };
-  const cancelLogout = () => setShowLogoutConfirm(false);
-  const handleLogout = () => {
-    // clear both storages
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('role');
-    window.location.href = '/';
+  const toggleNotificationDropdown = () => {
+    setShowNotificationDropdown(!showNotificationDropdown);
+    if (showProfileDropdown) setShowProfileDropdown(false);
   };
 
-  // Password change
-  const openPasswordModal = () => {
-    setShowPasswordModal(true);
-    setShowProfileDropdown(false);
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setPasswordError('');
-  };
+  // password modal handlers, logout, etc.
+  const openPasswordModal  = () => { setShowPasswordModal(true); setShowProfileDropdown(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setPasswordError(''); };
   const closePasswordModal = () => setShowPasswordModal(false);
+  const confirmLogout      = () => { setShowLogoutConfirm(true); setShowProfileDropdown(false); };
+  const cancelLogout       = () => setShowLogoutConfirm(false);
+  const handleLogout       = () => { sessionStorage.clear(); localStorage.clear(); window.location.href = '/'; };
 
-  const handlePasswordChange = async e => {
+  const handlePasswordChange = e => {
     e.preventDefault();
     if (!currentPassword || !newPassword || !confirmPassword) {
       setPasswordError('All fields are required');
@@ -91,36 +123,32 @@ export default function InstructorNavBar() {
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters');
+      setPasswordError('New password must be at least 8 characters long');
       return;
     }
-    const token = getToken();
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) {
-      setPasswordError('You must be logged in');
+      setPasswordError('You must be logged in to change the password');
       return;
     }
 
     setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ currentPassword, newPassword })
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Error changing password');
-      }
-      alert('Password changed successfully');
-      closePasswordModal();
-    } catch (err) {
-      setPasswordError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    fetch(`${API_URL}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ currentPassword, newPassword })
+    })
+      .then(res => {
+        if (!res.ok) return res.json().then(err => Promise.reject(err.message || 'Server error'));
+        return res.json();
+      })
+      .then(() => { alert('Password changed successfully'); closePasswordModal(); })
+      .catch(err => setPasswordError(err))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -134,46 +162,39 @@ export default function InstructorNavBar() {
         <Link to="/instructor/exams"      className={isActive('/instructor/exams')      ? 'active' : ''}>Exams</Link>
         <Link to="/instructor/assign"     className={isActive('/instructor/assign')     ? 'active' : ''}>TA Assign</Link>
       </div>
-
-      <div className="instructor-nav-icons" style={{ marginLeft: 'auto' }}>
-        {/* notifications */}
-        <div ref={notificationRef}>
-          <img
-            src={notificationIcon}
-            alt="Notifications"
-            className="instructor-nav-notification-icon"
-            onClick={() => {
-              setShowNotificationDropdown(v => !v);
-              setShowProfileDropdown(false);
-            }}
-          />
+      <div style={{ marginLeft: 'auto' }} className="instructor-nav-icons">
+        {/* Notifications */}
+        <div className="instructor-nav-notification-container" ref={notificationDropdownRef}>
+          <div className="instructor-nav-notification-icon" onClick={toggleNotificationDropdown}>
+            <img src={notificationIcon} alt="Notifications" />
+          </div>
           {showNotificationDropdown && (
             <div className="instructor-nav-notification-dropdown">
               <div className="notification-header">Notifications</div>
-              {notifications.map(n => (
-                <div key={n.id} className="notification-item">
-                  <span className="notification-icon">{n.icon}</span>
-                  <div>
-                    <p>{n.text}</p>
-                    <small>{n.date} {n.time}</small>
+              {loadingNotifications ? (
+                <div className="no-notifications">Loading…</div>
+              ) : notifications.length > 0 ? (
+                notifications.map(n => (
+                  <div key={n.id} className="notification-item">
+                    <div className="notification-icon">{n.icon}</div>
+                    <div className="notification-content">
+                      <p className="notification-text">{n.text}</p>
+                      <div className="notification-meinstructor">{n.date} {n.time}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="no-notifications">No notifications to display</div>
+              )}
             </div>
           )}
         </div>
 
-        {/* profile / change‐password / logout */}
-        <div ref={profileRef}>
-          <img
-            src={userIcon}
-            alt="Profile"
-            className="instructor-nav-profile-icon"
-            onClick={() => {
-              setShowProfileDropdown(v => !v);
-              setShowNotificationDropdown(false);
-            }}
-          />
+        {/* Profile */}
+        <div className="instructor-nav-profile-container" ref={profileDropdownRef}>
+          <div className="instructor-nav-profile-icon" onClick={toggleProfileDropdown}>
+            <img src={userIcon} alt="Profile" />
+          </div>
           {showProfileDropdown && (
             <div className="instructor-nav-profile-dropdown">
               <div className="dropdown-item" onClick={openPasswordModal}>Change Password</div>
@@ -183,52 +204,54 @@ export default function InstructorNavBar() {
         </div>
       </div>
 
-      {/* ===== Change Password Modal ===== */}
+      {/* Password Modal */}
       {showPasswordModal && (
-        <div className="modal-backdrop">
-          <div className="modal-content" ref={modalRef}>
-            <button className="close-button" onClick={closePasswordModal}>×</button>
-            <h3>Change Password</h3>
+        <div className="password-modal-overlay">
+          <div className="password-modal" ref={modalRef}>
+            <div className="password-modal-header">
+              <h2>Change Password</h2>
+              <button className="close-modal-btn" onClick={closePasswordModal}>✕</button>
+            </div>
             <form onSubmit={handlePasswordChange}>
-              <label>Current Password</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-              />
-              <label>New Password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-              />
-              <label>Confirm New Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-              />
-              {passwordError && <p className="error">{passwordError}</p>}
-              <button type="submit" disabled={loading}>
-                {loading ? 'Saving…' : 'Save'}
-              </button>
+              <div className="password-input-group">
+                <label>Current Password</label>
+                <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+              </div>
+              <div className="password-input-group">
+                <label>New Password</label>
+                <input type="password" value={newPassword}    onChange={e => setNewPassword(e.target.value)} />
+              </div>
+              <div className="password-input-group">
+                <label>New Password Again</label>
+                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+              </div>
+              {passwordError && <div className="password-error">{passwordError}</div>}
+              <button type="submit" className="change-password-btn">Change Password</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* ===== Logout Confirmation ===== */}
+      {/* Logout Confirmation */}
       {showLogoutConfirm && (
-        <div className="modal-backdrop">
-          <div className="modal-content">
-            <h3>Are you sure you want to log out?</h3>
-            <div className="button-row">
-              <button onClick={cancelLogout}>Cancel</button>
-              <button onClick={handleLogout}>Yes, Log Out</button>
+        <div className="password-modal-overlay">
+          <div className="confirmation-modal">
+            <div className="confirmation-modal-header">
+              <h2>Confirm Logout</h2>
+              <button className="close-modal-btn" onClick={cancelLogout}>✕</button>
+            </div>
+            <div className="confirmation-content">
+              <p>Are you sure you want to log out?</p>
+              <div className="confirmation-buttons">
+                <button className="cancel-btn"  onClick={cancelLogout}>Cancel</button>
+                <button className="confirm-btn" onClick={handleLogout}>Confirm Logout</button>
+              </div>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default InstructorNavBar;

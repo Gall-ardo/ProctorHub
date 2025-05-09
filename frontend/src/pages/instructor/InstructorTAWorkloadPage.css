@@ -6,6 +6,29 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding-top: 60px; /* Add padding to account for fixed navbar */
 }
+
+
+
+
+/* make all label+value lines a bit larger */
+.info-row {
+    font-size: 1.05rem;   /* ~5% larger than default */
+    line-height: 1.4;
+  }
+  
+  /* match your summary TA color/weight */
+  .ta-name {
+    color: #c62828;       /* same red you use in .card h3 */
+    font-weight: 600;
+  }
+  .info-row strong {
+    font-size: 1rem;      /* label size */
+  }
+  .info-row span {
+    font-size: 1.05rem;   /* value size */
+  }
+
+
   
 /* Top navigation bar styles moved to InstructorNavBar.css */
   
@@ -131,13 +154,15 @@
 
 .rejection-textarea {
     width: 100%;
-    min-height: 80px;
+    min-height: 150px;      /* increase from 80px */
+    height: 150px;          /* fixed height if you prefer */
     margin: 10px 0;
     border: 1px solid #ddd;
     border-radius: 4px;
-    padding: 8px;
+    padding: 12px;          /* a bit more padding */
+    font-size: 1rem;        /* larger text */
     resize: vertical;
-}
+  }
 
 .button-row {
     display: flex;
