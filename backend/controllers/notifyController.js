@@ -14,3 +14,18 @@ exports.getMine = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.markAllRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // update all unread → read
+    await Notification.update(
+      { isRead: true },
+      { where: { recipientId: userId, isRead: false } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error marking notifications read:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

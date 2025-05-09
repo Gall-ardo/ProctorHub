@@ -92,7 +92,8 @@ async function approveWorkload(workloadId) {
     subject: 'Workload Request Approved',
     message: `Your workload request for ${wl.taskType} on ${wl.date.toLocaleDateString()} has been approved by ${instrName}. ${wl.duration} hours have been added to your total workload.`,
     date: new Date(),
-    recipientId: wl.ta.id
+    recipientId: wl.ta.id,
+    isRead: false
   });
 
   return wl;
@@ -124,7 +125,8 @@ async function rejectWorkload(workloadId, reason) {
     subject: 'Workload Request Rejected',
     message: `Your workload request for ${wl.taskType} on ${wl.date.toLocaleDateString()} was rejected by ${instrName}. Reason: ${reason}`,
     date: new Date(),
-    recipientId: wl.ta.id
+    recipientId: wl.ta.id,
+    isRead: false
   });
 
   return wl;

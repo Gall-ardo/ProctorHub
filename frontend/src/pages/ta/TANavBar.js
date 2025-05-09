@@ -31,6 +31,9 @@ const TANavBar = () => {
   const [notifications, setNotifications]         = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
 
+  const unreadNotifications = notifications.filter(n => !n.isRead);
+  const hasUnread = unreadNotifications.length > 0;
+
   const profileDropdownRef      = useRef(null);
   const notificationDropdownRef = useRef(null);
   const modalRef                = useRef(null);
@@ -72,7 +75,8 @@ const TANavBar = () => {
               icon: getNotificationIcon(n.subject.toLowerCase()),
               text: n.message,
               date: d.toLocaleDateString(),
-              time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              isRead: n.isRead
             };
           });
           setNotifications(mapped);
@@ -101,11 +105,28 @@ const TANavBar = () => {
     setShowProfileDropdown(!showProfileDropdown);
     if (showNotificationDropdown) setShowNotificationDropdown(false);
   };
-  const toggleNotificationDropdown = () => {
+  const toggleNotificationDropdown = async () => {
+    // if we're *currently* open (and about to close) and there are unread,
+    // then mark them read now
+    if (showNotificationDropdown && hasUnread) {
+      try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        await axios.put(
+          `${API_URL}/notifications/mark-read-all`,
+          null,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      } catch (err) {
+        console.error('Failed to mark notifications read', err);
+      }
+    }
+  
+    // now actually toggle the dropdown
     setShowNotificationDropdown(!showNotificationDropdown);
     if (showProfileDropdown) setShowProfileDropdown(false);
   };
-
+  
   // password modal handlers, logout, etc.
   const openPasswordModal  = () => { setShowPasswordModal(true); setShowProfileDropdown(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setPasswordError(''); };
   const closePasswordModal = () => setShowPasswordModal(false);
@@ -169,14 +190,17 @@ const TANavBar = () => {
         <div className="ta-nav-notification-container" ref={notificationDropdownRef}>
           <div className="ta-nav-notification-icon" onClick={toggleNotificationDropdown}>
             <img src={notificationIcon} alt="Notifications" />
+            {hasUnread && (<span className="unread-badge">
+              {unreadNotifications.length > 99 ? '99+' : unreadNotifications.length}
+            </span>)}
           </div>
           {showNotificationDropdown && (
             <div className="ta-nav-notification-dropdown">
               <div className="notification-header">Notifications</div>
               {loadingNotifications ? (
                 <div className="no-notifications">Loading…</div>
-              ) : notifications.length > 0 ? (
-                notifications.map(n => (
+              ) : unreadNotifications.length > 0 ? (
+                unreadNotifications.map(n => (
                   <div key={n.id} className="notification-item">
                     <div className="notification-icon">{n.icon}</div>
                     <div className="notification-content">
