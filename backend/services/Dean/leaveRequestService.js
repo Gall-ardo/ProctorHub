@@ -1,10 +1,12 @@
+const { v4: uuidv4 } = require('uuid');
 const { Op } = require('sequelize');
 const {
   LeaveRequest,
   TeachingAssistant,
   User,
   Exam,
-  Proctoring
+  Proctoring,
+  Notification
 } = require('../../models');
 
 async function listPending() {
@@ -73,19 +75,69 @@ async function listCurrent() {
 }
 
 async function approve(id) {
+  // 1) Mark the leave request approved
   const r = await LeaveRequest.findByPk(id);
   if (!r) throw new Error('LeaveRequest not found');
   r.status = 'approved';
   await r.save();
+
+  // 2) Load TA + their User record
+  const leave = await LeaveRequest.findByPk(id, {
+    include: [{ 
+      model: TeachingAssistant,
+      include: [{ model: User, as: 'taUser', attributes: ['id','name'] }]
+    }]
+  });
+
+  // 3) Send notification
+  if (leave?.TeachingAssistant?.taUser) {
+    const { id: taId, name } = leave.TeachingAssistant.taUser;
+    await Notification.create({
+      id:          uuidv4(),
+      recipientId: taId,
+      subject:     'Leave Request Approved',
+      message:     `Your leave from `
+                 + `${leave.startDate.toISOString().slice(0,10)} to `
+                 + `${leave.endDate.toISOString().slice(0,10)} has been approved by '${name}'. `, 
+      date:        new Date(),
+      isRead:      false
+    });
+  }
+
   return r;
 }
 
 async function reject(id, reason) {
+  // 1) Mark the leave request rejected
   const r = await LeaveRequest.findByPk(id);
   if (!r) throw new Error('LeaveRequest not found');
   r.status = 'rejected';
   r.rejectionReason = reason;
   await r.save();
+
+  // 2) Load TA + their User record
+  const leave = await LeaveRequest.findByPk(id, {
+    include: [{ 
+      model: TeachingAssistant,
+      include: [{ model: User, as: 'taUser', attributes: ['id','name'] }]
+    }]
+  });
+
+  // 3) Send notification
+  if (leave?.TeachingAssistant?.taUser) {
+    const { id: taId, name } = leave.TeachingAssistant.taUser;
+    await Notification.create({
+      id:          uuidv4(),
+      recipientId: taId,
+      subject:     'Leave Request Rejected',
+      message:     `Your leave from `
+                 + `${leave.startDate.toISOString().slice(0,10)} to `
+                 + `${leave.endDate.toISOString().slice(0,10)} was rejected by '${name}'. `,
+      date:        new Date(),
+      isRead:      false
+    });
+  }
+
   return r;
 }
 

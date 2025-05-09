@@ -33,8 +33,18 @@ exports.getMainPageData = async (req, res) => {
 
     // 2) Upcoming Exams
     const exams = await Exam.findAll({
-        where: { /* … */ },
-        include: [/* … */],
+        where: { 
+          courseId: { [Op.in]: courseIds },
+          date: { [Op.gte]: today },
+        },
+        include: [
+        {
+          model: Classroom,
+          as: 'examRooms',
+          through: { attributes: [] },
+          attributes: ['name']
+        }
+        ],
         order: [
           ['date', 'ASC'],
         ]
