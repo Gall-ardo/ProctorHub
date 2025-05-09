@@ -118,22 +118,30 @@ export default function InstructorTAWorkloadPage() {
                   'Unknown TA';
 
                 return (
-                  <div className="card" key={w.id}>
-                    <h3>
-                      {taName} – {w.duration} Hours
-                    </h3>
-                    <p>{new Date(w.date).toLocaleDateString()}</p>
-                    <p>Task: {w.taskType || 'Not specified'}</p>
-                    {w.course && <p>Course: {w.course}</p>}
-                    <div className="action-buttons">
-                      <button onClick={() => openModal('approve', w.id)}>
-                        Verify
-                      </button>
-                      <button onClick={() => openModal('reject', w.id)}>
-                        Reject
-                      </button>
+                <div className="card" key={w.id}>
+                  <div className="card-info">
+                    <div className="info-row">
+                      <span className="ta-name">
+                        <h3>{taName} – {w.duration} Hours</h3>
+                      </span>
                     </div>
+                    <div className="info-row">
+                      <strong>Date:</strong> {new Date(w.date).toLocaleDateString()}
+                    </div>
+                    <div className="info-row">
+                      <strong>Task:</strong> {w.taskType || 'Not specified'}
+                    </div>
+                    {w.course && (
+                      <div className="info-row">
+                        <strong>Course:</strong> {w.course}
+                      </div>
+                    )}
                   </div>
+                  <div className="action-buttons">
+                    <button onClick={() => openModal('approve', w.id)}>Approve</button>
+                    <button onClick={() => openModal('reject', w.id)}>Reject</button>
+                  </div>
+                </div>
                 );
               })}
             </div>
@@ -172,27 +180,35 @@ export default function InstructorTAWorkloadPage() {
             >
               ×
             </button>
+
             {actionType === 'approve' ? (
               <>
-                <h3>Confirm verification?</h3>
-                <button onClick={closeModal}>No</button>
-                <button onClick={handleConfirm}>Yes</button>
+                <h3 style={{ marginBottom: '1rem' }}>Confirm Verification</h3>
+                <p>Are you sure you want to approve this workload request?</p>
+                <div className="button-row">
+                  <button onClick={handleConfirm}>Yes</button>
+                  <button onClick={closeModal}>No</button>
+                </div>
               </>
             ) : (
               <>
-                <h3>Confirm rejection?</h3>
+                <h3 style={{ marginBottom: '1rem' }}>Reject Workload</h3>
+                <p>Please provide a reason for rejection:</p>
                 <textarea
+                  className="rejection-textarea"
                   value={rejectionReason}
                   onChange={e => setRejectionReason(e.target.value)}
                   placeholder="Reason for rejecting"
                 />
-                <button onClick={closeModal}>Cancel</button>
+                <div className="button-row">
                 <button
-                  onClick={handleConfirm}
-                  disabled={!rejectionReason.trim()}
-                >
-                  Reject
-                </button>
+                    onClick={handleConfirm}
+                    disabled={!rejectionReason.trim()}
+                  >
+                    Submit
+                  </button>
+                  <button onClick={closeModal}>Cancel</button>
+                </div>
               </>
             )}
           </div>
