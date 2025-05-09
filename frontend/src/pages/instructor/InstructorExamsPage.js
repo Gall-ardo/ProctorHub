@@ -189,7 +189,7 @@ function InstructorExamsPage() {
       console.log('Fetching available TAs with params:', queryParams);
 
       const response = await axios.get(
-        `${API_URL}/instructor/available-tas${queryParams ? '?' + queryParams : ''}`, 
+        `${API_URL}/instructor/available-tas-for-exam${queryParams ? '?' + queryParams : ''}`, 
         { headers }
       );
 
@@ -383,11 +383,13 @@ function InstructorExamsPage() {
 
   const handleOpenSelectProctors = () => {
     setIsSelectProctorsOpen(true);
+    fetchAvailableTAs();
   };
 
   const handleOpenSwapTAs = (exam) => {
     setSelectedExam(exam);
     setIsSwapTAsOpen(true);
+    fetchAvailableTAs();
   };
 
   // Handlers for closing modals
@@ -1132,21 +1134,33 @@ function InstructorExamsPage() {
                 <div className="ta-list-container">
                   <h4>Available TAs</h4>
                   <div className="ta-list">
-                    {filteredTAs.map((ta) => {
-                      // Check if the TA is on approved leave that conflicts with the exam date
+                    {filteredTAs.map(ta => {
                       const isOnLeave = ta.leaveStatus === 'APPROVED' || ta.isOnLeave;
-                      const leaveMessage = isOnLeave ? 
-                        `${ta.name} has an approved leave request that overlaps with this exam date (${formData.date})` : '';
-                      
+                      const leaveMessage = isOnLeave
+                        ? `${ta.name} has an approved leave request that overlaps with this exam date (${formData.date})`
+                        : '';
+
+                      const isSelected = selectedTAs.some(sel => sel.id === ta.id);
+
                       return (
                         <div
-                            key={ta.id}
-                            className={`ta-option ${isOnLeave ? 'ta-on-leave' : ''}`}
-                            onClick={() => isOnLeave ? 
-                              alert(leaveMessage) : 
-                              handleTASelect(ta)
+                          key={ta.id}
+                          className={`ta-option
+                                      ${isOnLeave ? 'ta-on-leave' : ''}
+                                      ${isSelected ? 'selected' : ''}`}
+                          onClick={() => {
+                            if (isOnLeave) {
+                              alert(leaveMessage);
+                            } else {
+                              // toggle selection
+                              if (isSelected) {
+                                setSelectedTAs(selectedTAs.filter(sel => sel.id !== ta.id));
+                              } else {
+                                setSelectedTAs([...selectedTAs, ta]);
+                              }
                             }
-                            title={isOnLeave ? leaveMessage : ''}
+                          }}
+                          title={isOnLeave ? leaveMessage : ''}
                         >
                           <span>{ta.name}</span>
                           <div className="ta-details">
@@ -1164,14 +1178,7 @@ function InstructorExamsPage() {
                 </div>
                 
                 <div className="selected-tas-container">
-                  <h4>Selected Proctors ({selectedTAs.length})</h4>
-                  <div className="selected-proctors">
-                    {selectedTAs.map((ta) => (
-                        <div key={ta.id} className="selected-ta-tag">
-                          {ta.name} <span className="remove-tag" onClick={() => handleRemoveTA(ta.id)}>×</span>
-                        </div>
-                    ))}
-                  </div>
+                  <h4>Number of Selected Proctors: {selectedTAs.length}</h4>
                 </div>
                 
                 <div className="assignment-buttons">
@@ -1237,7 +1244,7 @@ function InstructorExamsPage() {
                       <option value="">Select New Proctor</option>
                       {availableTAs.map((ta) => (
                           <option key={ta.id} value={ta.id}>
-                            {ta.name}
+                            {ta.name} - {ta.department}
                           </option>
                       ))}
                     </select>
