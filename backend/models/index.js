@@ -185,4 +185,5 @@ module.exports = {
     TARequest,
     Proctoring,
     Notification,
+    Student,
   };

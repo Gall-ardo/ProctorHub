@@ -7,6 +7,8 @@ const instructorController = require('../controllers/Instructor/instructorContro
 const taRequestController = require('../controllers/Instructor/InstructorTARequestController');
 const assignTAController = require('../controllers/Instructor/assignTAController');
 const { Instructor } = require('../models');
+const printController = require('../controllers/instructor/printController');
+
 
 // Test route without authentication
 router.get(
@@ -257,4 +259,18 @@ router.get(
     assignTAController.getCourseTAs
 );
 
+router.get(
+  '/exams/:examId/print-students-alphabetically',
+  authenticateToken,
+  authorizeRole(['instructor']),
+  printController.printStudentsAlphabetically
+);
+
+// Print students randomly
+router.get(
+  '/exams/:examId/print-students-randomly',
+  authenticateToken,
+  authorizeRole(['instructor']),
+  printController.printStudentsRandomly
+);
 module.exports = router;

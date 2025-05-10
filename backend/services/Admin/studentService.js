@@ -75,6 +75,12 @@ class StudentService {
         // Associate student with courses
         if (courses.length > 0) {
           await student.addEnrolledCourses(courses, { transaction: t });
+          // Increment studentCount for each course
+          for (const course of courses) {
+            course.studentCount += 1;
+            await course.save({ transaction: t });
+          }
+
           console.log(`Associated student with ${courses.length} courses`);
         } else {
           console.log('No matching courses found to associate with student');

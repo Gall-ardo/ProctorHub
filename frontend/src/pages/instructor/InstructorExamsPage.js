@@ -37,6 +37,223 @@ function InstructorExamsPage() {
     return { Authorization: `Bearer ${token}` };
   }
 
+// Handler for printing students alphabetically
+const handlePrintStudentsAlphabetically = async (examId) => {
+  try {
+    console.log(`Starting PDF generation for examId: ${examId}`);
+    const endpoint = `${API_URL}/instructor/exams/${examId}/print-students-alphabetically`;
+    console.log(`Sending request to ${endpoint}`);
+    
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found. Please login again.');
+    }
+    
+    console.log('Authorization token retrieved');
+    
+    // Use axios to make a request to download the PDF
+    const response = await axios.get(endpoint, {
+      responseType: 'blob', // Important for file downloads
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    console.log('Response received from API:', response.status, response.headers);
+    
+    // Check if we actually got a PDF
+    if (response.headers['content-type'] !== 'application/pdf') {
+      console.error('Response is not a PDF. Content type:', response.headers['content-type']);
+      
+      // Try to read the error message if it's JSON
+      if (response.headers['content-type'].includes('application/json')) {
+        const reader = new FileReader();
+        reader.onload = function() {
+          try {
+            const errorJson = JSON.parse(reader.result);
+            console.error('Server error:', errorJson);
+            alert(`Error: ${errorJson.message || 'Unknown server error'}`);
+          } catch (e) {
+            console.error('Could not parse error JSON:', e);
+            alert('Failed to generate PDF. Server returned an error.');
+          }
+        };
+        reader.readAsText(response.data);
+        return;
+      } else {
+        throw new Error('Response is not a PDF');
+      }
+    }
+    
+    console.log('Creating blob from response data');
+
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Get filename from response headers if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `print_alphabetical.pdf`;
+    
+    if (contentDisposition) {
+      console.log('Content-Disposition header:', contentDisposition);
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch && filenameMatch.length === 2) {
+        filename = filenameMatch[1];
+        console.log(`Extracted filename: ${filename}`);
+      } else {
+        console.warn('Filename could not be extracted from Content-Disposition');
+      }
+    } else {
+      console.warn('No Content-Disposition header found');
+    }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    console.log('Download triggered and cleanup done');
+  } catch (error) {
+    console.error('Error printing students alphabetically:', error);
+    
+    // Enhanced error handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Server error data:', error.response.data);
+      console.error('Server error status:', error.response.status);
+      console.error('Server error headers:', error.response.headers);
+      
+      if (error.response.status === 404) {
+        alert('Error: The API endpoint for PDF generation was not found. Please check your route configuration.');
+      } else if (error.response.status === 401) {
+        alert('Error: You are not authorized to access this function. Please log in again.');
+      } else {
+        alert(`Error: Server returned ${error.response.status}. ${error.response.data?.message || ''}`);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      alert('Error: No response received from server. Please check your network connection.');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      alert(`Failed to generate PDF. Error: ${error.message}`);
+    }
+  }
+};
+
+// Handler for printing students randomly
+const handlePrintStudentsRandomly = async (examId) => {
+  try {
+    console.log(`Starting PDF generation for examId: ${examId}`);
+    const endpoint = `${API_URL}/instructor/exams/${examId}/print-students-randomly`;
+    console.log(`Sending request to ${endpoint}`);
+    
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found. Please login again.');
+    }
+    
+    console.log('Authorization token retrieved');
+    
+    // Use axios to make a request to download the PDF
+    const response = await axios.get(endpoint, {
+      responseType: 'blob', // Important for file downloads
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    console.log('Response received from API:', response.status, response.headers);
+    
+    // Check if we actually got a PDF
+    if (response.headers['content-type'] !== 'application/pdf') {
+      console.error('Response is not a PDF. Content type:', response.headers['content-type']);
+      
+      // Try to read the error message if it's JSON
+      if (response.headers['content-type'].includes('application/json')) {
+        const reader = new FileReader();
+        reader.onload = function() {
+          try {
+            const errorJson = JSON.parse(reader.result);
+            console.error('Server error:', errorJson);
+            alert(`Error: ${errorJson.message || 'Unknown server error'}`);
+          } catch (e) {
+            console.error('Could not parse error JSON:', e);
+            alert('Failed to generate PDF. Server returned an error.');
+          }
+        };
+        reader.readAsText(response.data);
+        return;
+      } else {
+        throw new Error('Response is not a PDF');
+      }
+    }
+    
+    console.log('Creating blob from response data');
+
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Get filename from response headers if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `print_random.pdf`;
+    
+    if (contentDisposition) {
+      console.log('Content-Disposition header:', contentDisposition);
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch && filenameMatch.length === 2) {
+        filename = filenameMatch[1];
+        console.log(`Extracted filename: ${filename}`);
+      } else {
+        console.warn('Filename could not be extracted from Content-Disposition');
+      }
+    } else {
+      console.warn('No Content-Disposition header found');
+    }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    console.log('Download triggered and cleanup done');
+  } catch (error) {
+    console.error('Error printing students randomly:', error);
+    
+    // Enhanced error handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Server error data:', error.response.data);
+      console.error('Server error status:', error.response.status);
+      console.error('Server error headers:', error.response.headers);
+      
+      if (error.response.status === 404) {
+        alert('Error: The API endpoint for PDF generation was not found. Please check your route configuration.');
+      } else if (error.response.status === 401) {
+        alert('Error: You are not authorized to access this function. Please log in again.');
+      } else {
+        alert(`Error: Server returned ${error.response.status}. ${error.response.data?.message || ''}`);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      alert('Error: No response received from server. Please check your network connection.');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      alert(`Failed to generate PDF. Error: ${error.message}`);
+    }
+  }
+};
   // Handle date input change - converts from yyyy-MM-dd to dd/MM/yyyy
   const handleDateChange = (e) => {
     const isoDate = e.target.value; // Format: yyyy-MM-dd
@@ -787,6 +1004,12 @@ function InstructorExamsPage() {
                         </button>
                         <button onClick={() => handleOpenChangeExam(exam)}>
                           Change Exam Information
+                        </button>
+                        <button onClick={() => handlePrintStudentsAlphabetically(exam.id)}>
+                          Print Students Alphabetically
+                        </button>
+                        <button onClick={() => handlePrintStudentsRandomly(exam.id)}>
+                          Print Students Randomly
                         </button>
                       </div>
                     </div>
