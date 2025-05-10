@@ -1,6 +1,6 @@
 // controllers/Admin/offeringController.js
 const offeringService = require('../../services/Admin/offeringService');
-const instructorService = require('../../services/Admin/instructorService');
+const courseService = require('../../services/Admin/courseService');
 const fs = require('fs');
 const csv = require('csv-parser');
 const multer = require('multer');
@@ -42,23 +42,21 @@ const offeringController = {
    */
   createOffering: async (req, res) => {
     try {
-      const { department, instructors, courseCode, sectionId, semester } = req.body;
+      const { courseId, sectionNumber, semesterId } = req.body;
       
       // Validate required fields
-      if (!department || !courseCode || !sectionId || !semester) {
+      if (!courseId || !sectionNumber || !semesterId) {
         return res.status(400).json({
           success: false,
-          message: 'Missing required fields'
+          message: 'Missing required fields: courseId, sectionNumber, and semesterId are required'
         });
       }
       
       // Create offering
       const offering = await offeringService.createOffering({
-        department,
-        instructors,
-        courseCode,
-        sectionId,
-        semester
+        courseId,
+        sectionNumber,
+        semesterId
       });
       
       res.status(201).json({
@@ -82,8 +80,8 @@ const offeringController = {
    */
   getAllOfferings: async (req, res) => {
     try {
-      const { department, semester } = req.query;
-      const offerings = await offeringService.getAllOfferings({ department, semester });
+      const { semesterId, courseId } = req.query;
+      const offerings = await offeringService.getAllOfferings({ semesterId, courseId });
       
       res.status(200).json({
         success: true,
@@ -129,22 +127,22 @@ const offeringController = {
   },
   
   /**
-   * Find offerings by course code and section ID
+   * Find offerings by course ID and section number
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
   findOfferings: async (req, res) => {
     try {
-      const { courseCode, sectionId } = req.query;
+      const { courseId, sectionId } = req.query;
       
-      if (!courseCode || !sectionId) {
+      if (!courseId || !sectionId) {
         return res.status(400).json({
           success: false,
-          message: 'Course code and section ID are required'
+          message: 'Course ID and section ID are required'
         });
       }
       
-      const offerings = await offeringService.getOfferingByCourseAndSection(courseCode, sectionId);
+      const offerings = await offeringService.getOfferingByCourseAndSection(courseId, sectionId);
       
       res.status(200).json({
         success: true,
@@ -167,15 +165,13 @@ const offeringController = {
   updateOffering: async (req, res) => {
     try {
       const { id } = req.params;
-      const { department, instructors, courseCode, sectionId, semester } = req.body;
+      const { courseId, sectionNumber, semesterId } = req.body;
       
       // Update offering
       const offering = await offeringService.updateOffering(id, {
-        department,
-        instructors,
-        courseCode,
-        sectionId,
-        semester
+        courseId,
+        sectionNumber,
+        semesterId
       });
       
       if (!offering) {
@@ -230,22 +226,22 @@ const offeringController = {
   },
   
   /**
-   * Delete offerings by course code and section ID
+   * Delete offerings by course ID and section number
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
   deleteOfferingsByCourseAndSection: async (req, res) => {
     try {
-      const { courseCode, sectionId } = req.body;
+      const { courseId, sectionId } = req.body;
       
-      if (!courseCode || !sectionId) {
+      if (!courseId || !sectionId) {
         return res.status(400).json({
           success: false,
-          message: 'Course code and section ID are required'
+          message: 'Course ID and section ID are required'
         });
       }
       
-      const deletedCount = await offeringService.deleteOfferingByCourseAndSection(courseCode, sectionId);
+      const deletedCount = await offeringService.deleteOfferingByCourseAndSection(courseId, sectionId);
       
       if (deletedCount === 0) {
         return res.status(404).json({
@@ -268,32 +264,32 @@ const offeringController = {
   },
   
   /**
-   * Get instructors by department for offering selection
+   * Get courses by semester ID
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
-  getInstructorsByDepartment: async (req, res) => {
+  getCoursesBySemester: async (req, res) => {
     try {
-      const { department } = req.query;
+      const { semesterId } = req.query;
       
-      if (!department) {
+      if (!semesterId) {
         return res.status(400).json({
           success: false,
-          message: 'Department is required'
+          message: 'Semester ID is required'
         });
       }
       
-      const instructors = await instructorService.getInstructorsByDepartment(department);
+      const courses = await courseService.getCoursesBySemester(semesterId);
       
       res.status(200).json({
         success: true,
-        data: instructors
+        data: courses
       });
     } catch (error) {
-      console.error('Error fetching instructors:', error);
+      console.error('Error fetching courses:', error);
       res.status(500).json({
         success: false,
-        message: error.message || 'Failed to fetch instructors'
+        message: error.message || 'Failed to fetch courses'
       });
     }
   },
@@ -317,9 +313,6 @@ const offeringController = {
       const results = [];
       const filePath = req.file.path;
 
-      // A cache to store instructor ids by name for faster lookup
-      const instructorCache = {};
-
       fs.createReadStream(filePath)
         .pipe(csv())
         .on("data", (data) => {
@@ -330,23 +323,17 @@ const offeringController = {
           Object.keys(data).forEach(key => {
             const lowerKey = key.toLowerCase().trim();
             
-            if (lowerKey === 'department' || lowerKey === 'dept') {
-              transformedData.department = data[key].trim();
-            } else if (lowerKey === 'instructorids' || lowerKey === 'instructors' || lowerKey === 'instructor_ids') {
-              // Handle instructors - could be comma-separated IDs
-              const instructorIds = data[key].split(',').map(id => id.trim()).filter(id => id);
-              transformedData.instructorIds = instructorIds;
-            } else if (lowerKey === 'coursecode' || lowerKey === 'course_code' || lowerKey === 'course') {
-              transformedData.courseCode = data[key].trim();
-            } else if (lowerKey === 'sectionid' || lowerKey === 'section_id' || lowerKey === 'section') {
-              transformedData.sectionId = data[key].trim();
-            } else if (lowerKey === 'semester' || lowerKey === 'term') {
-              transformedData.semester = data[key].trim();
+            if (lowerKey === 'courseid' || lowerKey === 'course_id') {
+              transformedData.courseId = data[key].trim();
+            } else if (lowerKey === 'sectionnumber' || lowerKey === 'section_number' || lowerKey === 'sectionid' || lowerKey === 'section_id' || lowerKey === 'section') {
+              transformedData.sectionNumber = parseInt(data[key].trim(), 10);
+            } else if (lowerKey === 'semesterid' || lowerKey === 'semester_id') {
+              transformedData.semesterId = data[key].trim();
             }
           });
           
           // Only add if we have the minimum required fields
-          if (transformedData.courseCode && transformedData.sectionId && transformedData.semester) {
+          if (transformedData.courseId && transformedData.sectionNumber && transformedData.semesterId) {
             results.push(transformedData);
           }
         })
@@ -362,39 +349,11 @@ const offeringController = {
           
           for (const offeringData of results) {
             try {
-              // If we have instructor IDs, we need to fetch their details
-              if (offeringData.instructorIds && offeringData.instructorIds.length > 0) {
-                const instructors = [];
-                
-                for (const instructorId of offeringData.instructorIds) {
-                  // Check cache first
-                  if (!instructorCache[instructorId]) {
-                    try {
-                      const instructor = await instructorService.getInstructorById(instructorId);
-                      if (instructor) {
-                        instructorCache[instructorId] = instructor;
-                      }
-                    } catch (e) {
-                      console.warn(`Could not find instructor with ID ${instructorId}`);
-                    }
-                  }
-                  
-                  // If we found the instructor, add it to our list
-                  if (instructorCache[instructorId]) {
-                    instructors.push(instructorCache[instructorId]);
-                  }
-                }
-                
-                offeringData.instructors = instructors;
-              }
-              
-              delete offeringData.instructorIds; // Remove the temp field
-              
               // Create the offering
               const offering = await offeringService.createOffering(offeringData);
               createdOfferings.push(offering);
             } catch (error) {
-              console.error(`Failed to create offering ${offeringData.courseCode}-${offeringData.sectionId}:`, error);
+              console.error(`Failed to create offering for course ${offeringData.courseId}, section ${offeringData.sectionNumber}:`, error);
               errors.push({
                 data: offeringData,
                 error: error.message

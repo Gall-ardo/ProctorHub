@@ -190,15 +190,17 @@
   border-color: #c42626;
 }
 
-/* Department selection styling */
-.departmentSelect {
+/* Semester selection styling */
+.semesterOptions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
   margin-top: 5px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-.departmentOption {
+.semesterOption {
   padding: 10px 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -206,15 +208,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-width: 80px;
-  position: relative;
 }
 
-.departmentOption:hover {
+.semesterOption:hover {
   background-color: #f9f9f9;
 }
 
-.departmentOption.selected {
+.semesterOption.selected {
   background-color: #e6f7ff;
   border-color: #91d5ff;
 }
@@ -227,62 +227,105 @@
   margin-left: 8px;
 }
 
-/* Instructor selection styling - UPDATED */
-.instructorSelection {
-  margin-top: 5px;
+/* Course selection styling - NEW */
+.courseSelectionContainer {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
-.instructorCountWrapper {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  gap: 10px;
+.courseSearchBar {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f9f9f9;
 }
 
-.instructorCountInput {
-  width: 40px; /* Reduced from 60px to make it smaller */
-  text-align: center;
-  padding: 8px;
+.courseSearchInput {
+  width: 100%;
+  padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
 }
 
-.selectInstructorsBtn {
-  flex: 1;
-  background-color: #c42626;
-  color: white;
-  padding: 12px 20px; /* Increased padding to make it bigger */
-  border: none;
-  border-radius: 4px;
+.courseList {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.courseItem {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 1.05rem; /* Slightly larger font */
-  min-width: 180px;
-}
-
-.selectInstructorsBtn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.selectedInstructorsList {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  align-items: center;
+  position: relative;
 }
 
-.selectedInstructorItem {
-  background-color: #f0f0f0;
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 13px;
-  white-space: nowrap;
+.courseItem:last-child {
+  border-bottom: none;
+}
+
+.courseItem:hover {
+  background-color: #f5f5f5;
+}
+
+.courseItem.selected {
+  background-color: #e6f7ff;
+}
+
+.courseCode {
+  font-weight: bold;
+  min-width: 80px;
   color: #333;
 }
 
-/* Section ID counter styles - NEW */
+.courseName {
+  flex: 1;
+  color: #555;
+  margin-left: 10px;
+}
+
+.courseSelectedIcon {
+  color: #4CAF50;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.noCourses {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  font-style: italic;
+}
+
+/* Selected course display - NEW */
+.selectedCourseContainer {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border-left: 4px solid #4CAF50;
+}
+
+.selectedCourseContainer h3 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.selectedCourseDetails p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.selectedCourseDetails strong {
+  color: #333;
+}
+
+/* Section ID counter styles */
 .sectionIdContainer {
   position: relative;
 }
@@ -329,33 +372,6 @@
 
 .sectionIdButton:active {
   background-color: #c8c8c8;
-}
-
-/* Semester selection styling */
-.semesterOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.semesterOption {
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.semesterOption:hover {
-  background-color: #f9f9f9;
-}
-
-.semesterOption.selected {
-  background-color: #e6f7ff;
-  border-color: #91d5ff;
 }
 
 /* Form button styling */
@@ -489,60 +505,11 @@
     width: 100%;
   }
   
-  .departmentSelect {
+  .semesterOptions {
     flex-direction: column;
   }
   
-  .instructorCountWrapper {
-    flex-direction: column;
+  .courseSelectionContainer {
+    max-height: 300px;
   }
-  
-  .instructorCountInput {
-    width: 100%;
-  }
-}
-/* Additional CSS for course code validation */
-
-/* Course code input styling */
-.courseCodeWrapper {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.departmentPrefix {
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  border-right: none;
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-  padding: 0.75rem 1rem;
-  color: #555;
-  font-weight: 500;
-  min-width: 60px;
-  text-align: center;
-}
-
-.courseCodeInput {
-  flex: 1;
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-.inputError {
-  border-color: #f44336 !important;
-  background-color: #fff8f8;
-}
-
-.fieldErrorMessage {
-  color: #f44336;
-  font-size: 0.8rem;
-  margin-top: 0.4rem;
-  padding-left: 0.2rem;
-}
-
-/* Make the course code input disabled when no department is selected */
-.courseCodeInput:disabled {
-  background-color: #f9f9f9;
-  cursor: not-allowed;
 }

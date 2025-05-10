@@ -9,7 +9,7 @@ router.post('/', offeringController.createOffering);
 // Get all offerings
 router.get('/', offeringController.getAllOfferings);
 
-// Find offerings by course code and section ID
+// Find offerings by course ID and section number
 router.get('/find', offeringController.findOfferings);
 
 // Get offering by ID
@@ -21,11 +21,11 @@ router.put('/:id', offeringController.updateOffering);
 // Delete an offering
 router.delete('/:id', offeringController.deleteOffering);
 
-// Delete offerings by course code and section ID
+// Delete offerings by course ID and section number
 router.delete('/', offeringController.deleteOfferingsByCourseAndSection);
 
-// Get instructors by department
-router.get('/instructors', offeringController.getInstructorsByDepartment);
+// Get courses by semester ID
+router.get('/courses/semester/:id', offeringController.getCoursesBySemester);
 
 // Upload offerings from CSV
 router.post('/upload', uploadMiddleware.single('file'), offeringController.uploadOfferingsFromCSV);

@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminNavBar from '../AdminNavBar';
-import InstructorSelectionPopup from './InstructorSelectionPopup';
 import styles from './AdminOfferingManagement.module.css';
 
-// API URL - can be stored in an environment variable
+// API base URL
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const AdminOfferingManagement = () => {
@@ -13,72 +12,124 @@ const AdminOfferingManagement = () => {
   const [activeView, setActiveView] = useState('add');
   
   // Form states
-  const [department, setDepartment] = useState('');
-  const [instructorCount, setInstructorCount] = useState(1);
-  const [selectedInstructors, setSelectedInstructors] = useState([]);
-  const [courseCode, setCourseCode] = useState('');
-  const [courseCodeError, setCourseCodeError] = useState('');
+  const [semesters, setSemesters] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [sectionId, setSectionId] = useState('');
-  const [semester, setSemester] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
-  const [showInstructorPopup, setShowInstructorPopup] = useState(false);
   
   // API operation states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Department options
-  const departmentOptions = [
-    { label: 'CS', value: 'CS' }, // Match case with database
-    { label: 'EEE', value: 'EEE' },
-    { label: 'IE', value: 'IE' },
-    { label: 'ME', value: 'ME' }
-  ];
+  // Fetch semesters when component mounts
+  useEffect(() => {
+    fetchSemesters();
+  }, []);
 
-  // Semester options - updated to match the year/isFall model
-  const semesterOptions = [
-    { label: '2025 Spring', value: '2025_spring' },
-    { label: '2024 Fall', value: '2024_fall' }
-  ];
-
-  const handleDepartmentChange = (deptValue) => {
-    setDepartment(deptValue);
-    setSelectedInstructors([]); // Reset instructors when department changes
-  };
-
-  const openInstructorPopup = () => {
-    setShowInstructorPopup(true);
-  };
-
-  const closeInstructorPopup = () => {
-    setShowInstructorPopup(false);
-  };
-
-  const handleInstructorsSelected = (instructors) => {
-    setSelectedInstructors(instructors);
-    setShowInstructorPopup(false);
-  };
-
-  // Course code validation
-  const handleCourseCodeChange = (e) => {
-    const value = e.target.value;
-    
-    // Only allow digits
-    if (value === '' || /^\d+$/.test(value)) {
-      setCourseCode(value);
-      
-      // Validate the length (3 or 4 digits)
-      if (value === '') {
-        setCourseCodeError('');
-      } else if (value.length < 3) {
-        setCourseCodeError('Course code must be at least 3 digits');
-      } else if (value.length > 4) {
-        setCourseCodeError('Course code cannot exceed 4 digits');
-      } else {
-        setCourseCodeError('');
-      }
+  // Filter courses when search term changes
+  useEffect(() => {
+    if (courses.length > 0) {
+      const filtered = courses.filter(course => 
+        course.courseCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (course.courseName && course.courseName.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      setFilteredCourses(filtered);
     }
+  }, [searchTerm, courses]);
+
+  // Fetch courses when semester changes
+  useEffect(() => {
+    if (selectedSemester) {
+      fetchCoursesBySemester(selectedSemester.id);
+    } else {
+      setCourses([]);
+      setFilteredCourses([]);
+    }
+  }, [selectedSemester]);
+
+  const fetchSemesters = async () => {
+    try {
+      setLoading(true);
+      // Using the fetch endpoint that returns all semesters
+      const response = await axios.get(`${API_URL}/admin/fetch/semesters`);
+      
+      if (response.data.success) {
+        setSemesters(response.data.data);
+        
+        // Find the active semester or most recent
+        if (response.data.data.length > 0) {
+          // Sort by year and semesterType for most recent
+          const sortedSemesters = [...response.data.data].sort((a, b) => {
+            if (a.year !== b.year) return b.year - a.year;
+            // If years are same, fall is more recent than spring
+            return a.isFall ? -1 : 1;
+          });
+          
+          // Find active semester first, then fall back to most recent
+          const activeSemester = sortedSemesters.find(sem => sem.isActive) || sortedSemesters[0];
+          
+          setSelectedSemester(activeSemester);
+        }
+      } else {
+        setError('Failed to fetch semesters');
+      }
+    } catch (err) {
+      console.error('Error fetching semesters:', err);
+      setError('Failed to fetch semesters. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCoursesBySemester = async (semesterId) => {
+    try {
+      setLoading(true);
+      setCourses([]);
+      setFilteredCourses([]);
+      setSelectedCourse(null);
+      
+      // Using the search endpoint to find courses by semester
+      const response = await axios.get(`${API_URL}/admin/fetch/courses/search`, {
+        params: { semesterId }
+      });
+      
+      if (response.data.success) {
+        setCourses(response.data.data);
+        setFilteredCourses(response.data.data);
+      } else {
+        setError('Failed to fetch courses');
+      }
+    } catch (err) {
+      console.error('Error fetching courses:', err);
+      setError('Failed to fetch courses. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSectionIdChange = (e) => {
+    setSectionId(e.target.value);
+  };
+
+  const incrementSectionId = () => {
+    const currentValue = parseInt(sectionId) || 0;
+    setSectionId(String(currentValue + 1).padStart(3, '0'));
+  };
+
+  const decrementSectionId = () => {
+    const currentValue = parseInt(sectionId) || 0;
+    if (currentValue > 0) {
+      setSectionId(String(currentValue - 1).padStart(3, '0'));
+    }
+  };
+
+  const handleCourseSelection = (course) => {
+    setSelectedCourse(course);
   };
 
   const handleFileSelect = (event) => {
@@ -96,239 +147,14 @@ const AdminOfferingManagement = () => {
     }
   };
 
-  // Section ID increment/decrement handlers
-  const incrementSectionId = () => {
-    const currentValue = parseInt(sectionId) || 0;
-    setSectionId(String(currentValue + 1).padStart(3, '0'));
-  };
-
-  const decrementSectionId = () => {
-    const currentValue = parseInt(sectionId) || 0;
-    if (currentValue > 0) {
-      setSectionId(String(currentValue - 1).padStart(3, '0'));
-    }
-  };
-
   // Clear form 
   const clearForm = () => {
-    setDepartment('');
-    setSelectedInstructors([]);
-    setCourseCode('');
-    setCourseCodeError('');
+    setSelectedCourse(null);
     setSectionId('');
-    setSemester('');
+    setSearchTerm('');
   };
 
-  // API function to create offering
-  const createOffering = async (offeringData) => {
-    try {
-      const response = await axios.post(`${API_URL}/admin/offerings`, offeringData);
-      return response.data;
-    } catch (error) {
-      console.error('API error details:', error.response?.data);
-      throw error;
-    }
-  };
-
-  // API function to find offerings
-  const findOfferings = async (courseCode, sectionId) => {
-    try {
-      const response = await axios.get(`${API_URL}/admin/offerings/find`, {
-        params: { courseCode, sectionId }
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  // API function to delete offerings
-  const deleteOfferingsByCourseAndSection = async (courseCode, sectionId) => {
-    try {
-      const response = await axios.delete(`${API_URL}/admin/offerings`, {
-        data: { courseCode, sectionId }
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleFormSubmit = async (event) => {
-    event.preventDefault();
-    
-    // Reset states
-    setError(null);
-    setSuccess(null);
-    
-    // Check course code validation
-    if (courseCodeError) {
-      setError(courseCodeError);
-      return;
-    }
-    
-    // Format full course code with department
-    const fullCourseCode = department + courseCode;
-    
-    // Handle different form submissions based on active view
-    switch(activeView) {
-      case 'add':
-        try {
-          setLoading(true);
-          
-          // Validate form
-          if (!department) {
-            setError('Please select a department');
-            setLoading(false);
-            return;
-          }
-          
-          if (selectedInstructors.length === 0) {
-            setError('Please select at least one instructor');
-            setLoading(false);
-            return;
-          }
-          
-          if (!courseCode) {
-            setError('Please enter a course code');
-            setLoading(false);
-            return;
-          }
-          
-          if (!sectionId) {
-            setError('Please enter a section ID');
-            setLoading(false);
-            return;
-          }
-          
-          if (!semester) {
-            setError('Please select a semester');
-            setLoading(false);
-            return;
-          }
-          
-          // Prepare data with formatted course code
-          const offeringData = {
-            department,
-            instructors: selectedInstructors,
-            courseCode: fullCourseCode,
-            sectionId,
-            semester
-          };
-          
-          console.log('Sending offering data:', offeringData);
-          
-          // Call API
-          const result = await createOffering(offeringData);
-          
-          if (result.success) {
-            setSuccess('Offering created successfully');
-            
-            // Reset form
-            clearForm();
-          } else {
-            setError(result.message || 'Failed to create offering');
-          }
-          
-          setLoading(false);
-        } catch (err) {
-          console.error('Error creating offering:', err);
-          setError(err.response?.data?.message || 'Failed to create offering');
-          setLoading(false);
-        }
-        break;
-        
-      case 'delete':
-        try {
-          setLoading(true);
-          
-          // Validate form
-          if (!courseCode) {
-            setError('Please enter a course code');
-            setLoading(false);
-            return;
-          }
-          
-          if (!sectionId) {
-            setError('Please enter a section ID');
-            setLoading(false);
-            return;
-          }
-          
-          // Find offerings using full course code
-          const findResult = await findOfferings(fullCourseCode, sectionId);
-          
-          if (findResult.success && findResult.data.length > 0) {
-            // Show confirmation
-            const confirmDelete = window.confirm(`Are you sure you want to delete ${findResult.data.length} offering(s)?`);
-            
-            if (confirmDelete) {
-              // Delete offerings using full course code
-              const deleteResult = await deleteOfferingsByCourseAndSection(fullCourseCode, sectionId);
-              
-              if (deleteResult.success) {
-                setSuccess('Offerings deleted successfully');
-                
-                // Reset form
-                setCourseCode('');
-                setSectionId('');
-              } else {
-                setError(deleteResult.message || 'Failed to delete offerings');
-              }
-            }
-          } else {
-            setError('No offerings found with the provided details');
-          }
-          
-          setLoading(false);
-        } catch (err) {
-          console.error('Error deleting offerings:', err);
-          setError(err.response?.data?.message || 'Failed to delete offerings');
-          setLoading(false);
-        }
-        break;
-        
-      case 'edit':
-        try {
-          setLoading(true);
-          
-          // Validate form
-          if (!courseCode) {
-            setError('Please enter a course code');
-            setLoading(false);
-            return;
-          }
-          
-          if (!sectionId) {
-            setError('Please enter a section ID');
-            setLoading(false);
-            return;
-          }
-          
-          // Find offerings using full course code
-          const result = await findOfferings(fullCourseCode, sectionId);
-          
-          if (result.success && result.data.length > 0) {
-            // Navigate to edit page with the offering details
-            navigate(`/admin/offering/edit/${result.data[0].id}`);
-          } else {
-            setError('No offerings found with the provided details');
-          }
-          
-          setLoading(false);
-        } catch (err) {
-          console.error('Error finding offerings:', err);
-          setError(err.response?.data?.message || 'Failed to find offerings');
-          setLoading(false);
-        }
-        break;
-        
-      default:
-        break;
-    }
-  };
-  
-
+  // Handle file upload
   const handleFileUpload = async () => {
     if (!selectedFile) {
       setError('Please select a file first');
@@ -377,6 +203,288 @@ const AdminOfferingManagement = () => {
     clearForm();
     setError(null);
     setSuccess(null);
+  };
+
+// API function to create offering
+const createOffering = async (offeringData) => {
+  try {
+    // Add validation before sending to the server
+    if (!offeringData.courseId || 
+        offeringData.sectionNumber === undefined || 
+        !offeringData.semesterId) {
+      throw new Error('Missing required fields');
+    }
+    
+    // Log what we're sending
+    console.log('Sending data to API:', JSON.stringify(offeringData));
+    
+    const response = await axios.post(`${API_URL}/admin/offerings`, offeringData);
+    
+    // Log response for debugging
+    console.log('Server response:', response.status, response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('API error:', error);
+    
+    // Enhanced error handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Error request:', error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error message:', error.message);
+    }
+    
+    throw error;
+  }
+};
+
+// API function to find offerings
+const findOfferings = async (courseId, sectionNumber) => {
+  try {
+    if (!courseId || sectionNumber === undefined) {
+      throw new Error('Course ID and section number are required');
+    }
+
+    console.log(`Finding offerings for course ${courseId}, section ${sectionNumber}`);
+    
+    const response = await axios.get(`${API_URL}/admin/offerings/find`, {
+      params: { courseId, sectionNumber }
+    });
+    
+    console.log('Find offerings response:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error finding offerings:', error);
+    
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+    }
+    
+    throw error;
+  }
+};
+
+// API function to delete offerings
+const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
+  try {
+    if (!courseId || sectionNumber === undefined) {
+      throw new Error('Course ID and section number are required');
+    }
+
+    console.log(`Deleting offerings for course ${courseId}, section ${sectionNumber}`);
+    
+    const response = await axios.delete(`${API_URL}/admin/offerings`, {
+      data: { courseId, sectionNumber }
+    });
+    
+    console.log('Delete offerings response:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting offerings:', error);
+    
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+    }
+    
+    throw error;
+  }
+};
+
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    
+    // Reset states
+    setError(null);
+    setSuccess(null);
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
+    // Handle different form submissions based on active view
+    switch(activeView) {
+      case 'add':
+        try {
+          setLoading(true);
+          
+          // Ensure sectionNumber is a proper integer
+          const sectionNum = parseInt(sectionId);
+          if (isNaN(sectionNum)) {
+            setError('Section ID must be a valid number');
+            setLoading(false);
+            return;
+          }
+          
+          // Prepare data with careful validation
+          if (!selectedCourse || !selectedCourse.id) {
+            setError('Please select a valid course');
+            setLoading(false);
+            return;
+          }
+          
+          if (!selectedSemester || !selectedSemester.id) {
+            setError('Please select a valid semester');
+            setLoading(false);
+            return;
+          }
+          
+          const offeringData = {
+            courseId: selectedCourse.id,
+            sectionNumber: sectionNum, 
+            semesterId: selectedSemester.id
+          };
+          
+          console.log('Sending offering data:', offeringData);
+          
+          // Call API
+          const result = await createOffering(offeringData);
+          
+          if (result && result.success) {
+            setSuccess(result.message || 'Offering created successfully');
+            
+            // Reset form
+            clearForm();
+          } else {
+            setError((result && result.message) || 'Failed to create offering');
+          }
+        } catch (err) {
+          console.error('Error creating offering:', err);
+          setError(err.response?.data?.message || 'Failed to create offering');
+        } finally {
+          setLoading(false);
+        }
+        break;
+        
+      case 'delete':
+        try {
+          setLoading(true);
+          
+          if (!selectedCourse || !selectedCourse.id) {
+            setError('Please select a course');
+            setLoading(false);
+            return;
+          }
+          
+          if (!sectionId) {
+            setError('Please enter a section ID');
+            setLoading(false);
+            return;
+          }
+          
+          // Ensure sectionNumber is a proper integer
+          const sectionNum = parseInt(sectionId);
+          if (isNaN(sectionNum)) {
+            setError('Section ID must be a valid number');
+            setLoading(false);
+            return;
+          }
+          
+          // Find offerings
+          const findResult = await findOfferings(selectedCourse.id, sectionNum);
+          
+          if (findResult && findResult.success && findResult.data && findResult.data.length > 0) {
+            // Show confirmation
+            const confirmDelete = window.confirm(`Are you sure you want to delete ${findResult.data.length} offering(s)?`);
+            
+            if (confirmDelete) {
+              // Delete offerings
+              const deleteResult = await deleteOfferingsByCourseAndSection(selectedCourse.id, sectionNum);
+              
+              if (deleteResult && deleteResult.success) {
+                setSuccess(deleteResult.message || 'Offerings deleted successfully');
+                
+                // Reset form
+                clearForm();
+              } else {
+                setError((deleteResult && deleteResult.message) || 'Failed to delete offerings');
+              }
+            }
+          } else {
+            setError('No offerings found with the provided details');
+          }
+        } catch (err) {
+          console.error('Error deleting offerings:', err);
+          setError(err.response?.data?.message || 'Failed to delete offerings');
+        } finally {
+          setLoading(false);
+        }
+        break;
+        
+      case 'edit':
+        try {
+          setLoading(true);
+          
+          if (!selectedCourse || !selectedCourse.id) {
+            setError('Please select a course');
+            setLoading(false);
+            return;
+          }
+          
+          if (!sectionId) {
+            setError('Please enter a section ID');
+            setLoading(false);
+            return;
+          }
+          
+          // Ensure sectionNumber is a proper integer
+          const sectionNum = parseInt(sectionId);
+          if (isNaN(sectionNum)) {
+            setError('Section ID must be a valid number');
+            setLoading(false);
+            return;
+          }
+          
+          // Find offerings
+          const result = await findOfferings(selectedCourse.id, sectionNum);
+          
+          if (result && result.success && result.data && result.data.length > 0) {
+            // Navigate to edit page with the offering details
+            navigate(`/admin/offering/edit/${result.data[0].id}`);
+          } else {
+            setError('No offerings found with the provided details');
+          }
+        } catch (err) {
+          console.error('Error finding offerings:', err);
+          setError(err.response?.data?.message || 'Failed to find offerings');
+        } finally {
+          setLoading(false);
+        }
+        break;
+        
+      default:
+        break;
+    }
+  };
+
+  const validateForm = () => {
+    if (!selectedSemester) {
+      setError('Please select a semester');
+      return false;
+    }
+    
+    if (!selectedCourse) {
+      setError('Please select a course');
+      return false;
+    }
+    
+    if (!sectionId) {
+      setError('Please enter a section ID');
+      return false;
+    }
+    
+    return true;
   };
 
   return (
@@ -446,7 +554,7 @@ const AdminOfferingManagement = () => {
               {loading ? 'Uploading...' : 'Upload File'}
             </button>
             <div className={styles.uploadNote}>
-              Note: CSV file should contain columns for: department, instructorIds, courseCode, sectionId, semester (format: YYYY_season)
+              Note: CSV file should contain columns for: courseId, sectionNumber, semesterId
             </div>
           </div>
         </div>
@@ -480,332 +588,132 @@ const AdminOfferingManagement = () => {
               </div>
             )}
           
-            {activeView === 'add' && (
-              <>
-                <h2 className={styles.formTitle}>Enter Offering Information</h2>
-                <form onSubmit={handleFormSubmit}>
-                  {/* Department Selection */}
-                  <div className={styles.formGroup}>
-                    <label>Department <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.departmentSelect}>
-                      {departmentOptions.map((dept) => (
-                        <div 
-                          key={dept.value} 
-                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
-                          onClick={() => handleDepartmentChange(dept.value)}
-                        >
-                          {dept.label}
-                          {department === dept.value && (
-                            <span className={styles.radioIndicator}></span>
-                          )}
-                        </div>
-                      ))}
+            {/* Form for all views */}
+            <h2 className={styles.formTitle}>
+              {activeView === 'add' ? 'Enter Offering Information' : 
+               activeView === 'delete' ? 'Enter Course and Section ID to Delete' :
+               'Enter Course and Section ID to Edit'}
+            </h2>
+            <form onSubmit={handleFormSubmit}>
+              {/* Semester Selection */}
+              <div className={styles.formGroup}>
+                <label>Semester <span className={styles.requiredIndicator}>*</span></label>
+                <div className={styles.semesterOptions}>
+                  {semesters.map((sem) => (
+                    <div 
+                      key={sem.id} 
+                      className={`${styles.semesterOption} ${selectedSemester && selectedSemester.id === sem.id ? styles.selected : ''}`}
+                      onClick={() => setSelectedSemester(sem)}
+                    >
+                      {sem.name || `${sem.year} ${sem.isFall ? 'Fall' : 'Spring'}`}
+                      {sem.isActive && ' (Active)'}
+                      {selectedSemester && selectedSemester.id === sem.id && (
+                        <span className={styles.radioIndicator}></span>
+                      )}
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
 
-                  {/* Instructor Selection */}
-                  <div className={styles.formGroup}>
-                    <label>Instructor(s) <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.instructorSelection}>
-                      <div className={styles.instructorCountWrapper}>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          max="5"
-                          value={instructorCount}
-                          onChange={(e) => setInstructorCount(parseInt(e.target.value) || 1)}
-                          className={styles.instructorCountInput}
-                        />
-                        <button 
-                          type="button" 
-                          className={styles.selectInstructorsBtn}
-                          onClick={openInstructorPopup}
-                          disabled={!department || loading}
-                        >
-                          Select Instructor(s)
-                        </button>
-                      </div>
-                      {selectedInstructors.length > 0 && (
-                        <div className={styles.selectedInstructorsList}>
-                          {selectedInstructors.map((instructor) => (
-                            <div key={instructor.id} className={styles.selectedInstructorItem}>
-                              {instructor.name}
-                            </div>
-                          ))}
+              {/* Course Search and Selection */}
+              {selectedSemester && (
+                <div className={styles.formGroup}>
+                  <label>Course <span className={styles.requiredIndicator}>*</span></label>
+                  <div className={styles.courseSelectionContainer}>
+                    <div className={styles.courseSearchBar}>
+                      <input 
+                        type="text"
+                        placeholder="Search by course code or name"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className={styles.courseSearchInput}
+                      />
+                    </div>
+                    <div className={styles.courseList}>
+                      {filteredCourses.length > 0 ? (
+                        filteredCourses.map(course => (
+                          <div 
+                            key={course.id}
+                            className={`${styles.courseItem} ${selectedCourse?.id === course.id ? styles.selected : ''}`}
+                            onClick={() => handleCourseSelection(course)}
+                          >
+                            <div className={styles.courseCode}>{course.courseCode}</div>
+                            <div className={styles.courseName}>{course.courseName}</div>
+                            {selectedCourse?.id === course.id && (
+                              <span className={styles.courseSelectedIcon}>✓</span>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className={styles.noCourses}>
+                          {loading ? 'Loading courses...' : 'No courses found for this semester'}
                         </div>
                       )}
                     </div>
                   </div>
+                </div>
+              )}
 
-                  {/* Course Code Input - Updated */}
-                  <div className={styles.formGroup}>
-                    <label>Course Code <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.courseCodeWrapper}>
-                      <div className={styles.departmentPrefix}>
-                        {department || 'Dept'}
-                      </div>
-                      <input 
-                        type="text" 
-                        placeholder="Enter 3-4 digit code (e.g., 101)" 
-                        value={courseCode}
-                        onChange={handleCourseCodeChange}
-                        className={`${styles.courseCodeInput} ${courseCodeError ? styles.inputError : ''}`}
-                        disabled={loading || !department}
-                      />
-                    </div>
-                    {courseCodeError && (
-                      <div className={styles.fieldErrorMessage}>{courseCodeError}</div>
-                    )}
+              {/* Section ID Input */}
+              <div className={styles.formGroup}>
+                <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
+                <div className={styles.sectionIdContainer}>
+                  <input 
+                    type="text" 
+                    placeholder="Enter section ID (e.g., 001)" 
+                    value={sectionId}
+                    onChange={handleSectionIdChange}
+                    disabled={loading}
+                    className={styles.sectionIdInput}
+                  />
+                  <div className={styles.sectionIdControls}>
+                    <button 
+                      type="button" 
+                      className={styles.sectionIdButton}
+                      onClick={incrementSectionId}
+                      disabled={loading}
+                    >
+                      ▲
+                    </button>
+                    <button 
+                      type="button" 
+                      className={styles.sectionIdButton}
+                      onClick={decrementSectionId}
+                      disabled={loading}
+                    >
+                      ▼
+                    </button>
                   </div>
+                </div>
+              </div>
 
-                  {/* Section ID with increment/decrement buttons */}
-                  <div className={styles.formGroup}>
-                    <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.sectionIdContainer}>
-                      <input 
-                        type="text" 
-                        placeholder="Enter section ID (e.g., 001)" 
-                        value={sectionId}
-                        onChange={(e) => setSectionId(e.target.value)}
-                        disabled={loading}
-                        className={styles.sectionIdInput}
-                      />
-                      <div className={styles.sectionIdControls}>
-                        <button 
-                          type="button" 
-                          className={styles.sectionIdButton}
-                          onClick={incrementSectionId}
-                          disabled={loading}
-                        >
-                          ▲
-                        </button>
-                        <button 
-                          type="button" 
-                          className={styles.sectionIdButton}
-                          onClick={decrementSectionId}
-                          disabled={loading}
-                        >
-                          ▼
-                        </button>
-                      </div>
-                    </div>
+              {/* Selected Course Display */}
+              {selectedCourse && (
+                <div className={styles.selectedCourseContainer}>
+                  <h3>Selected Course</h3>
+                  <div className={styles.selectedCourseDetails}>
+                    <p><strong>Course Code:</strong> {selectedCourse.courseCode}</p>
+                    <p><strong>Course Name:</strong> {selectedCourse.courseName}</p>
+                    <p><strong>Department:</strong> {selectedCourse.department}</p>
+                    <p><strong>Credit:</strong> {selectedCourse.credit}</p>
                   </div>
+                </div>
+              )}
 
-                  <div className={styles.formGroup}>
-                    <label>Semester <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.semesterOptions}>
-                      {semesterOptions.map((sem) => (
-                        <div 
-                          key={sem.value} 
-                          className={`${styles.semesterOption} ${semester === sem.value ? styles.selected : ''}`}
-                          onClick={() => setSemester(sem.value)}
-                        >
-                          {sem.label}
-                          {semester === sem.value && (
-                            <span className={styles.radioIndicator}></span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={loading || courseCodeError}
-                  >
-                    {loading ? 'Processing...' : 'Add Offering'}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {/* Similar updates for delete and edit views */}
-            {activeView === 'delete' && (
-              <>
-                <h2 className={styles.formTitle}>Enter Course Code and Section ID to Delete</h2>
-                <form onSubmit={handleFormSubmit}>
-                  {/* Department Selection */}
-                  <div className={styles.formGroup}>
-                    <label>Department <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.departmentSelect}>
-                      {departmentOptions.map((dept) => (
-                        <div 
-                          key={dept.value} 
-                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
-                          onClick={() => handleDepartmentChange(dept.value)}
-                        >
-                          {dept.label}
-                          {department === dept.value && (
-                            <span className={styles.radioIndicator}></span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Course Code */}
-                  <div className={styles.formGroup}>
-                    <label>Course Code <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.courseCodeWrapper}>
-                      <div className={styles.departmentPrefix}>
-                        {department || 'Dept'}
-                      </div>
-                      <input 
-                        type="text" 
-                        placeholder="Enter 3-4 digit code (e.g., 101)" 
-                        value={courseCode}
-                        onChange={handleCourseCodeChange}
-                        className={`${styles.courseCodeInput} ${courseCodeError ? styles.inputError : ''}`}
-                        disabled={loading || !department}
-                      />
-                    </div>
-                    {courseCodeError && (
-                      <div className={styles.fieldErrorMessage}>{courseCodeError}</div>
-                    )}
-                  </div>
-                  
-                  <div className={styles.formGroup}>
-                    <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.sectionIdContainer}>
-                      <input 
-                        type="text" 
-                        placeholder="Enter section ID (e.g., 001)" 
-                        value={sectionId}
-                        onChange={(e) => setSectionId(e.target.value)}
-                        disabled={loading}
-                        className={styles.sectionIdInput}
-                      />
-                      <div className={styles.sectionIdControls}>
-                        <button 
-                          type="button" 
-                          className={styles.sectionIdButton}
-                          onClick={incrementSectionId}
-                          disabled={loading}
-                        >
-                          ▲
-                        </button>
-                        <button 
-                          type="button" 
-                          className={styles.sectionIdButton}
-                          onClick={decrementSectionId}
-                          disabled={loading}
-                        >
-                          ▼
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={loading || courseCodeError}
-                  >
-                    {loading ? 'Processing...' : 'Find Offerings To Delete'}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {activeView === 'edit' && (
-              <>
-                <h2 className={styles.formTitle}>Enter Course Code and Section ID to Edit</h2>
-                <form onSubmit={handleFormSubmit}>
-                  {/* Department Selection */}
-                  <div className={styles.formGroup}>
-                    <label>Department <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.departmentSelect}>
-                      {departmentOptions.map((dept) => (
-                        <div 
-                          key={dept.value} 
-                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
-                          onClick={() => handleDepartmentChange(dept.value)}
-                        >
-                          {dept.label}
-                          {department === dept.value && (
-                            <span className={styles.radioIndicator}></span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Course Code */}
-                  <div className={styles.formGroup}>
-                    <label>Course Code <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.courseCodeWrapper}>
-                      <div className={styles.departmentPrefix}>
-                        {department || 'Dept'}
-                      </div>
-                      <input 
-                        type="text" 
-                        placeholder="Enter 3-4 digit code (e.g., 101)" 
-                        value={courseCode}
-                        onChange={handleCourseCodeChange}
-                        className={`${styles.courseCodeInput} ${courseCodeError ? styles.inputError : ''}`}
-                        disabled={loading || !department}
-                      />
-                    </div>
-                    {courseCodeError && (
-                      <div className={styles.fieldErrorMessage}>{courseCodeError}</div>
-                    )}
-                  </div>
-                  
-                  <div className={styles.formGroup}>
-                    <label>Section ID <span className={styles.requiredIndicator}>*</span></label>
-                    <div className={styles.sectionIdContainer}>
-                      <input 
-                        type="text" 
-                        placeholder="Enter section ID (e.g., 001)" 
-                        value={sectionId}
-                        onChange={(e) => setSectionId(e.target.value)}
-                        disabled={loading}
-                        className={styles.sectionIdInput}
-                      />
-                      <div className={styles.sectionIdControls}>
-                        <button 
-                          type="button" 
-                          className={styles.sectionIdButton}
-                          onClick={incrementSectionId}
-                          disabled={loading}
-                        >
-                          ▲
-                        </button>
-                        <button 
-                          type="button" 
-                          className={styles.sectionIdButton}
-                          onClick={decrementSectionId}
-                          disabled={loading}
-                        >
-                          ▼
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={loading || courseCodeError}
-                  >
-                    {loading ? 'Processing...' : 'Find Offerings To Edit'}
-                  </button>
-                </form>
-              </>
-            )}
+              <button 
+                type="submit" 
+                className={styles.formSubmitBtn}
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : 
+                 activeView === 'add' ? 'Add Offering' :
+                 activeView === 'delete' ? 'Find Offerings To Delete' :
+                 'Find Offerings To Edit'}
+              </button>
+            </form>
           </div>
         </div>
       </div>
-      
-      {/* Instructor Selection Popup */}
-      {showInstructorPopup && (
-        <InstructorSelectionPopup 
-          department={department}
-          count={instructorCount}
-          selectedInstructors={selectedInstructors}
-          onConfirm={handleInstructorsSelected}
-          onCancel={closeInstructorPopup}
-          apiUrl={API_URL}
-        />
-      )}
     </div>
   );
 };
