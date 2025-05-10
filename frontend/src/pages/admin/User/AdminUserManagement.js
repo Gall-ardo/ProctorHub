@@ -22,6 +22,7 @@ const AdminUserManagement = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isPhd, setIsPhd] = useState(false);
   const [isPartTime, setIsPartTime] = useState(false);
+  const [isTaAssigner, setIsTaAssigner] = useState(false);
 
   // Status states
   const [loading, setLoading] = useState(false);
@@ -38,11 +39,10 @@ const AdminUserManagement = () => {
   const [showForceDeleteConfirmation, setShowForceDeleteConfirmation] = useState(false);
   const [forceDeleteUserId, setForceDeleteUserId] = useState(null);
 
-  // User type options - Removed student option
+  // User type options - Removed chair option
   const userTypeOptions = [
     { label: 'Admin', value: 'admin' },
     { label: 'Instructor', value: 'instructor' },
-    { label: 'Department Chair', value: 'chair' },
     { label: 'Secretary', value: 'secretary' },
     { label: 'Dean\'s Office', value: 'dean' },
     { label: 'Teaching Assistant', value: 'ta' }
@@ -63,6 +63,7 @@ const AdminUserManagement = () => {
     setDepartment('');
     setIsPhd(false);
     setIsPartTime(false);
+    setIsTaAssigner(false);
     setSearchResults([]);
     setEditMode(false); // Reset edit mode when clearing form
   };
@@ -106,9 +107,9 @@ const AdminUserManagement = () => {
         return false;
       }
       
-      // Department validation for instructor, chair and TA
-      if ((userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === "secretary") && !department) {
-        setErrorMessage('Department is required for instructors, chairs, departments secretary, and teaching assistants');
+      // Department validation for instructor, secretary and TA
+      if ((userType === 'instructor' || userType === 'ta' || userType === "secretary") && !department) {
+        setErrorMessage('Department is required for instructors, departments secretary, and teaching assistants');
         setShowError(true);
         return false;
       }
@@ -139,9 +140,14 @@ const AdminUserManagement = () => {
         userType
       };
       
-      // Add department for instructor, chair, and TA
-      if (userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === "secretary") {
+      // Add department for instructor, secretary, and TA
+      if (userType === 'instructor' || userType === 'ta' || userType === "secretary") {
         userData.department = department;
+      }
+
+      // Add instructor specific fields
+      if (userType === 'instructor') {
+        userData.isTaAssigner = isTaAssigner;
       }
 
       // Add TA specific fields
@@ -352,14 +358,19 @@ const AdminUserManagement = () => {
     setEmail(user.email);
     setUserType(user.userType);
     
-    // If user is instructor, chair, or TA, set department
-    if (user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta' || user.userType === "secretary") {
+    // If user is instructor, secretary, or TA, set department
+    if (user.userType === 'instructor' || user.userType === 'ta' || user.userType === "secretary") {
       setDepartment(user.department || '');
     }
     
+    // If user is instructor, set TA Assigner status
+    if (user.userType === 'instructor') {
+      setIsTaAssigner(user.isTaAssigner || false);
+    }
+    
     if (user.userType === 'ta') {
-      setIsPhd(false);
-      setIsPartTime(false);
+      setIsPhd(user.isPHD || false);
+      setIsPartTime(user.isPartTime || false);
     }
     
     // Turn on edit mode
@@ -384,9 +395,14 @@ const AdminUserManagement = () => {
         userType
       };
       
-      // Add department for instructor, chair, and TA
-      if (userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === "secretary") {
+      // Add department for instructor, secretary, and TA
+      if (userType === 'instructor' || userType === 'ta' || userType === "secretary") {
         userData.department = department;
+      }
+
+      // Add instructor specific fields
+      if (userType === 'instructor') {
+        userData.isTaAssigner = isTaAssigner;
       }
 
       // Add TA specific fields
@@ -589,8 +605,8 @@ const AdminUserManagement = () => {
                     </div>
                   </div>
                   
-                  {/* Show department for instructor, chair, and TA */}
-                  {(userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === 'secretary') && (
+                  {/* Show department for instructor, secretary, and TA */}
+                  {(userType === 'instructor' || userType === 'ta' || userType === 'secretary') && (
                     <div className={styles.formGroup}>
                       <label>Department <span className={styles.requiredField}>*</span></label>
                       <div className={styles.selectionList}>
@@ -604,6 +620,24 @@ const AdminUserManagement = () => {
                             <span className={styles.optionIndicator}></span>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* TA Assigner checkbox for Instructor */}
+                  {userType === 'instructor' && (
+                    <div className={styles.formGroup}>
+                      <label>Instructor Role</label>
+                      <div className={styles.checkboxContainer}>
+                        <div 
+                          className={`${styles.checkboxItem} ${isTaAssigner ? styles.checked : ''}`}
+                          onClick={() => setIsTaAssigner(!isTaAssigner)}
+                        >
+                          <div className={`${styles.checkbox} ${isTaAssigner ? styles.checked : ''}`}>
+                            {isTaAssigner && <span className={styles.checkmark}>✓</span>}
+                          </div>
+                          <span>TA Assigner</span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -695,8 +729,11 @@ const AdminUserManagement = () => {
                             <div><strong>Name:</strong> {user.name}</div>
                             <div><strong>Email:</strong> {user.email}</div>
                             <div><strong>Type:</strong> {user.userType}</div>
-                            {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta' || userType === 'secretary') && user.department && (
+                            {(user.userType === 'instructor' || user.userType === 'ta' || userType === 'secretary') && user.department && (
                               <div><strong>Department:</strong> {user.department}</div>
+                            )}
+                            {user.userType === 'instructor' && user.isTaAssigner !== undefined && (
+                              <div><strong>TA Assigner:</strong> {user.isTaAssigner ? 'Yes' : 'No'}</div>
                             )}
                           </div>
                           <button 
@@ -759,8 +796,11 @@ const AdminUserManagement = () => {
                                 <div><strong>Name:</strong> {user.name}</div>
                                 <div><strong>Email:</strong> {user.email}</div>
                                 <div><strong>Type:</strong> {user.userType}</div>
-                                {(user.userType === 'instructor' || user.userType === 'chair' || user.userType === 'ta' || user.userType === 'secretary') && user.department && (
+                                {(user.userType === 'instructor' || user.userType === 'ta' || user.userType === 'secretary') && user.department && (
                                   <div><strong>Department:</strong> {user.department}</div>
+                                )}
+                                {user.userType === 'instructor' && user.isTaAssigner !== undefined && (
+                                  <div><strong>TA Assigner:</strong> {user.isTaAssigner ? 'Yes' : 'No'}</div>
                                 )}
                               </div>
                               <div className={styles.buttonGroup}>
@@ -831,8 +871,8 @@ const AdminUserManagement = () => {
                         </div>
                       </div>
                       
-                      {/* Show department for instructor, chair, and TA */}
-                      {(userType === 'instructor' || userType === 'chair' || userType === 'ta' || userType === 'secretary') && (
+                      {/* Show department for instructor, secretary, and TA */}
+                      {(userType === 'instructor' || userType === 'ta' || userType === 'secretary') && (
                         <div className={styles.formGroup}>
                           <label>Department <span className={styles.requiredField}>*</span></label>
                           <div className={styles.selectionList}>
@@ -846,6 +886,24 @@ const AdminUserManagement = () => {
                                 <span className={styles.optionIndicator}></span>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TA Assigner checkbox for Instructor */}
+                      {userType === 'instructor' && (
+                        <div className={styles.formGroup}>
+                          <label>Instructor Role</label>
+                          <div className={styles.checkboxContainer}>
+                            <div 
+                              className={`${styles.checkboxItem} ${isTaAssigner ? styles.checked : ''}`}
+                              onClick={() => setIsTaAssigner(!isTaAssigner)}
+                            >
+                              <div className={`${styles.checkbox} ${isTaAssigner ? styles.checked : ''}`}>
+                                {isTaAssigner && <span className={styles.checkmark}>✓</span>}
+                              </div>
+                              <span>TA Assigner</span>
+                            </div>
                           </div>
                         </div>
                       )}

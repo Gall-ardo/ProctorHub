@@ -2,7 +2,6 @@
 const User = require("../../models/User");
 const Admin = require("../../models/Admin");
 const Instructor = require("../../models/Instructor");
-const DepartmentChair = require("../../models/DepartmentChair");
 const DeansOffice = require("../../models/DeansOffice");
 const TeachingAssistant = require("../../models/TeachingAssistant");
 const Secretary = require("../../models/Secretary");
@@ -70,10 +69,10 @@ class UserService {
         throw new Error("Invalid email format");
       }
 
-      // Validate department for instructor, chair, secretary, and teaching assistant
-      if ((userData.userType === 'instructor' || userData.userType === 'chair' || 
-           userData.userType === 'secretary' || userData.userType === 'ta') && !userData.department) {
-        throw new Error("Department is required for instructors, department chairs, secretaries, and teaching assistants");
+      // Validate department for instructor, secretary, and teaching assistant
+      if ((userData.userType === 'instructor' || userData.userType === 'secretary' || 
+           userData.userType === 'ta') && !userData.department) {
+        throw new Error("Department is required for instructors, secretaries, and teaching assistants");
       }
 
       // Validate userType - prevent creating students through this service
@@ -103,13 +102,8 @@ class UserService {
           case "instructor":
             await Instructor.create({ 
               id: user.id,
-              department: userData.department
-            }, { transaction: t });
-            break;
-          case "chair":
-            await DepartmentChair.create({ 
-              id: user.id,
-              department: userData.department
+              department: userData.department,
+              isTaAssigner: userData.isTaAssigner || false
             }, { transaction: t });
             break;
           case "secretary":
@@ -227,9 +221,9 @@ class UserService {
       }
   
       // Check if department is required and provided for the new user type
-      if ((userData.userType === 'instructor' || userData.userType === 'chair' || 
-           userData.userType === 'secretary' || userData.userType === 'ta') && !userData.department) {
-        throw new Error("Department is required for instructors, department chairs, secretaries, and teaching assistants");
+      if ((userData.userType === 'instructor' || userData.userType === 'secretary' || 
+           userData.userType === 'ta') && !userData.department) {
+        throw new Error("Department is required for instructors, secretaries, and teaching assistants");
       }
   
       let passwordForEmail = null;
@@ -264,9 +258,6 @@ class UserService {
           case "instructor":
             await Instructor.destroy({ where: { id }, transaction: t });
             break;
-          case "chair":
-            await DepartmentChair.destroy({ where: { id }, transaction: t });
-            break;
           case "secretary":
             await Secretary.destroy({ where: { id }, transaction: t });
             break;
@@ -286,13 +277,8 @@ class UserService {
           case "instructor":
             await Instructor.create({ 
               id,
-              department: userData.department
-            }, { transaction: t });
-            break;
-          case "chair":
-            await DepartmentChair.create({ 
-              id,
-              department: userData.department
+              department: userData.department,
+              isTaAssigner: userData.isTaAssigner || false
             }, { transaction: t });
             break;
           case "secretary":
@@ -320,19 +306,16 @@ class UserService {
         }
       } 
       // If just updating the same user type with new data
-      else if (userData.department) {
+      else if (userData.department || (userData.userType === 'instructor' && userData.isTaAssigner !== undefined)) {
         // Update department if the user remains the same type but department changed
         switch (user.userType.toLowerCase()) {
           case "instructor":
             const instructor = await Instructor.findByPk(user.id, { transaction: t });
             if (instructor) {
-              await instructor.update({ department: userData.department }, { transaction: t });
-            }
-            break;
-          case "chair":
-            const chair = await DepartmentChair.findByPk(user.id, { transaction: t });
-            if (chair) {
-              await chair.update({ department: userData.department }, { transaction: t });
+              await instructor.update({ 
+                department: userData.department || instructor.department,
+                isTaAssigner: userData.isTaAssigner !== undefined ? userData.isTaAssigner : instructor.isTaAssigner
+              }, { transaction: t });
             }
             break;
           case "secretary":
@@ -415,10 +398,6 @@ class UserService {
           case "instructor":
             const instructor = await Instructor.findByPk(id, { transaction: t });
             if (instructor) await instructor.destroy({ transaction: t });
-            break;
-          case "chair":
-            const chair = await DepartmentChair.findByPk(id, { transaction: t });
-            if (chair) await chair.destroy({ transaction: t });
             break;
           case "secretary":
             const secretary = await Secretary.findByPk(id, { transaction: t });
@@ -528,10 +507,6 @@ class UserService {
             
             // Delete from Instructor table
             await Instructor.destroy({ where: { id }, transaction: t });
-            break;
-            
-          case "chair":
-            await DepartmentChair.destroy({ where: { id }, transaction: t });
             break;
             
           case "secretary":
