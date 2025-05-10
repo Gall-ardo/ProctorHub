@@ -201,7 +201,9 @@
         }
       } catch (error) {
         console.error(`Error in ${activeView} course:`, error);
-        setErrorMessage(error.response?.data?.message || 'An error occurred. Please try again.');
+        const backendMessage = error.response?.data?.message;
+        const backendError = error.response?.data?.error;
+        setErrorMessage(backendError || backendMessage || 'An error occurred. Please try again.');
         setShowError(true);
       } finally {
         setIsLoading(false);
