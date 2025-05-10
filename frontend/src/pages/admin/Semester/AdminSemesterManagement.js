@@ -167,12 +167,9 @@ const AdminSemesterManagement = () => {
         semesterType: term
       };
       
-      console.log('Creating semester:', semesterData);
-      
       const semesterResponse = await axios.post(`${API_URL}/api/admin/semesters`, semesterData);
       
       const semesterId = semesterResponse.data.data.id;
-      console.log('Semester created with ID:', semesterId);
       
       // Now upload files if they exist
       const uploadResults = [];
@@ -442,7 +439,7 @@ const AdminSemesterManagement = () => {
         break;
       case 'delete':
         if (selectedSemesterId) {
-          handleDeleteSemester();
+          handleDeleteConfirmation();
         } else {
           handleFindSemester();
         }
@@ -459,143 +456,79 @@ const AdminSemesterManagement = () => {
     }
   };
 
+  // Render upload section
+  const renderUploadBox = (fileType, file, title, note) => {
+    return (
+      <div className={styles.uploadBox}>
+        <h3 className={styles.uploadTitle}>{title}</h3>
+        <div 
+          className={styles.uploadArea}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(fileType, e)}
+        >
+          <img src="/upload-icon.png" alt="Upload" className={styles.uploadIcon} />
+          <div className={styles.uploadText}>Drag and Drop here</div>
+          <div className={styles.uploadDivider}>or</div>
+          <label className={styles.selectFileBtn}>
+            Select file
+            <input 
+              type="file" 
+              accept=".csv" 
+              hidden 
+              onChange={(e) => handleFileSelect(fileType, e)}
+            />
+          </label>
+          {file && <div className={styles.selectedFile}>{file.name}</div>}
+        </div>
+        <div className={styles.uploadNote}>
+          {note}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.semesterManagement}>
-      {/* Using the shared AdminNavBar component */}
       <AdminNavBar />
 
       <div className={styles.semesterContent}>
-        {/* Action Buttons */}
-        <div className={styles.actionButtons}>
-          <div 
-            className={`${styles.actionBtn} ${activeAction === 'add' ? styles.active : ''}`}
-            onClick={() => setActiveAction('add')}
-          >
-            <div className={styles.iconCircle}>
-              <span className={styles.icon}>+</span>
-            </div>
-            <span className={styles.actionLabel}>Add Semester</span>
-          </div>
-          
-          <div 
-            className={`${styles.actionBtn} ${activeAction === 'delete' ? styles.active : ''}`}
-            onClick={() => setActiveAction('delete')}
-          >
-            <div className={styles.iconCircle}>
-              <span className={styles.icon}>-</span>
-            </div>
-            <span className={styles.actionLabel}>Delete Semester</span>
-          </div>
-          
-          <div 
-            className={`${styles.actionBtn} ${activeAction === 'edit' ? styles.active : ''}`}
-            onClick={() => setActiveAction('edit')}
-          >
-            <div className={styles.iconCircle}>
-              <span className={styles.icon}>✎</span>
-            </div>
-            <span className={styles.actionLabel}>Edit Semester</span>
-          </div>
-        </div>
-
-        <div className={styles.contentLayout}>
-          {/* Left side - Upload area for Add mode or after finding for Edit */}
-          <div className={styles.uploadSection}>
-            {(activeAction === 'add' || (activeAction === 'edit' && selectedSemesterId)) && (
-              <div className={styles.uploadContainer}>
-                <div className={styles.uploadBox}>
-                  <h3 className={styles.uploadTitle}>Upload Offerings List</h3>
-                  <div 
-                    className={styles.uploadArea}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop('offerings', e)}
-                  >
-                    <img src="/upload-icon.png" alt="Upload" className={styles.uploadIcon} />
-                    <div className={styles.uploadText}>Drag and Drop here</div>
-                    <div className={styles.uploadDivider}>or</div>
-                    <label className={styles.selectFileBtn}>
-                      Select file
-                      <input 
-                        type="file" 
-                        accept=".csv" 
-                        hidden 
-                        onChange={(e) => handleFileSelect('offerings', e)}
-                      />
-                    </label>
-                    {offeringsFile && <div className={styles.selectedFile}>{offeringsFile.name}</div>}
-                  </div>
-                  <div className={styles.uploadNote}>
-                    CSV should contain: CourseId, Section, InstructorId, Day, StartTime, EndTime, RoomId, Capacity
-                  </div>
+        <div className={styles.twoColumnLayout}>
+          {/* Left Column - Action Buttons and Form */}
+          <div className={styles.leftColumn}>
+            {/* Action Buttons */}
+            <div className={styles.actionButtons}>
+              <div 
+                className={`${styles.actionBtn} ${activeAction === 'add' ? styles.active : ''}`}
+                onClick={() => setActiveAction('add')}
+              >
+                <div className={styles.iconCircle}>
+                  <span className={styles.icon}>+</span>
                 </div>
-
-                <div className={styles.uploadBox}>
-                  <h3 className={styles.uploadTitle}>Upload Students List</h3>
-                  <div 
-                    className={styles.uploadArea}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop('students', e)}
-                  >
-                    <img src="/upload-icon.png" alt="Upload" className={styles.uploadIcon} />
-                    <div className={styles.uploadText}>Drag and Drop here</div>
-                    <div className={styles.uploadDivider}>or</div>
-                    <label className={styles.selectFileBtn}>
-                      Select file
-                      <input 
-                        type="file" 
-                        accept=".csv" 
-                        hidden 
-                        onChange={(e) => handleFileSelect('students', e)}
-                      />
-                    </label>
-                    {studentsFile && <div className={styles.selectedFile}>{studentsFile.name}</div>}
-                  </div>
-                  <div className={styles.uploadNote}>
-                    CSV should contain: StudentId, Name, Email, CourseId, Section
-                  </div>
-                </div>
-
-                <div className={styles.uploadBox}>
-                  <h3 className={styles.uploadTitle}>Upload Teaching Assistants List</h3>
-                  <div 
-                    className={styles.uploadArea}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop('assistants', e)}
-                  >
-                    <img src="/upload-icon.png" alt="Upload" className={styles.uploadIcon} />
-                    <div className={styles.uploadText}>Drag and Drop here</div>
-                    <div className={styles.uploadDivider}>or</div>
-                    <label className={styles.selectFileBtn}>
-                      Select file
-                      <input 
-                        type="file" 
-                        accept=".csv" 
-                        hidden 
-                        onChange={(e) => handleFileSelect('assistants', e)}
-                      />
-                    </label>
-                    {assistantsFile && <div className={styles.selectedFile}>{assistantsFile.name}</div>}
-                  </div>
-                  <div className={styles.uploadNote}>
-                    CSV should contain: TAId, CourseId, Section, Workload
-                  </div>
-                </div>
-
-                <div className={styles.uploadButtonContainer}>
-                  <button 
-                    className={styles.uploadButton}
-                    onClick={handleActionButtonClick}
-                    disabled={loading}
-                  >
-                    {activeAction === 'add' ? 'Add Semester' : 'Update Semester'}
-                  </button>
-                </div>
+                <span className={styles.actionLabel}>Add Semester</span>
               </div>
-            )}
-          </div>
+              
+              <div 
+                className={`${styles.actionBtn} ${activeAction === 'delete' ? styles.active : ''}`}
+                onClick={() => setActiveAction('delete')}
+              >
+                <div className={styles.iconCircle}>
+                  <span className={styles.icon}>-</span>
+                </div>
+                <span className={styles.actionLabel}>Delete Semester</span>
+              </div>
+              
+              <div 
+                className={`${styles.actionBtn} ${activeAction === 'edit' ? styles.active : ''}`}
+                onClick={() => setActiveAction('edit')}
+              >
+                <div className={styles.iconCircle}>
+                  <span className={styles.icon}>✎</span>
+                </div>
+                <span className={styles.actionLabel}>Edit Semester</span>
+              </div>
+            </div>
 
-          {/* Right side - Form */}
-          <div className={styles.formSection}>
+            {/* Form Card */}
             <div className={styles.formCard}>
               <h2 className={styles.formTitle}>{getFormTitle()}</h2>
               
@@ -628,21 +561,93 @@ const AdminSemesterManagement = () => {
                 </div>
               </div>
               
-              {/* Action Button */}
-              {(!selectedSemesterId || activeAction === 'delete') && (
-                <div className={styles.formActions}>
+              {/* Action Buttons - Consistently placed under the form for all modes */}
+              <div className={styles.formActions}>
+                {/* Delete mode buttons */}
+                {activeAction === 'delete' && !selectedSemesterId && (
                   <button 
                     className={styles.actionButton}
-                    onClick={handleActionButtonClick}
+                    onClick={handleFindSemester}
                     disabled={loading}
                   >
-                    {getActionButtonText()}
+                    {loading ? 'Processing...' : 'Find Semester to Delete'}
                   </button>
-                </div>
-              )}
+                )}
+                
+                {activeAction === 'delete' && selectedSemesterId && (
+                  <button 
+                    className={styles.deleteButton}
+                    onClick={handleDeleteConfirmation}
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Delete Semester'}
+                  </button>
+                )}
+                
+                {/* Edit mode - Find button */}
+                {activeAction === 'edit' && !selectedSemesterId && (
+                  <button 
+                    className={styles.actionButton}
+                    onClick={handleFindSemester}
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Find Semester to Edit'}
+                  </button>
+                )}
+                
+                {/* Add mode button */}
+                {activeAction === 'add' && (
+                  <button 
+                    className={styles.actionButton}
+                    onClick={handleAddSemester}
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Add Semester'}
+                  </button>
+                )}
+                
+                {/* Edit mode - Update button (after semester is found) */}
+                {activeAction === 'edit' && selectedSemesterId && (
+                  <button 
+                    className={styles.actionButton}
+                    onClick={handleEditSemester}
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Update Semester'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Right Column - Upload Areas - Only shown for Add or Edit mode */}
+          {activeAction !== 'delete' && (
+            <div className={styles.rightColumn}>
+              {renderUploadBox(
+                'offerings', 
+                offeringsFile, 
+                'Upload Offerings List',
+                'CSV should contain: CourseId, Section, InstructorId, Day, StartTime, EndTime, RoomId, Capacity'
+              )}
+              
+              {renderUploadBox(
+                'students', 
+                studentsFile, 
+                'Upload Students List',
+                'CSV should contain: StudentId, Name, Email, CourseId, Section'
+              )}
+              
+              {renderUploadBox(
+                'assistants', 
+                assistantsFile, 
+                'Upload Teaching Assistants List',
+                'CSV should contain: TAId, CourseId, Section, Workload'
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Removed bottom button container - now all buttons are inside the form */}
 
         {/* Confirmation Popup for Delete */}
         {showConfirmation && (
