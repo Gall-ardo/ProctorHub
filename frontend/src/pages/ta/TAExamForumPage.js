@@ -433,42 +433,34 @@ const TAExamForumPage = () => {
       <TANavBar />
       
       <div className="ta-exam-forum-page-main-content">
-        {/* Left sidebar for buttons */}
+        {/* Left sidebar for action buttons - styled like TAWorkloadPage statistics circles */}
         <div className="ta-exam-forum-page-sidebar-actions">
           {/* Personal Swap Request Button */}
           <div className="ta-exam-forum-page-button-container">
-            <div className="ta-exam-forum-page-send-request-container">
-              <div className="ta-exam-forum-page-send-button-label">Send Personal Swap Request</div>
-              <div className="ta-exam-forum-page-send-icon" onClick={openSwapRequestModal}></div>
-            </div>
+            <div className="ta-exam-forum-page-send-button-label">Send Personal Swap Request</div>
+            <div className="ta-exam-forum-page-send-icon" onClick={openSwapRequestModal}></div>
           </div>
           
           {/* Submit Forum Request Button */}
           <div className="ta-exam-forum-page-button-container">
-            <div className="ta-exam-forum-page-submit-forum-container">
-              <div className="ta-exam-forum-page-submit-button-label">Submit Swap Request on Forum</div>
-              <div className="ta-exam-forum-page-submit-icon" onClick={openSubmitForumModal}>
-                <span>+</span>
-              </div>
+            <div className="ta-exam-forum-page-submit-button-label">Submit Swap Request on Forum</div>
+            <div className="ta-exam-forum-page-submit-icon" onClick={openSubmitForumModal}>
+              <span>+</span>
             </div>
           </div>
 
-          {/* Submitted Swap Requests Button */}
+          {/* View Submitted Requests Button */}
           <div className="ta-exam-forum-page-button-container">
-            <div className="ta-exam-forum-page-send-request-container">
-              <div className="ta-exam-forum-page-send-button-label">View My Submitted Requests</div>
-              <div 
-                className="ta-exam-forum-page-send-icon-v2" 
-                onClick={openSubmittedRequestsModal}
-                style={{ backgroundColor: '#4CAF50' }}
-              >
-                <span style={{ color: 'white', fontSize: '48px' }}>✓</span>
-              </div>
+            <div className="ta-exam-forum-page-submitted-requests-label">View My Submitted Requests</div>
+            <div className="ta-exam-forum-page-submitted-requests-icon" onClick={openSubmittedRequestsModal}>
+              <span>✓</span>
             </div>
           </div>
         </div>
 
+        {/* Main content columns */}
         <div className="ta-exam-forum-page-content-wrapper">
+          {/* Left column - Forum */}
           <div className="ta-exam-forum-page-forum-section">
             <div className="ta-exam-forum-page-forum-container">
               <div className="ta-exam-forum-page-forum-header">
@@ -482,11 +474,14 @@ const TAExamForumPage = () => {
             </div>
           </div>
           
-          <div className="ta-exam-forum-page-waiting-container">
-            <h2 className="ta-exam-forum-page-section-title">Waiting Proctoring Swap Requests</h2>
-            
-            <div className="ta-exam-forum-page-waiting-list">
-              {renderWaitingSwapRequests()}
+          {/* Right column - Waiting Requests */}
+          <div className="ta-exam-forum-page-forum-section">
+            <div className="ta-exam-forum-page-waiting-container">
+              <h2 className="ta-exam-forum-page-section-title">Waiting Proctoring Swap Requests</h2>
+              
+              <div className="ta-exam-forum-page-waiting-list">
+                {renderWaitingSwapRequests()}
+              </div>
             </div>
           </div>
         </div>

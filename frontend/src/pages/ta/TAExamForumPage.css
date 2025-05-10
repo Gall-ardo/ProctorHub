@@ -18,25 +18,25 @@
   overflow: hidden;
 }
 
-/* Sidebar for buttons, similar to TAWorkloadPage */
+/* Sidebar for buttons, styled like TAWorkloadPage stats */
 .ta-exam-forum-page-sidebar-actions {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  margin-right: 20px;
   width: 250px;
-  padding: 20px 0;
-  height: calc(100vh - 100px);
   flex-shrink: 0;
-  gap: 40px; /* Reduced gap between buttons */
+  height: calc(100vh - 100px);
+  padding: 20px 0;
 }
 
-/* Button containers in sidebar */
-.ta-exam-forum-page-button-container, 
-.ta-exam-forum-page-submit-container {
+/* Button containers in sidebar - match TAWorkloadPage */
+.ta-exam-forum-page-button-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: 80px; /* Push buttons closer to the top */
 }
 
 /* Content wrapper with equal width containers */
@@ -63,19 +63,6 @@
 }
 
 .ta-exam-forum-page-send-icon {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.ta-exam-forum-page-send-icon-v2 {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -192,23 +179,6 @@
   font-weight: bold;
   color: #333;
   margin-bottom: 3px;
-}
-
-.ta-exam-forum-page-add-button-container {
-  display: flex;
-  justify-content: center;
-}
-
-.ta-exam-forum-page-add-button {
-  background-color: #c62828;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  width: 100%;
-  max-width: 250px;
 }
 
 /* Submit Forum Request Button */
@@ -381,9 +351,20 @@
   color: #666;
 }
 
-/* TAExamForumPage.css - Add styles for the new Submitted Requests button */
+/* Submitted Requests Button */
+.ta-exam-forum-page-submitted-requests-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-/* Add this after the existing .ta-exam-forum-page-submit-icon styles */
+.ta-exam-forum-page-submitted-requests-label {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 10px;
+  text-align: center;
+}
 
 .ta-exam-forum-page-submitted-requests-icon {
   width: 120px;
@@ -399,15 +380,7 @@
 
 .ta-exam-forum-page-submitted-requests-icon span {
   color: white;
-  font-size: 24px;
+  font-size: 48px;
+  font-weight: 300;
   line-height: 1;
-}
-
-/* Additional style for button container spacing */
-.ta-exam-forum-page-sidebar-actions {
-  gap: 20px; /* Reduce the gap to fit three buttons */
-}
-
-.ta-exam-forum-page-button-container {
-  margin-top: 20px; /* Reduce top margin for better spacing */
 }
