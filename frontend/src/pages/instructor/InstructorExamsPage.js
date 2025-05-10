@@ -705,53 +705,83 @@ function InstructorExamsPage() {
             ) : exams.length === 0 ? (
                 <div className="no-exams-message">No exams found. Add your first exam.</div>
             ) : (
-                <div className="cards-container">
-                  {exams.map((exam) => (
-                      <div className="exam-card" key={exam.id}>
-                        <div className="exam-card-header">
-                          <h3>{exam.courseName} {exam.examType}</h3>
-                          <button
-                            className="delete-exam-btn"
-                            title="Delete Exam"
-                            onClick={() => {
-                              handleDeleteExam(exam.id);
-                            }}
-                          >
-                            <span className="delete-icon">×</span>
-                            <span className="delete-text">Delete</span>
-                          </button>
-                        </div>
-                        <p>
-                          <strong>Current Proctor(s):</strong> {
-                            exam.proctors 
-                              ? exam.proctors.filter(p => p.status === 'ACCEPTED').map(p => p.name).join(', ') || 'None' 
-                              : 'None'
-                          }
-                        </p>
-                        <p>
-                          <strong>Pending Proctor(s):</strong> {
-                            exam.proctors 
-                              ? exam.proctors.filter(p => p.status === 'PENDING').map(p => p.name).join(', ') || 'None' 
-                              : 'None'
-                          }
-                        </p>
-                        <p><strong>Classroom(s):</strong> {exam.classrooms ? exam.classrooms.join(', ') : 'None'}</p>
-                        <p><strong>Time:</strong> {exam.startTime} - {exam.endTime}</p>
-                        <p><strong>Date:</strong> {exam.formattedDate || (exam.date ? new Date(exam.date).toLocaleDateString('tr-TR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        }) : 'No date')}</p>
-                        <p><strong>Swap Count:</strong> {exam.swapCount || 0}</p>
-                        <p><strong>Exam Type:</strong> {exam.examType}</p>
-                        <div className="card-buttons">
-                          <button onClick={() => handleOpenSwapTAs(exam)}>Swap TA</button>
-                          <button onClick={() => handleOpenSwapHistory(exam)}>View Swap History</button>
-                          <button onClick={() => handleOpenChangeExam(exam)}>Change Exam Information</button>
-                        </div>
+              <div className="cards-container">
+                {exams.map(exam => {
+                  // find the full course object for this exam
+                  const course = courses.find(c => c.id === exam.courseName);
+                  // use courseCode if available, otherwise fall back to whatever's in exam.courseName
+                  const displayCode = course?.courseCode || exam.courseName;
+              
+                  return (
+                    <div className="exam-card" key={exam.id}>
+                      <div className="exam-card-header">
+                        <h3>
+                          {displayCode} {exam.examType}
+                        </h3>
+                        <button
+                          className="delete-exam-btn"
+                          title="Delete Exam"
+                          onClick={() => handleDeleteExam(exam.id)}
+                        >
+                          <span className="delete-icon">×</span>
+                          <span className="delete-text">Delete</span>
+                        </button>
                       </div>
-                  ))}
-                </div>
+                      <p>
+                        <strong>Current Proctor(s):</strong>{" "}
+                        {exam.proctors
+                          ? exam.proctors
+                              .filter(p => p.status === "ACCEPTED")
+                              .map(p => p.name)
+                              .join(", ") || "None"
+                          : "None"}
+                      </p>
+                      <p>
+                        <strong>Pending Proctor(s):</strong>{" "}
+                        {exam.proctors
+                          ? exam.proctors
+                              .filter(p => p.status === "PENDING")
+                              .map(p => p.name)
+                              .join(", ") || "None"
+                          : "None"}
+                      </p>
+                      <p>
+                        <strong>Classroom(s):</strong>{" "}
+                        {exam.classrooms ? exam.classrooms.join(", ") : "None"}
+                      </p>
+                      <p>
+                        <strong>Time:</strong> {exam.startTime} - {exam.endTime}
+                      </p>
+                      <p>
+                        <strong>Date:</strong>{" "}
+                        {exam.formattedDate ||
+                          (exam.date
+                            ? new Date(exam.date).toLocaleDateString("tr-TR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })
+                            : "No date")}
+                      </p>
+                      <p>
+                        <strong>Swap Count:</strong> {exam.swapCount || 0}
+                      </p>
+                      <p>
+                        <strong>Exam Type:</strong> {exam.examType}
+                      </p>
+                      <div className="card-buttons">
+                        <button onClick={() => handleOpenSwapTAs(exam)}>Swap TA</button>
+                        <button onClick={() => handleOpenSwapHistory(exam)}>
+                          View Swap History
+                        </button>
+                        <button onClick={() => handleOpenChangeExam(exam)}>
+                          Change Exam Information
+                        </button>
+                      </div>
+                    </div>
+                  );
+              })}
+            </div>
             )}
           </div>
         </main>
@@ -790,7 +820,7 @@ function InstructorExamsPage() {
                       {courses && courses.length > 0 ? (
                           courses.map(course => (
                               <option key={course.id} value={course.id}>
-                                {course.courseName} ({course.courseCode})
+                                {course.courseCode} ({course.courseName})
                               </option>
                           ))
                       ) : (
