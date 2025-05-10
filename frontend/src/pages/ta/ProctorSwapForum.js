@@ -93,6 +93,19 @@ const ProctorSwapForum = ({ scheduleEvents }) => {
     return null;
   };
 
+  const formatTimeRangeFromRawString = (rawTime) => {
+    if (!rawTime || !rawTime.includes('-')) return rawTime;
+
+    const toHHMM = (time) => {
+      const [h, m] = time.trim().split(':');
+      return `${h}.${m}`;
+    };
+
+    const [start, end] = rawTime.split('-');
+    return `${toHHMM(start)}–${toHHMM(end)}`;
+  };
+
+
   // Fetch forum swap requests
   const fetchForumSwapRequests = async () => {
     try {
@@ -127,10 +140,7 @@ const ProctorSwapForum = ({ scheduleEvents }) => {
           // Additional properties to match TASwapExamDetailsPopup format
           course: item.course,
           date: formatDate(item.date || item.examDate),
-          time: formatTime(
-            parseTimeToFloat(item.startTime || item.time), 
-            parseTimeToFloat(item.endTime)
-          ),
+          time: formatTimeRangeFromRawString(item.time),
           classroom: item.classroom || (Array.isArray(item.examRooms) ? item.examRooms.join(', ') : '')
         }));
         

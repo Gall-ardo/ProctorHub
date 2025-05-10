@@ -182,7 +182,7 @@ const cancelSwapRequest = async (req, res, next) => {
 /**
  * Get forum swap requests
  */
-const getForumSwapRequests = async (req, res, next) => {
+/*const getForumSwapRequests = async (req, res, next) => {
   try {
     const forumItems = await swapRequestService.getForumSwapRequests();
     
@@ -194,7 +194,23 @@ const getForumSwapRequests = async (req, res, next) => {
     console.error('Error in getForumSwapRequests:', error);
     next(error);
   }
+};*/
+
+const getForumSwapRequests = async (req, res, next) => {
+  try {
+    const currentTaId = req.user.teachingAssistant?.id || req.user.id;
+    const forumItems = await swapRequestService.getForumSwapRequests(currentTaId); // pass current TA's ID
+
+    res.status(200).json({
+      success: true,
+      data: forumItems
+    });
+  } catch (error) {
+    console.error('Error in getForumSwapRequests:', error);
+    next(error);
+  }
 };
+
 
 /**
  * Create a forum swap request

@@ -75,6 +75,19 @@
   position: relative;
 }
 
+.ta-exam-forum-page-send-icon-v2 {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
 .ta-exam-forum-page-send-icon::before {
   content: "";
   width: 40px;
@@ -376,7 +389,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background-color: #4a5568;
+  background-color: #4CAF50;
   display: flex;
   justify-content: center;
   align-items: center;
