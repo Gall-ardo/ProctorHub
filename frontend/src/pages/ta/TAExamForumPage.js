@@ -458,11 +458,11 @@ const TAExamForumPage = () => {
             <div className="ta-exam-forum-page-send-request-container">
               <div className="ta-exam-forum-page-send-button-label">View My Submitted Requests</div>
               <div 
-                className="ta-exam-forum-page-send-icon" 
+                className="ta-exam-forum-page-send-icon-v2" 
                 onClick={openSubmittedRequestsModal}
-                style={{ backgroundColor: '#4a5568' }}
+                style={{ backgroundColor: '#4CAF50' }}
               >
-                <span style={{ color: 'white', fontSize: '24px' }}>⊙</span>
+                <span style={{ color: 'white', fontSize: '48px' }}>✓</span>
               </div>
             </div>
           </div>

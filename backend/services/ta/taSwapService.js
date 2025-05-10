@@ -476,7 +476,7 @@ const cancelSwapRequest = async (swapRequestId, userId) => {
  * Get forum swap requests
  * @returns {Promise<Array>} - list of forum swap requests
  */
-const getForumSwapRequests = async () => {
+/*const getForumSwapRequests = async () => {
   const forumRequests = await SwapRequest.findAll({
     where: {
       isForumPost: true,
@@ -521,7 +521,58 @@ const getForumSwapRequests = async () => {
       requesterId: request.requesterId // Ensure requesterId is included
     };
   });
+};*/
+
+const getForumSwapRequests = async (currentTaId) => {
+  const forumRequests = await SwapRequest.findAll({
+    where: {
+      isForumPost: true,
+      status: 'PENDING',
+      requesterId: {
+        [Op.ne]: currentTaId  // filter out own requests
+      }
+    },
+    include: [
+      {
+        model: Exam,
+        as: 'exam',
+        attributes: ['id', 'courseName', 'date', 'duration'],
+        include: [
+          {
+            model: Classroom,
+            as: 'examRooms',
+            attributes: ['name']
+          }
+        ]
+      },
+      {
+        model: TeachingAssistant,
+        as: 'requester',
+        include: {
+          model: User,
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
+        }
+      }
+    ],
+    order: [['requestDate', 'DESC']]
+  });
+
+  return forumRequests.map(request => {
+    const examDate = new Date(request.exam.date);
+    return {
+      id: request.id,
+      course: request.exam.courseName,
+      date: examDate.toLocaleDateString(),
+      time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
+      classroom: request.exam.examRooms.map(room => room.name).join(', '),
+      submitter: request.requester.taUser.name,
+      submitTime: request.requestDate.toLocaleDateString(),
+      requesterId: request.requesterId
+    };
+  });
 };
+
 
 /**
  * Create a forum swap request (no specific target TA)
