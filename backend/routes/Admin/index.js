@@ -6,7 +6,6 @@ const router = express.Router();
 const userRoutes = require('./userRoutes');
 const classroomRoutes = require('./classroomRoutes');
 const courseRoutes = require('./courseRoutes');
-const instructorRoutes = require('./instructorRoutes');
 const offeringRoutes = require('./offeringRoutes');
 const studentRoutes = require('./studentRoutes');
 const fetchingRoutes = require('./fetchingRoutes');
@@ -17,7 +16,6 @@ const timeslotRoutes = require('./timeslotRoutes'); // Add timeslot routes
 router.use('/users', userRoutes);
 router.use('/classrooms', classroomRoutes);
 router.use('/courses', courseRoutes);
-router.use('/instructors', instructorRoutes);
 router.use('/offerings', offeringRoutes);
 router.use('/students', studentRoutes);
 router.use('/fetch', fetchingRoutes);
