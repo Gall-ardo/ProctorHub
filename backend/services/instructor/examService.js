@@ -259,31 +259,25 @@ class ExamService {
             // Extract TA IDs from proctor assignments
             const taIds = proctorAssignments.map(assignment => assignment.taId);
 
-            // Delete related proctoring assignments first
+            // Delete related swap requests first
+            try {
+                // Check if SwapRequest model exists
+                const SwapRequest = require('../../models/SwapRequest');
+                console.log('Deleting related swap requests');
+                await SwapRequest.destroy({
+                    where: { examId },
+                    transaction: t
+                });
+            } catch (swapRequestError) {
+                console.log('No swap requests to delete or SwapRequest model does not exist:', swapRequestError.message);
+                // Continue with exam deletion even if swap request deletion fails
+            }
+
+            // Delete related proctoring assignments
             await Proctoring.destroy({
                 where: { examId },
                 transaction: t
             });
-
-            // Delete related swap history records if they exist
-            try {
-                const SwapHistory = require('../../models/SwapHistory');
-                // Check if table exists before trying to delete from it
-                try {
-                    await SwapHistory.findAll({ where: { examId }, limit: 1, transaction: t });
-                    // If the above call succeeds, table exists, so delete from it
-                    await SwapHistory.destroy({
-                        where: { examId },
-                        transaction: t
-                    });
-                } catch (tableError) {
-                    // If table doesn't exist, just log and continue
-                    console.log('SwapHistory table does not exist:', tableError.message);
-                }
-            } catch (error) {
-                console.log('Error handling swap history deletion:', error.message);
-                // Continue with exam deletion even if swap history deletion fails
-            }
 
             // Finally delete the exam
             await exam.destroy({ transaction: t });
@@ -956,7 +950,6 @@ class ExamService {
             const Proctoring = require('../../models/Proctoring');
             const TeachingAssistant = require('../../models/TeachingAssistant');
             const User = require('../../models/User');
-            const SwapHistory = require('../../models/SwapHistory');
 
             // Check if the exam exists
             const exam = await Exam.findByPk(examId, { transaction: t });
@@ -987,7 +980,21 @@ class ExamService {
                 throw new Error('The new proctor does not exist');
             }
 
-            // Get old proctor details for history
+            // Check if the new TA has already rejected this proctoring assignment
+            const existingProctoring = await Proctoring.findOne({
+                where: {
+                    examId,
+                    taId: newProctorId,
+                    status: 'REJECTED'
+                },
+                transaction: t
+            });
+
+            if (existingProctoring) {
+                throw new Error('This TA has already rejected proctoring for this exam');
+            }
+
+            // Get old proctor details
             const oldTA = await TeachingAssistant.findByPk(oldProctorId, {
                 include: [{ model: User, as: 'taUser' }],
                 transaction: t
@@ -1007,18 +1014,6 @@ class ExamService {
                 isManualAssignment: true,
                 assignedBy: instructorId,
                 status: 'PENDING'
-            }, { transaction: t });
-
-            // Create a swap history record
-            await SwapHistory.create({
-                id: uuidv4(),
-                examId,
-                oldProctorId,
-                newProctorId,
-                swapDate: new Date(),
-                swappedBy: instructorId,
-                oldProctorName: oldTA?.taUser?.name || 'Unknown TA',
-                newProctorName: newTA?.taUser?.name || 'Unknown TA'
             }, { transaction: t });
 
             // Update the swap count on the exam
@@ -1067,41 +1062,20 @@ class ExamService {
     }
 
     /**
-     * Get swap history for an exam
+     * Get swap history for an exam (simplified version that returns empty array)
      * @param {string} examId - The exam ID
-     * @returns {Promise<Array>} List of swap history entries
+     * @returns {Promise<Array>} Empty list since we're not tracking swap history
      */
     async getSwapHistory(examId) {
         try {
-            const SwapHistory = require('../../models/SwapHistory');
-
             // Check if the exam exists
             const exam = await Exam.findByPk(examId);
             if (!exam) {
                 throw new Error('Exam not found');
             }
 
-            // Get swap history
-            const swapHistory = await SwapHistory.findAll({
-                where: { examId },
-                order: [['swapDate', 'DESC']]
-            });
-
-            // Format the data for the frontend
-            return swapHistory.map(swap => {
-                const swapDate = new Date(swap.swapDate);
-                
-                return {
-                    id: swap.id,
-                    oldProctor: swap.oldProctorName,
-                    newProctor: swap.newProctorName,
-                    date: swapDate.toLocaleDateString('tr-TR'),
-                    time: swapDate.toLocaleTimeString('tr-TR', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })
-                };
-            });
+            // Return empty array since we're not using SwapHistory
+            return [];
         } catch (error) {
             throw new Error(`Failed to get swap history: ${error.message}`);
         }
@@ -1492,6 +1466,146 @@ class ExamService {
             return classrooms;
         } catch (error) {
             throw new Error(`Failed to get classrooms: ${error.message}`);
+        }
+    }
+
+    /**
+     * Request a proctor swap for an exam (creates notification to the new proctor)
+     * @param {string} examId - The exam ID
+     * @param {string} oldProctorId - The current proctor's ID
+     * @param {string} newProctorId - The new proctor's ID
+     * @param {string} instructorId - The instructor's ID making the request
+     * @returns {Promise<Object>} Result of the swap request creation
+     */
+    async requestSwapProctor(examId, oldProctorId, newProctorId, instructorId) {
+        const t = await sequelize.transaction();
+
+        try {
+            const { v4: uuidv4 } = require('uuid');
+            const Proctoring = require('../../models/Proctoring');
+            const TeachingAssistant = require('../../models/TeachingAssistant');
+            const User = require('../../models/User');
+
+            // Check if the exam exists
+            const exam = await Exam.findByPk(examId, { transaction: t });
+            if (!exam) {
+                throw new Error('Exam not found');
+            }
+
+            // Check if old proctor is assigned to the exam
+            const oldProctoring = await Proctoring.findOne({
+                where: { 
+                    examId, 
+                    taId: oldProctorId 
+                },
+                transaction: t
+            });
+
+            if (!oldProctoring) {
+                throw new Error('The specified proctor is not assigned to this exam');
+            }
+
+            // Check if new proctor exists
+            const newTA = await TeachingAssistant.findByPk(newProctorId, {
+                include: [{ model: User, as: 'taUser' }],
+                transaction: t
+            });
+
+            if (!newTA) {
+                throw new Error('The new proctor does not exist');
+            }
+
+            // Check if the new TA has already rejected this proctoring assignment
+            const existingProctoring = await Proctoring.findOne({
+                where: {
+                    examId,
+                    taId: newProctorId,
+                    status: 'REJECTED'
+                },
+                transaction: t
+            });
+
+            if (existingProctoring) {
+                throw new Error('This TA has already rejected proctoring for this exam');
+            }
+
+            // Get old proctor details
+            const oldTA = await TeachingAssistant.findByPk(oldProctorId, {
+                include: [{ model: User, as: 'taUser' }],
+                transaction: t
+            });
+
+            // Mark the old proctor as SWAPPED
+            await oldProctoring.update({ 
+                status: 'SWAPPED' 
+            }, { transaction: t });
+
+            console.log(`Marked proctor ${oldProctorId} as SWAPPED for exam ${examId}`);
+            
+            // Create a new PENDING proctoring record for the new proctor
+            const newProctoring = await Proctoring.create({
+                id: uuidv4(),
+                examId,
+                taId: newProctorId,
+                assignmentDate: new Date(),
+                isManualAssignment: true,
+                assignedBy: instructorId,
+                status: 'PENDING'
+            }, { transaction: t });
+            
+            console.log(`Created PENDING proctoring assignment for new proctor ${newProctorId}`);
+
+            // Update the swap count on the exam
+            await exam.update({
+                swapCount: (exam.swapCount || 0) + 1
+            }, { transaction: t });
+
+            // Create a notification for the new TA about the swap request
+            await Notification.create({
+                id: uuidv4(),
+                recipientId: newProctorId,
+                subject: 'Proctor Swap Request',
+                message: `An instructor has requested you to replace ${oldTA?.taUser?.name || 'another TA'} as a proctor for the exam in ${exam.courseName} on ${new Date(exam.date).toLocaleDateString()}. Please check your dashboard to respond.`,
+                date: new Date(),
+                isRead: false,
+                type: 'SWAP_REQUEST',
+                metadata: JSON.stringify({
+                    examId,
+                    oldProctorId,
+                    requestedBy: instructorId
+                })
+            }, { transaction: t });
+
+            // Create a notification for the old TA about being swapped
+            await Notification.create({
+                id: uuidv4(),
+                recipientId: oldProctorId,
+                subject: 'Proctor Assignment Changed',
+                message: `Your proctoring assignment for the exam in ${exam.courseName} on ${new Date(exam.date).toLocaleDateString()} has been marked for swapping.`,
+                date: new Date(),
+                isRead: false
+            }, { transaction: t });
+
+            await t.commit();
+
+            // Return the result
+            return {
+                oldProctor: {
+                    id: oldProctorId,
+                    name: oldTA?.taUser?.name || 'Unknown TA',
+                    status: 'SWAPPED'
+                },
+                newProctor: {
+                    id: newProctorId,
+                    name: newTA?.taUser?.name || 'New Proctor',
+                    status: 'PENDING'
+                },
+                status: 'PENDING',
+                message: `Swap request sent to ${newTA?.taUser?.name || 'new proctor'}`
+            };
+        } catch (error) {
+            await t.rollback();
+            throw new Error(`Failed to create proctor swap request: ${error.message}`);
         }
     }
 }

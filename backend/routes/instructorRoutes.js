@@ -188,6 +188,14 @@ router.get(
     examController.getSwapHistory
 );
 
+// Exam proctor swap request route
+router.post(
+    '/exams/:examId/request-swap-proctor',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.requestSwapProctor
+);
+
 // Get all classrooms
 router.get(
     '/classrooms',

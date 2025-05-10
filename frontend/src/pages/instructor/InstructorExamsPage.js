@@ -15,6 +15,10 @@ function InstructorExamsPage() {
   const [classrooms, setClassrooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
 
   // Control which modal is open
   const [isAddExamOpen, setIsAddExamOpen] = useState(false);
@@ -28,6 +32,8 @@ function InstructorExamsPage() {
   const [availableTAs, setAvailableTAs] = useState([]);
   const [selectedTAs, setSelectedTAs] = useState([]);
   const [swapHistory, setSwapHistory] = useState([]);
+  const [oldProctorId, setOldProctorId] = useState(null);
+  const [oldProctorName, setOldProctorName] = useState('');
 
   // Helper to retrieve JWT and set header
   function getAuthHeader() {
@@ -603,7 +609,97 @@ const handlePrintStudentsRandomly = async (examId) => {
   const handleOpenSwapTAs = (exam) => {
     setSelectedExam(exam);
     setIsSwapTAsOpen(true);
-    fetchAvailableTAs();
+    fetchSwapTAs(exam);
+    // Add detailed log to check proctors data including their status
+    console.log("All proctors for this exam:", exam.proctors);
+    if (exam.proctors) {
+      const pendingProctors = exam.proctors.filter(p => p.status === 'PENDING');
+      const acceptedProctors = exam.proctors.filter(p => p.status === 'ACCEPTED');
+      console.log(`Pending proctors: ${pendingProctors.length}`, pendingProctors);
+      console.log(`Accepted proctors: ${acceptedProctors.length}`, acceptedProctors);
+    }
+  };
+
+  // Function to fetch TAs available for swapping (excluding current proctors)
+  const fetchSwapTAs = async (exam) => {
+    try {
+      const headers = getAuthHeader();
+      const department = exam.department;
+      const examDate = exam.date ? new Date(exam.date) : null;
+      
+      // Format date for API query
+      const formattedExamDate = examDate ? examDate.toISOString().split('T')[0] : '';
+      
+      // Build query parameters
+      let queryParams = '';
+      if (exam.courseName) queryParams += `courseId=${exam.courseName}`;
+      if (department) {
+        if (queryParams) queryParams += '&';
+        queryParams += `department=${department}`;
+      }
+      if (formattedExamDate) {
+        if (queryParams) queryParams += '&';
+        queryParams += `examDate=${formattedExamDate}`;
+      }
+      
+      // Get IDs of all proctors associated with this exam (all statuses)
+      const acceptedProctorIds = exam.proctors 
+        ? exam.proctors.filter(p => p.status === 'ACCEPTED').map(p => p.id) 
+        : [];
+      
+      const pendingProctorIds = exam.proctors 
+        ? exam.proctors.filter(p => p.status === 'PENDING').map(p => p.id) 
+        : [];
+        
+      const swappedProctorIds = exam.proctors 
+        ? exam.proctors.filter(p => p.status === 'SWAPPED').map(p => p.id) 
+        : [];
+        
+      const rejectedProctorIds = exam.proctors 
+        ? exam.proctors.filter(p => p.status === 'REJECTED').map(p => p.id) 
+        : [];
+      
+      // Combine all proctor IDs to exclude
+      const allProctorIdsToExclude = [
+        ...acceptedProctorIds,
+        ...pendingProctorIds,
+        ...swappedProctorIds,
+        ...rejectedProctorIds
+      ];
+      
+      console.log("ACCEPTED proctors:", acceptedProctorIds);
+      console.log("PENDING proctors:", pendingProctorIds);
+      console.log("SWAPPED proctors:", swappedProctorIds);
+      console.log("REJECTED proctors:", rejectedProctorIds);
+      console.log("ALL proctors to exclude:", allProctorIdsToExclude);
+      
+      const response = await axios.get(
+        `${API_URL}/instructor/available-tas-for-exam${queryParams ? '?' + queryParams : ''}`, 
+        { headers }
+      );
+      
+      if (response.data.success) {
+        console.log("All available TAs before filtering:", response.data.data.length);
+        
+        // Filter out all current, pending, swapped, and rejected proctors
+        const filteredTAs = response.data.data
+          .filter(ta => {
+            const isExistingProctor = allProctorIdsToExclude.includes(ta.id);
+            if (isExistingProctor) {
+              console.log(`Excluded existing proctor: ${ta.name} (${ta.id})`);
+            }
+            return !isExistingProctor;
+          })
+          .filter(ta => !ta.hasProctoringConflict)
+          .filter(ta => !ta.hasOfferingConflict)
+          .filter(ta => !ta.hasOfferingCourseExamConflict);
+        
+        console.log("Available TAs after filtering out all exam proctors:", filteredTAs.length);
+        setAvailableTAs(filteredTAs);
+      }
+    } catch (error) {
+      console.error('Error fetching available TAs for swap:', error);
+    }
   };
 
   // Handlers for closing modals
@@ -828,29 +924,67 @@ const handlePrintStudentsRandomly = async (examId) => {
     e.preventDefault();
 
     try {
+      setIsLoading(true);
       const headers = getAuthHeader();
       const oldProctorId = e.target.oldProctor.value;
       const newProctorId = e.target.newProctor.value;
 
       if (!oldProctorId || !newProctorId) {
+        setIsLoading(false);
         return;
       }
 
-      const response = await axios.post(`${API_URL}/instructor/exams/${selectedExam.id}/swap-proctor`, {
-        oldProctorId,
-        newProctorId
-      }, { headers });
+      console.log(`Requesting to swap proctor ${oldProctorId} with ${newProctorId}`);
+
+      // Use the request-swap-proctor endpoint instead of immediate swap
+      const response = await axios.post(
+        `${API_URL}/instructor/exams/${selectedExam.id}/request-swap-proctor`, 
+        {
+          oldProctorId,
+          newProctorId
+        }, 
+        { headers }
+      );
 
       if (response.data.success) {
-        // Refresh exams to get updated proctor list
-        const examsResponse = await axios.get(`${API_URL}/instructor/exams`, { headers });
+        // First update the local state to immediately show the change
+        // Find the proctor to be swapped and update its status
+        const updatedProctors = selectedExam.proctors.map(proctor => {
+          if (proctor.id === oldProctorId) {
+            console.log(`Marking proctor ${proctor.name} (${proctor.id}) as SWAPPED`);
+            return { ...proctor, status: 'SWAPPED' };
+          }
+          return proctor;
+        });
+        
+        // Create a new object with updated proctors
+        const updatedExam = { ...selectedExam, proctors: updatedProctors };
+        setSelectedExam(updatedExam);
+        
+        // Update the exam in the exams list
+        const updatedExams = exams.map(exam => {
+          if (exam.id === selectedExam.id) {
+            return { ...exam, proctors: updatedProctors };
+          }
+          return exam;
+        });
+        setExams(updatedExams);
+        
+        // Then refresh exams to get updated proctor list from the server
+        const examsResponse = await axios.get(`${API_URL}/instructor/my-exams`, { headers });
         if (examsResponse.data.success) {
           setExams(examsResponse.data.data);
         }
+        
+        setSuccess('Proctor swap request sent successfully! The proctor has been marked as SWAPPED.');
         closeAllModals();
       }
     } catch (err) {
       console.error('Error swapping TA:', err);
+      setErrorMessage(err.response?.data?.message || 'Failed to send proctor swap request');
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -908,6 +1042,65 @@ const handlePrintStudentsRandomly = async (examId) => {
       }
     } catch (err) {
       console.error('Error fetching classrooms:', err);
+    }
+  };
+
+  // Function to fetch available proctors for swapping
+  const fetchAvailableProctors = async (exam, currentProctorId) => {
+    try {
+      const headers = getAuthHeader();
+      const department = exam.department;
+      const examDate = exam.date ? new Date(exam.date) : null;
+      
+      // Format date for API query
+      const formattedExamDate = examDate ? examDate.toISOString().split('T')[0] : '';
+
+      // Build query parameters
+      let queryParams = '';
+      if (exam.courseName) queryParams += `courseId=${exam.courseName}`;
+      if (department) {
+        if (queryParams) queryParams += '&';
+        queryParams += `department=${department}`;
+      }
+      if (formattedExamDate) {
+        if (queryParams) queryParams += '&';
+        queryParams += `examDate=${formattedExamDate}`;
+      }
+
+      const response = await axios.get(
+        `${API_URL}/instructor/available-tas-for-exam${queryParams ? '?' + queryParams : ''}`, 
+        { headers }
+      );
+
+      if (response.data.success) {
+        // Get all current proctor IDs to exclude them
+        const currentProctorIds = exam.proctors 
+          ? exam.proctors.map(p => p.id) 
+          : [];
+        
+        // Filter out the current proctors, conflicting proctors, and rejected proctors
+        const proctors = response.data.data
+          .filter(ta => !currentProctorIds.includes(ta.id)) // Filter out all current proctors
+          .filter(ta => !ta.hasProctoringConflict)
+          .filter(ta => !ta.hasOfferingConflict)
+          .filter(ta => !ta.hasOfferingCourseExamConflict);
+        
+        // Additionally, filter out TAs who have rejected this exam
+        const rejectedTAs = exam.proctors 
+          ? exam.proctors.filter(p => p.status === 'REJECTED').map(p => p.id) 
+          : [];
+        
+        const filteredProctors = proctors.filter(ta => !rejectedTAs.includes(ta.id));
+        
+        // Sort by department match (same department first)
+        const sortedProctors = filteredProctors.sort((a, b) => {
+          if (a.isSameDepartment && !b.isSameDepartment) return -1;
+          if (!a.isSameDepartment && b.isSameDepartment) return 1;
+          return 0;
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching available proctors:', error);
     }
   };
 
@@ -1498,7 +1691,7 @@ const handlePrintStudentsRandomly = async (examId) => {
               <div className="modal-content">
                 <h2>Swap History for {selectedExam.courseName} {selectedExam.examType}</h2>
                 <div className="swap-history-container">
-                  {swapHistory.length === 0 ? (
+                  {!swapHistory || swapHistory.length === 0 ? (
                       <p>No swap history found for this exam.</p>
                   ) : (
                       swapHistory.map((swap, index) => (
@@ -1520,18 +1713,26 @@ const handlePrintStudentsRandomly = async (examId) => {
         {isSwapTAsOpen && selectedExam && (
             <div className="modal-overlay">
               <div className="modal-content">
-                <h2>Swap TAs for {selectedExam.courseName} {selectedExam.examType}</h2>
+                <h2>Request TA Swap for {selectedExam.courseName} {selectedExam.examType}</h2>
+                <div className="swap-proctor-info">
+                  <p>This will send a request to the selected TA to take over the proctoring assignment. The TA will need to accept your request before the swap is finalized.</p>
+                </div>
                 <form onSubmit={handleSwapTA}>
-                  <p>Current Proctor(s): {selectedExam.proctors ? selectedExam.proctors.map(p => p.name).join(', ') : 'None'}</p>
+                  <p>Current Proctor(s): {selectedExam.proctors ? selectedExam.proctors
+                    .filter(p => p.status === 'ACCEPTED' || p.status === 'PENDING')
+                    .map(p => `${p.name} ${p.status === 'PENDING' ? '(pending)' : ''}`)
+                    .join(', ') : 'None'}</p>
                   <div className="form-row">
                     <label>Proctor To Swap:</label>
                     <select name="oldProctor" required>
                       <option value="">Select Proctor</option>
-                      {selectedExam.proctors && selectedExam.proctors.map((p) => (
+                      {selectedExam.proctors && selectedExam.proctors
+                        .filter(p => p.status === 'ACCEPTED' || p.status === 'PENDING')
+                        .map((p) => (
                           <option key={p.id} value={p.id}>
-                            {p.name}
+                            {p.name} {p.status === 'PENDING' ? '(pending)' : ''}
                           </option>
-                      ))}
+                        ))}
                     </select>
                   </div>
                   <div className="form-row">
@@ -1546,14 +1747,41 @@ const handlePrintStudentsRandomly = async (examId) => {
                     </select>
                   </div>
                   <div className="button-row">
-                    <button type="submit" className="primary-btn">Swap</button>
-                    <button type="button" className="close-btn" onClick={closeAllModals}>
+                    <button 
+                      type="submit" 
+                      className="primary-btn"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Sending Request...' : 'Send Swap Request'}
+                    </button>
+                    <button 
+                      type="button" 
+                      className="close-btn" 
+                      onClick={closeAllModals}
+                      disabled={isLoading}
+                    >
                       Close
                     </button>
                   </div>
                 </form>
               </div>
             </div>
+        )}
+
+        {/* Success Message */}
+        {success && (
+          <div className="success-message">
+            {success}
+            <button onClick={() => setSuccess(null)} className="close-success-btn">×</button>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {showError && (
+          <div className="error-message" style={{ position: 'fixed', bottom: '20px', right: '20px', backgroundColor: '#f8d7da', padding: '10px 20px', borderRadius: '4px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)', zIndex: 9999 }}>
+            {errorMessage}
+            <button onClick={() => setShowError(false)} className="close-success-btn" style={{ background: 'none', border: 'none', color: '#721c24', fontSize: '20px', cursor: 'pointer', marginLeft: '10px' }}>×</button>
+          </div>
         )}
       </div>
   );

@@ -477,7 +477,7 @@ class ExamController {
     }
 
     /**
-     * Get all available classrooms
+     * Get all classrooms
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
      */
@@ -494,6 +494,61 @@ class ExamController {
             return res.status(500).json({
                 success: false,
                 message: error.message || 'Failed to get classrooms'
+            });
+        }
+    }
+
+    /**
+     * Request a proctor swap for an exam
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async requestSwapProctor(req, res) {
+        try {
+            const { examId } = req.params;
+            const { oldProctorId, newProctorId } = req.body;
+            const instructorId = req.user.id;
+
+            // Validate input
+            if (!oldProctorId || !newProctorId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Both oldProctorId and newProctorId are required'
+                });
+            }
+
+            // Get the exam to check ownership/access
+            const existingExam = await examService.getExamById(examId);
+            
+            // Check if the exam belongs to the authenticated instructor
+            if (existingExam.instructorId !== instructorId) {
+                // Check if the exam is for a course taught by this instructor
+                const isCourseInstructor = await examService.isInstructorForExamCourse(
+                    instructorId,
+                    existingExam.courseName
+                );
+
+                if (!isCourseInstructor) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Not authorized to request proctor swaps for this exam'
+                    });
+                }
+            }
+
+            // Call the service to request a proctor swap
+            const result = await examService.requestSwapProctor(examId, oldProctorId, newProctorId, instructorId);
+
+            return res.status(200).json({
+                success: true,
+                data: result,
+                message: 'Proctor swap request sent successfully'
+            });
+        } catch (error) {
+            console.error('Error requesting proctor swap:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to request proctor swap'
             });
         }
     }

@@ -21,18 +21,6 @@ const SwapHistory = sequelize.define("SwapHistory", {
   swapDate: {
     type: DataTypes.DATE,
     allowNull: false,
-  },
-  swappedBy: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  oldProctorName: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  newProctorName: {
-    type: DataTypes.STRING,
-    allowNull: true,
   }
 });
 
