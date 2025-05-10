@@ -309,89 +309,90 @@ class UserController {
   }
 
   async uploadUsers(req, res) {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: "No file uploaded"
-        });
-      }
-
-      console.log(`Processing uploaded file: ${req.file.originalname}`);
-      
-      const results = [];
-      const filePath = req.file.path;
-
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on("data", (data) => {
-          // Transform column names to match expected format if needed
-          const transformedData = {};
-          
-          // Map CSV columns to user fields
-          Object.keys(data).forEach(key => {
-            // Convert column headers to expected property names
-            const lowerKey = key.toLowerCase().trim();
-            
-            if (lowerKey === 'id' || lowerKey === 'userid') {
-              transformedData.id = data[key];
-            } else if (lowerKey === 'name' || lowerKey === 'fullname') {
-              transformedData.name = data[key];
-            } else if (lowerKey === 'email') {
-              transformedData.email = data[key];
-            } else if (lowerKey === 'usertype' || lowerKey === 'role' || lowerKey === 'type') {
-              // Filter out student type in the CSV
-              const userType = data[key].toLowerCase();
-              if (userType === 'student') {
-                console.log(`Skipping student record for ID: ${data.id || 'unknown'}`);
-                return;
-              }
-              transformedData.userType = data[key];
-            } else if (lowerKey === 'department' || lowerKey === 'dept') {
-              transformedData.department = data[key];
-            }
-          });
-          
-          // Only add non-empty and non-student records
-          if (Object.keys(transformedData).length > 0 && transformedData.userType !== 'student') {
-            results.push(transformedData);
-          }
-        })
-        .on("end", async () => {
-          // Remove the temporary file
-          fs.unlinkSync(filePath);
-          
-          console.log(`Parsed ${results.length} users from CSV`);
-
-          // Process and create users
-          const uploadResult = await userService.bulkCreateUsers(results);
-          
-          res.status(201).json({ 
-            success: true,
-            message: `${uploadResult.success} users created successfully, ${uploadResult.failed} failed. Welcome emails with login credentials have been sent.`,
-            usersCreated: uploadResult.success,
-            usersFailed: uploadResult.failed,
-            totalRecords: results.length,
-            errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
-          });
-        })
-        .on("error", (error) => {
-          console.error("Error parsing CSV:", error);
-          res.status(400).json({
-            success: false,
-            message: "Failed to parse CSV file",
-            error: error.message
-          });
-        });
-    } catch (error) {
-      console.error("Error uploading users:", error);
-      res.status(400).json({ 
+  try {
+    if (!req.file) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to upload users", 
-        error: error.message 
+        message: "No file uploaded"
       });
     }
+
+    console.log(`Processing uploaded file: ${req.file.originalname}`);
+    
+    const results = [];
+    const filePath = req.file.path;
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => {
+        const transformedData = {};
+        
+        Object.keys(data).forEach(key => {
+          const lowerKey = key.toLowerCase().trim();
+          const value = data[key]?.trim();
+
+          if (lowerKey === 'id' || lowerKey === 'userid') {
+            transformedData.id = value;
+          } else if (lowerKey === 'name' || lowerKey === 'fullname') {
+            transformedData.name = value;
+          } else if (lowerKey === 'email') {
+            transformedData.email = value;
+          } else if (lowerKey === 'usertype' || lowerKey === 'role' || lowerKey === 'type') {
+            const userType = value.toLowerCase();
+            if (userType === 'student') {
+              console.log(`Skipping student record for ID: ${data.id || 'unknown'}`);
+              return;
+            }
+            transformedData.userType = value;
+          } else if (lowerKey === 'department' || lowerKey === 'dept') {
+            transformedData.department = value;
+          } else if (lowerKey === 'isphd') {
+            transformedData.isPHD = value.toLowerCase() === 'true';
+          } else if (lowerKey === 'isparttime') {
+            transformedData.isPartTime = value.toLowerCase() === 'true';
+          }
+        });
+
+        if (transformedData.userType && transformedData.id && transformedData.email && transformedData.name) {
+          results.push(transformedData);
+        } else {
+          console.log("Skipping incomplete row:", data);
+        }
+      })
+      .on("end", async () => {
+        fs.unlinkSync(filePath);
+        
+        console.log(`Parsed ${results.length} users from CSV`);
+
+        const uploadResult = await userService.bulkCreateUsers(results);
+        
+        res.status(201).json({ 
+          success: true,
+          message: `${uploadResult.success} users created successfully, ${uploadResult.failed} failed. Welcome emails with login credentials have been sent.`,
+          usersCreated: uploadResult.success,
+          usersFailed: uploadResult.failed,
+          totalRecords: results.length,
+          errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
+        });
+      })
+      .on("error", (error) => {
+        console.error("Error parsing CSV:", error);
+        res.status(400).json({
+          success: false,
+          message: "Failed to parse CSV file",
+          error: error.message
+        });
+      });
+  } catch (error) {
+    console.error("Error uploading users:", error);
+    res.status(400).json({ 
+      success: false,
+      message: "Failed to upload users", 
+      error: error.message 
+    });
   }
+}
+
 }
 
 module.exports = new UserController();
