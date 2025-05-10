@@ -50,52 +50,55 @@ class ClassroomService {
     return true;
   }
 
-  async processClassroomFile(file) {
-    // Multer stores upload on disk: file.path
-    const filePath = file.path;
-    const results = [];
-    const errors = [];
+async processClassroomFile(file) {
+  // Multer stores upload on disk: file.path
+  const filePath = file.path;
+  const results = [];
+  const errors = [];
 
-    return new Promise((resolve, reject) => {
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on("data", async (row) => {
-          // Validate required fields (case-sensitive keys based on CSV header)
-          const building = row.Building || row.building;
-          const classroomId = row.ClassroomId || row.classroomId;
-          const cap = row.Capacity || row.capacity;
-          const examCap = row.ExamCapacity || row.examCapacity;
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", async (row) => {
+        const building = row.Building || row.building;
+        const classroomId = row.ClassroomId || row.classroomId;
+        const cap = row.Capacity || row.capacity;
+        const examCap = row.ExamCapacity || row.examCapacity;
 
-          if (!building || !classroomId || !cap || !examCap) {
-            errors.push(`Missing fields in row: ${JSON.stringify(row)}`);
-            return;
-          }
-          
-          try {
-            const classroomData = {
-              building: building.trim(),
-              classroomId: classroomId.trim(),
-              capacity: parseInt(cap, 10),
-              examCapacity: parseInt(examCap, 10)
-            };
-            const classroom = await this.createClassroom(classroomData);
-            results.push(classroom);
-          } catch (err) {
-            errors.push(`Error processing row ${JSON.stringify(row)}: ${err.message}`);
-          }
-        })
-        .on("end", async () => {
-          // Clean up the uploaded file
-          try { fs.unlinkSync(filePath); } catch {}
-          resolve({ processed: results.length, successful: results.length, errors });
-        })
-        .on("error", (err) => {
-          // Clean up and reject
-          try { fs.unlinkSync(filePath); } catch {}
-          reject(err);
+        if (!building || !classroomId || !cap || !examCap) {
+          errors.push(`Missing fields in row: ${JSON.stringify(row)}`);
+          return;
+        }
+
+        try {
+          const classroomData = {
+            building: building.trim(),
+            classroomId: classroomId.trim(),
+            capacity: parseInt(cap, 10),
+            examCapacity: parseInt(examCap, 10)
+          };
+          const classroom = await this.createClassroom(classroomData);
+          results.push(classroom);
+        } catch (err) {
+          errors.push(`Error processing row ${JSON.stringify(row)}: ${err.message}`);
+        }
+      })
+      .on("end", async () => {
+        try { fs.unlinkSync(filePath); } catch {}
+        resolve({
+          successful: results.length,
+          failed: errors.length,
+          total: results.length + errors.length,
+          errors
         });
-    });
-  }
+      })
+      .on("error", (err) => {
+        try { fs.unlinkSync(filePath); } catch {}
+        reject(err);
+      });
+  });
+}
+
 
   async findClassrooms(query) {
     const where = {};

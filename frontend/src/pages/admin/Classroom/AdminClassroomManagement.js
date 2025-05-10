@@ -279,7 +279,10 @@ const AdminClassroomManagement = () => {
       );
       
       if (response.data.success) {
-        setSuccess(`Successfully processed ${response.data.data.successful} classrooms!`);
+       const stats = response.data.data;
+        setSuccess(
+          `Processed ${stats.total} classrooms: ${stats.successful} successful, ${stats.failed} failed.`
+        );
         setSelectedFile(null);
       }
     } catch (error) {
