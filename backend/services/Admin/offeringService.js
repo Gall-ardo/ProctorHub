@@ -53,8 +53,9 @@ const offeringService = {
         throw new Error(`An offering for this course with section number ${sectionNumber} already exists for the selected semester`);
       }
       
-      // Generate UUID for the new offering
-      const offeringId = uuidv4();
+      const formattedSectionNumber = String(sectionNumber).padStart(3, '0');
+      const offeringId = `${courseId}_${formattedSectionNumber}`;
+
       
       // Create the offering
       const offering = await Offering.create({
