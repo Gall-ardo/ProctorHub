@@ -7,7 +7,13 @@ import bilkentIcon from '../../assets/bilkent-logo.png';
 import notificationIcon from '../../assets/notification-icon.png';
 import userIcon from '../../assets/user-icon.png';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
+
+function getAuthHeader() {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  if (!token) throw new Error('No authentication token found');
+  return { Authorization: `Bearer ${token}` };
+}
 
 const InstructorNavBar = () => {
   const location = useLocation();
@@ -29,6 +35,8 @@ const InstructorNavBar = () => {
   // notifications from DB
   const [notifications, setNotifications]         = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
+
+  const [isTaAssigner, setIsTaAssigner] = useState(false);
 
   const unreadNotifications = notifications.filter(n => !n.isRead);
   const hasUnread = unreadNotifications.length > 0;
@@ -82,6 +90,26 @@ const InstructorNavBar = () => {
       })
       .catch(err => console.error('Could not load notifications', err))
       .finally(() => setLoadingNotifications(false));
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    try {
+      const headers = getAuthHeader();
+      axios
+        .get(`${API_URL}/instructor/me`, { headers })
+        .then(res => {
+          if (mounted && res.data.success) {
+            setIsTaAssigner(res.data.data.isTaAssigner);
+          }
+        })
+        .catch(() => {
+          // if 403 or no token, we just leave isTaAssigner=false
+        });
+    } catch {
+      // no token → not logged in
+    }
+    return () => { mounted = false; };
   }, []);
 
   // click‐outside handler for both dropdowns
@@ -180,6 +208,14 @@ const InstructorNavBar = () => {
         <Link to="/instructor/ta-workload" className={isActive('/instructor/ta-workload') ? 'active' : ''}>TA Workload</Link>
         <Link to="/instructor/exams"      className={isActive('/instructor/exams')      ? 'active' : ''}>Exams</Link>
         <Link to="/instructor/assign"     className={isActive('/instructor/assign')     ? 'active' : ''}>TA Assign</Link>
+        {isTaAssigner && (
+          <Link
+            to='/instructor/assign-tas-to-course'
+            className={isActive('/instructor/assign-tas-to-course') ? 'active' : ''}
+          >
+            TA Assigner System
+          </Link>
+        )}
       </div>
       <div style={{ marginLeft: 'auto' }} className="instructor-nav-icons">
         {/* Notifications */}

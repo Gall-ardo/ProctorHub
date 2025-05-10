@@ -38,6 +38,7 @@ import SecretaryTAWorkloadPage from './pages/secretary/SecretaryTAWorkloadPage';
 import SecretaryLeaveRequestPage from './pages/secretary/SecretaryLeaveRequestPage';
 
 import './App.css';
+import InstructorTAAssignerPage from './pages/instructor/InstructorTAAssignerPage';
 
 function App() {
   return (
@@ -118,6 +119,11 @@ function App() {
         <Route path="/instructor/navbar" element={
           <ProtectedRoute allowedRoles={['instructor']}>
             <InstructorNavBar />
+          </ProtectedRoute>
+        } />
+        <Route path="/instructor/assign-tas-to-course" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorTAAssignerPage />
           </ProtectedRoute>
         } />
         

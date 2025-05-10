@@ -5,6 +5,8 @@ const {listPending, approve, reject, totals} = require('../controllers/Instructo
 const examController = require('../controllers/Instructor/examController');
 const instructorController = require('../controllers/Instructor/instructorController');
 const taRequestController = require('../controllers/Instructor/InstructorTARequestController');
+const assignTAController = require('../controllers/Instructor/assignTAController');
+const { Instructor } = require('../models');
 
 // Test route without authentication
 router.get(
@@ -190,6 +192,69 @@ router.get(
     authenticateToken,
     authorizeRole(['instructor']),
     examController.getAllClassrooms
+);
+
+// GET /api/instructor/me
+router.get(
+    '/me',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    async (req, res) => {
+      const inst = await Instructor.findByPk(req.user.id);
+      if (!inst) {
+        return res.status(404).json({ success:false, message:'Instructor not found' });
+      }
+      return res.json({
+        success: true,
+        data: { isTaAssigner: inst.isTaAssigner }
+      });
+    }
+  );
+
+router.post(
+    '/assign-tas-to-course',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    assignTAController.assignTAsToCourse
+);
+
+router.get(
+    '/profile',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    assignTAController.getChairProfile
+);
+
+// Get courses by department
+router.get(
+    '/department-courses/:department',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    assignTAController.getDepartmentCourses
+);
+
+// Get all available TAs
+router.get(
+    '/available-tas',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    assignTAController.getAvailableTAs
+);
+
+// Get all TA requests
+router.get(
+    '/ta-requests',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    assignTAController.getTARequests
+);
+
+// Get TAs assigned to a course
+router.get(
+    '/course-tas/:id',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    assignTAController.getCourseTAs
 );
 
 module.exports = router;
