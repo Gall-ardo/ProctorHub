@@ -1,6 +1,6 @@
 // services/ta/taSwapService.js
 const { v4: uuidv4 } = require('uuid');
-const { SwapRequest, TeachingAssistant, Exam, User, Classroom } = require('../../models');
+const { SwapRequest, TeachingAssistant, Exam, User, Classroom, Notification } = require('../../models');
 const Proctoring = require('../../models/Proctoring');
 const { Op } = require('sequelize');
 //const emailService = require('./../emailService');
@@ -274,6 +274,28 @@ const respondToSwapRequest = async (responseData) => {
     `
   });*/
 
+  // Send notification to the respondent
+
+  const respondent = await TeachingAssistant.findByPk(respondentId, {
+    include: {
+      model: User,
+      as: 'taUser',
+      attributes: ['id', 'name', 'email']
+    }
+  });
+  if (!respondent) {
+    throw new Error('Respondent TA not found');
+  }
+
+  await Notification.create({
+    id: uuidv4(),
+    recipientId: swapRequest.requester.taUser.id,
+    subject: 'Swap Request Accepted',
+    message: `${respondent.name} has been accepted your swap request.`,
+    date: new Date(),
+    isRead: false
+  });
+
   return {
     success: true,
     message: 'Swap successfully completed. Both proctoring assignments have been updated.'
@@ -374,6 +396,15 @@ const cancelSwapRequest = async (swapRequestId, userId) => {
   // Update status to cancelled
   swapRequest.status = 'CANCELLED';
   await swapRequest.save();
+
+  await Notification.create({
+    id: uuidv4(),
+    recipientId: swapRequest.targetTa.user.id,
+    subject: 'Swap Request Cancelled',
+    message: `The swap request has been cancelled by ${swapRequest.requester.user.name}.`,
+    date: new Date(),
+    isRead: false
+  });
 
   // Send notification to target TA
   /*await notificationService.createNotification({

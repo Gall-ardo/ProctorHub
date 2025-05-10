@@ -3,6 +3,7 @@ const User = require('../../models/User');
 const TeachingAssistant = require('../../models/TeachingAssistant');
 const Course = require('../../models/Course');
 const Instructor = require('../../models/Instructor');
+const Notification = require('../../models/Notification');
 const { v4: uuidv4 } = require('uuid');
 
 // Service for TA workload operations
@@ -221,6 +222,16 @@ const taWorkloadService = {
         isApproved: false,
         taId: taId,
         instructorId: instructorId
+      });
+
+      // Create a notification for the instructor
+      await Notification.create({
+        id: uuidv4(),
+        subject: 'New Workload Request',
+        message: `A new workload request has been created by TA ${taId} for ${durationHours} hours on ${new Date(date).toLocaleDateString()}.`,
+        date: new Date(),
+        recipientId: instructorId,
+        isRead: false
       });
       
       // FIXED: Don't update totalWorkload here - it will be updated when approved

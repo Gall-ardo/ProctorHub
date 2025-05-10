@@ -67,7 +67,6 @@ const TANavBar = () => {
       })
       .then(res => {
         if (res.data.success) {
-          // map raw DB rows to your dropdown shape
           const mapped = res.data.data.map(n => {
             const d = new Date(n.date);
             return {

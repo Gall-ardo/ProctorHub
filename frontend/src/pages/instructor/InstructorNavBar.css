@@ -7,6 +7,34 @@
   color: white;
 }
 
+.unread-badge {
+  position: absolute;
+  top: 0px;
+  right: 2px;
+  transform: translate(50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* inverse colors */
+  background-color: #fff;              /* white fill */
+  color: var(--primary-color);         /* red text */
+  border: 1px solid var(--primary-color); /* red border */
+
+  /* sizing */
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 9px;
+
+  /* keep a little white “cutout” effect around it */
+  box-shadow: 0 0 0 1px #fff;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .instructor-nav-logo {
   display: flex;
   align-items: center;
