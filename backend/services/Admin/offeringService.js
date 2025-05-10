@@ -7,97 +7,92 @@ const { v4: uuidv4 } = require('uuid');
 const Offering = sequelize.models.Offering;
 const Course = sequelize.models.Course;
 const Semester = sequelize.models.Semester;
+const TimeSlot = sequelize.models.TimeSlot;
 
 const offeringService = {
-/**
- * Create a new offering
- * @param {Object} offeringData - The offering data
- * @returns {Promise<Object>} - The created offering
- */
-createOffering: async (offeringData) => {
-  const { courseId, sectionNumber, semesterId } = offeringData;
-  
-  // Create a transaction
-  let transaction;
-  
-  try {
-    // Start the transaction
-    transaction = await sequelize.transaction();
+  /**
+   * Create a new offering
+   * @param {Object} offeringData - The offering data
+   * @returns {Promise<Object>} - The created offering
+   */
+  createOffering: async (offeringData) => {
+    const { courseId, sectionNumber, semesterId } = offeringData;
     
-    console.log(`Creating offering with courseId=${courseId}, sectionNumber=${sectionNumber}, semesterId=${semesterId}`);
+    // Create a transaction
+    let transaction;
     
-    // Verify the course exists
-    const course = await Course.findByPk(courseId, { transaction });
-    if (!course) {
-      throw new Error(`Course with ID ${courseId} not found`);
-    }
-    
-    // Verify the semester exists
-    const semester = await Semester.findByPk(semesterId, { transaction });
-    if (!semester) {
-      throw new Error(`Semester with ID ${semesterId} not found`);
-    }
-    
-    // Check if an offering with the same course, section, and semester already exists
-    const existingOffering = await Offering.findOne({
-      where: {
+    try {
+      // Start the transaction
+      transaction = await sequelize.transaction();
+      
+      console.log(`Creating offering with courseId=${courseId}, sectionNumber=${sectionNumber}, semesterId=${semesterId}`);
+      
+      // Verify the course exists
+      const course = await Course.findByPk(courseId, { transaction });
+      if (!course) {
+        throw new Error(`Course with ID ${courseId} not found`);
+      }
+      
+      // Verify the semester exists
+      const semester = await Semester.findByPk(semesterId, { transaction });
+      if (!semester) {
+        throw new Error(`Semester with ID ${semesterId} not found`);
+      }
+      
+      // Check if an offering with the same course, section, and semester already exists
+      const existingOffering = await Offering.findOne({
+        where: {
+          courseId,
+          sectionNumber,
+          semesterId
+        },
+        transaction
+      });
+      
+      if (existingOffering) {
+        throw new Error(`An offering for this course with section number ${sectionNumber} already exists for the selected semester`);
+      }
+      
+      // Generate UUID for the new offering
+      const offeringId = uuidv4();
+      
+      // Create the offering
+      const offering = await Offering.create({
+        id: offeringId,
         courseId,
         sectionNumber,
-        semesterId
-      },
-      transaction
-    });
-    
-    if (existingOffering) {
-      throw new Error(`An offering for this course with section number ${sectionNumber} already exists for the selected semester`);
-    }
-    
-    // Generate UUID for the new offering
-    const offeringId = uuidv4();
-    
-    // Create the offering
-    const offering = await Offering.create({
-      id: offeringId,
-      courseId,
-      sectionNumber,
-      semesterId,
-      studentCount: 0 // Initialize with zero students
-    }, { transaction });
-    
-    // Commit the transaction
-    await transaction.commit();
-    transaction = null; // Clear the transaction reference after commit
-    
-    // Now that we've committed, fetch the full offering with associations
-    // First verify models are loaded
-    console.log('Available models:', Object.keys(sequelize.models));
-    console.log('Associations for Offering:', Object.keys(Offering.associations || {}));
-    
-    // Fetch the offering with its relations AFTER the transaction is committed
-    const result = await Offering.findByPk(offeringId);
-    
-    // If you need course and semester info, fetch them separately if associations aren't working
-    if (result) {
-      // Since we know the IDs, we can manually fetch and attach this info
-      result.course = await Course.findByPk(courseId);
-      result.semester = await Semester.findByPk(semesterId);
-    }
-    
-    return result;
-  } catch (error) {
-    // Rollback the transaction if it exists and hasn't been committed yet
-    if (transaction) {
-      try {
-        await transaction.rollback();
-      } catch (rollbackError) {
-        console.error('Error rolling back transaction:', rollbackError);
+        semesterId,
+        studentCount: 0 // Initialize with zero students
+      }, { transaction });
+      
+      // Commit the transaction
+      await transaction.commit();
+      transaction = null; // Clear the transaction reference after commit
+      
+      // Now that we've committed, fetch the full offering with associations
+      const result = await Offering.findByPk(offeringId, {
+        include: [
+          { model: Course },
+          { model: Semester },
+          { model: TimeSlot }
+        ]
+      });
+      
+      return result;
+    } catch (error) {
+      // Rollback the transaction if it exists and hasn't been committed yet
+      if (transaction) {
+        try {
+          await transaction.rollback();
+        } catch (rollbackError) {
+          console.error('Error rolling back transaction:', rollbackError);
+        }
       }
+      
+      console.error('Error creating offering:', error);
+      throw error;
     }
-    
-    console.error('Error creating offering:', error);
-    throw error;
-  }
-},
+  },
   
   /**
    * Get all offerings
@@ -121,7 +116,8 @@ createOffering: async (offeringData) => {
         where: whereConditions,
         include: [
           { model: Course },
-          { model: Semester }
+          { model: Semester },
+          { model: TimeSlot }
         ],
         order: [
           ['sectionNumber', 'ASC']
@@ -145,7 +141,8 @@ createOffering: async (offeringData) => {
       const offering = await Offering.findByPk(id, {
         include: [
           { model: Course },
-          { model: Semester }
+          { model: Semester },
+          { model: TimeSlot }
         ]
       });
       
@@ -171,7 +168,8 @@ createOffering: async (offeringData) => {
         },
         include: [
           { model: Course },
-          { model: Semester }
+          { model: Semester },
+          { model: TimeSlot }
         ]
       });
       
@@ -256,7 +254,8 @@ createOffering: async (offeringData) => {
       const result = await Offering.findByPk(id, {
         include: [
           { model: Course },
-          { model: Semester }
+          { model: Semester },
+          { model: TimeSlot }
         ]
       });
       
@@ -274,17 +273,32 @@ createOffering: async (offeringData) => {
    * @returns {Promise<boolean>} - True if deleted, false if not found
    */
   deleteOffering: async (id) => {
+    // Use a transaction to ensure data integrity
+    const transaction = await sequelize.transaction();
+    
     try {
-      const offering = await Offering.findByPk(id);
+      const offering = await Offering.findByPk(id, { transaction });
       if (!offering) {
+        await transaction.rollback();
         return false;
       }
       
+      // Delete associated timeslots first (cascade delete)
+      await TimeSlot.destroy({
+        where: { offeringId: id },
+        transaction
+      });
+      
       // Delete the offering
-      await offering.destroy();
+      await offering.destroy({ transaction });
+      
+      // Commit the transaction
+      await transaction.commit();
       
       return true;
     } catch (error) {
+      // Rollback the transaction in case of an error
+      await transaction.rollback();
       console.error(`Error deleting offering ${id}:`, error);
       throw error;
     }
@@ -314,9 +328,16 @@ createOffering: async (offeringData) => {
         return 0;
       }
       
-      // Delete offerings
+      // Delete offerings and their timeslots
       let deletedCount = 0;
       for (const offering of offerings) {
+        // Delete associated timeslots first (cascade delete)
+        await TimeSlot.destroy({
+          where: { offeringId: offering.id },
+          transaction
+        });
+        
+        // Delete the offering
         await offering.destroy({ transaction });
         deletedCount++;
       }

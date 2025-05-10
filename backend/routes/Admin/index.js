@@ -11,6 +11,7 @@ const offeringRoutes = require('./offeringRoutes');
 const studentRoutes = require('./studentRoutes');
 const fetchingRoutes = require('./fetchingRoutes');
 const semesterRoutes = require('./semesterRoutes'); // Add semester routes
+const timeslotRoutes = require('./timeslotRoutes'); // Add timeslot routes
 
 // Register routes
 router.use('/users', userRoutes);
@@ -21,5 +22,6 @@ router.use('/offerings', offeringRoutes);
 router.use('/students', studentRoutes);
 router.use('/fetch', fetchingRoutes);
 router.use('/semesters', semesterRoutes); // Register semester routes
+router.use('/timeslots', timeslotRoutes); // Register timeslot routes
 
 module.exports = router;

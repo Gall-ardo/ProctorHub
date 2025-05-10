@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminNavBar from '../AdminNavBar';
+import TimeslotPopup from './TimeslotPopup'; // Import the popup component
 import styles from './AdminOfferingManagement.module.css';
 
 // API base URL
@@ -20,6 +21,10 @@ const AdminOfferingManagement = () => {
   const [sectionId, setSectionId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  
+  // New state for timeslots and popup
+  const [selectedTimeslots, setSelectedTimeslots] = useState([]);
+  const [showTimeslotPopup, setShowTimeslotPopup] = useState(false);
   
   // API operation states
   const [loading, setLoading] = useState(false);
@@ -147,11 +152,26 @@ const AdminOfferingManagement = () => {
     }
   };
 
+  // Handle timeslot popup open/close
+  const openTimeslotPopup = () => {
+    setShowTimeslotPopup(true);
+  };
+
+  const closeTimeslotPopup = () => {
+    setShowTimeslotPopup(false);
+  };
+
+  // Handle timeslot changes from popup
+  const handleTimeslotChange = (timeslots) => {
+    setSelectedTimeslots(timeslots);
+  };
+
   // Clear form 
   const clearForm = () => {
     setSelectedCourse(null);
     setSectionId('');
     setSearchTerm('');
+    setSelectedTimeslots([]);
   };
 
   // Handle file upload
@@ -205,101 +225,158 @@ const AdminOfferingManagement = () => {
     setSuccess(null);
   };
 
-// API function to create offering
-const createOffering = async (offeringData) => {
-  try {
-    // Add validation before sending to the server
-    if (!offeringData.courseId || 
-        offeringData.sectionNumber === undefined || 
-        !offeringData.semesterId) {
-      throw new Error('Missing required fields');
+  // API function to create offering
+  const createOffering = async (offeringData) => {
+    try {
+      // Add validation before sending to the server
+      if (!offeringData.courseId || 
+          offeringData.sectionNumber === undefined || 
+          !offeringData.semesterId) {
+        throw new Error('Missing required fields');
+      }
+      
+      // Log what we're sending
+      console.log('Sending data to API:', JSON.stringify(offeringData));
+      
+      const response = await axios.post(`${API_URL}/admin/offerings`, offeringData);
+      
+      // Log response for debugging
+      console.log('Server response:', response.status, response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('API error:', error);
+      
+      // Enhanced error handling
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Error request:', error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error message:', error.message);
+      }
+      
+      throw error;
     }
-    
-    // Log what we're sending
-    console.log('Sending data to API:', JSON.stringify(offeringData));
-    
-    const response = await axios.post(`${API_URL}/admin/offerings`, offeringData);
-    
-    // Log response for debugging
-    console.log('Server response:', response.status, response.data);
-    
-    return response.data;
-  } catch (error) {
-    console.error('API error:', error);
-    
-    // Enhanced error handling
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('Error request:', error.request);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Error message:', error.message);
-    }
-    
-    throw error;
-  }
-};
+  };
 
-// API function to find offerings
-const findOfferings = async (courseId, sectionNumber) => {
-  try {
-    if (!courseId || sectionNumber === undefined) {
-      throw new Error('Course ID and section number are required');
-    }
+  // API function to create timeslots for an offering
+  const createTimeslots = async (offeringId, timeslots) => {
+    try {
+      if (!offeringId || !timeslots || timeslots.length === 0) {
+        throw new Error('Offering ID and timeslots are required');
+      }
 
-    console.log(`Finding offerings for course ${courseId}, section ${sectionNumber}`);
-    
-    const response = await axios.get(`${API_URL}/admin/offerings/find`, {
-      params: { courseId, sectionNumber }
-    });
-    
-    console.log('Find offerings response:', response.data);
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error finding offerings:', error);
-    
-    if (error.response) {
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
+      console.log(`Creating ${timeslots.length} timeslots for offering ${offeringId}`);
+      
+      const response = await axios.post(`${API_URL}/admin/timeslots`, {
+        offeringId,
+        timeslots
+      });
+      
+      console.log('Create timeslots response:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creating timeslots:', error);
+      
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      
+      throw error;
     }
-    
-    throw error;
-  }
-};
+  };
 
-// API function to delete offerings
-const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
-  try {
-    if (!courseId || sectionNumber === undefined) {
-      throw new Error('Course ID and section number are required');
-    }
+  // API function to find offerings
+  const findOfferings = async (courseId, sectionNumber) => {
+    try {
+      if (!courseId || sectionNumber === undefined) {
+        throw new Error('Course ID and section number are required');
+      }
 
-    console.log(`Deleting offerings for course ${courseId}, section ${sectionNumber}`);
-    
-    const response = await axios.delete(`${API_URL}/admin/offerings`, {
-      data: { courseId, sectionNumber }
-    });
-    
-    console.log('Delete offerings response:', response.data);
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting offerings:', error);
-    
-    if (error.response) {
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
+      console.log(`Finding offerings for course ${courseId}, section ${sectionNumber}`);
+      
+      const response = await axios.get(`${API_URL}/admin/offerings/find`, {
+        params: { courseId, sectionNumber }
+      });
+      
+      console.log('Find offerings response:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error finding offerings:', error);
+      
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      
+      throw error;
     }
-    
-    throw error;
-  }
-};
+  };
+
+  // API function to delete offerings
+  const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
+    try {
+      if (!courseId || sectionNumber === undefined) {
+        throw new Error('Course ID and section number are required');
+      }
+
+      console.log(`Deleting offerings for course ${courseId}, section ${sectionNumber}`);
+      
+      const response = await axios.delete(`${API_URL}/admin/offerings`, {
+        data: { courseId, sectionNumber }
+      });
+      
+      console.log('Delete offerings response:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting offerings:', error);
+      
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      
+      throw error;
+    }
+  };
+
+  // API function to get timeslots for an offering
+  const getTimeslotsByOfferingId = async (offeringId) => {
+    try {
+      if (!offeringId) {
+        throw new Error('Offering ID is required');
+      }
+
+      console.log(`Getting timeslots for offering ${offeringId}`);
+      
+      const response = await axios.get(`${API_URL}/admin/timeslots`, {
+        params: { offeringId }
+      });
+      
+      console.log('Get timeslots response:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error getting timeslots:', error);
+      
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      
+      throw error;
+    }
+  };
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
@@ -348,11 +425,30 @@ const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
           
           console.log('Sending offering data:', offeringData);
           
-          // Call API
+          // Call API to create offering
           const result = await createOffering(offeringData);
           
           if (result && result.success) {
-            setSuccess(result.message || 'Offering created successfully');
+            // Create timeslots for the offering if any are selected
+            if (selectedTimeslots.length > 0) {
+              try {
+                const timeslotResult = await createTimeslots(
+                  result.data.id, 
+                  selectedTimeslots
+                );
+                
+                if (timeslotResult && timeslotResult.success) {
+                  setSuccess(`Offering created successfully with ${selectedTimeslots.length} timeslots`);
+                } else {
+                  setSuccess(`Offering created, but timeslots could not be added: ${timeslotResult?.message || 'Unknown error'}`);
+                }
+              } catch (timeslotErr) {
+                console.error('Error creating timeslots:', timeslotErr);
+                setSuccess(`Offering created, but timeslots could not be added: ${timeslotErr.message}`);
+              }
+            } else {
+              setSuccess(result.message || 'Offering created successfully');
+            }
             
             // Reset form
             clearForm();
@@ -396,14 +492,14 @@ const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
           
           if (findResult && findResult.success && findResult.data && findResult.data.length > 0) {
             // Show confirmation
-            const confirmDelete = window.confirm(`Are you sure you want to delete ${findResult.data.length} offering(s)?`);
+            const confirmDelete = window.confirm(`Are you sure you want to delete ${findResult.data.length} offering(s) and their timeslots?`);
             
             if (confirmDelete) {
-              // Delete offerings
+              // Delete offerings will cascade delete timeslots as well
               const deleteResult = await deleteOfferingsByCourseAndSection(selectedCourse.id, sectionNum);
               
               if (deleteResult && deleteResult.success) {
-                setSuccess(deleteResult.message || 'Offerings deleted successfully');
+                setSuccess(deleteResult.message || 'Offerings and associated timeslots deleted successfully');
                 
                 // Reset form
                 clearForm();
@@ -450,6 +546,19 @@ const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
           const result = await findOfferings(selectedCourse.id, sectionNum);
           
           if (result && result.success && result.data && result.data.length > 0) {
+            // Get timeslots for the offering
+            try {
+              const timeslotsResult = await getTimeslotsByOfferingId(result.data[0].id);
+              
+              if (timeslotsResult && timeslotsResult.success) {
+                // Set timeslots for editing
+                setSelectedTimeslots(timeslotsResult.data || []);
+              }
+            } catch (timeslotErr) {
+              console.error('Error getting timeslots:', timeslotErr);
+              // Continue with empty timeslots
+            }
+            
             // Navigate to edit page with the offering details
             navigate(`/admin/offering/edit/${result.data[0].id}`);
           } else {
@@ -484,12 +593,58 @@ const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
       return false;
     }
     
+    if (activeView === 'add' && selectedTimeslots.length === 0) {
+      setError('Please select at least one time slot');
+      return false;
+    }
+    
     return true;
+  };
+
+  // Render summary of selected timeslots
+  const renderTimeslotsSummary = () => {
+    if (selectedTimeslots.length === 0) {
+      return <span className={styles.noTimeslotsText}>No time slots selected</span>;
+    }
+    
+    // Group timeslots by day
+    const groupedByDay = selectedTimeslots.reduce((acc, slot) => {
+      if (!acc[slot.day]) {
+        acc[slot.day] = [];
+      }
+      acc[slot.day].push(slot);
+      return acc;
+    }, {});
+    
+    return (
+      <div className={styles.timeslotsSummary}>
+        {Object.entries(groupedByDay).map(([day, slots]) => (
+          <div key={day} className={styles.timeslotDayGroup}>
+            <span className={styles.timeslotDay}>{day}:</span>
+            <span className={styles.timeslotTimes}>
+              {slots
+                .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                .map(slot => `${slot.startTime.substring(0, 5)}-${slot.endTime.substring(0, 5)}`)
+                .join(', ')}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
     <div className={styles.offeringManagement}>
       <AdminNavBar />
+
+      {/* Timeslot Popup */}
+      {showTimeslotPopup && (
+        <TimeslotPopup 
+          onClose={closeTimeslotPopup}
+          onChange={handleTimeslotChange}
+          initialTimeslots={selectedTimeslots}
+        />
+      )}
 
       <div className={styles.mainContent}>
         {/* Left Panel */}
@@ -554,7 +709,7 @@ const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
               {loading ? 'Uploading...' : 'Upload File'}
             </button>
             <div className={styles.uploadNote}>
-              Note: CSV file should contain columns for: courseId, sectionNumber, semesterId
+              Note: CSV file should contain columns for: courseId, sectionNumber, semesterId, and optional timeslots data (day, startTime, endTime)
             </div>
           </div>
         </div>
@@ -686,6 +841,29 @@ const deleteOfferingsByCourseAndSection = async (courseId, sectionNumber) => {
                   </div>
                 </div>
               </div>
+
+              {/* Time Slot Selection Button - only shown for add and edit */}
+              {activeView !== 'delete' && (
+                <div className={styles.formGroup}>
+                  <label>
+                    Time Slots 
+                    {activeView === 'add' && <span className={styles.requiredIndicator}>*</span>}
+                  </label>
+                  <div className={styles.timeslotButtonContainer}>
+                    <button 
+                      type="button"
+                      className={styles.timeslotButton}
+                      onClick={openTimeslotPopup}
+                    >
+                      Select Time Slots
+                    </button>
+                    <span className={styles.timeslotCount}>
+                      {selectedTimeslots.length} time slot(s) selected
+                    </span>
+                  </div>
+                  {renderTimeslotsSummary()}
+                </div>
+              )}
 
               {/* Selected Course Display */}
               {selectedCourse && (

@@ -22,6 +22,11 @@ const TimeSlot = sequelize.define("TimeSlot", {
   },
   startTime: DataTypes.TIME,
   endTime: DataTypes.TIME,
+
+  offeringId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  }
 });
 
 module.exports = TimeSlot;

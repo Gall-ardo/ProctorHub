@@ -1,5 +1,6 @@
 // controllers/Admin/offeringController.js
 const offeringService = require('../../services/Admin/offeringService');
+const timeslotService = require('../../services/Admin/timeslotService');
 const courseService = require('../../services/Admin/courseService');
 const fs = require('fs');
 const csv = require('csv-parser');
@@ -45,7 +46,7 @@ const offeringController = {
       const { courseId, sectionNumber, semesterId } = req.body;
       
       // Validate required fields
-      if (!courseId || !sectionNumber || !semesterId) {
+      if (!courseId || sectionNumber === undefined || !semesterId) {
         return res.status(400).json({
           success: false,
           message: 'Missing required fields: courseId, sectionNumber, and semesterId are required'
@@ -133,16 +134,16 @@ const offeringController = {
    */
   findOfferings: async (req, res) => {
     try {
-      const { courseId, sectionId } = req.query;
+      const { courseId, sectionNumber } = req.query;
       
-      if (!courseId || !sectionId) {
+      if (!courseId || sectionNumber === undefined) {
         return res.status(400).json({
           success: false,
-          message: 'Course ID and section ID are required'
+          message: 'Course ID and section number are required'
         });
       }
       
-      const offerings = await offeringService.getOfferingByCourseAndSection(courseId, sectionId);
+      const offerings = await offeringService.getOfferingByCourseAndSection(courseId, parseInt(sectionNumber));
       
       res.status(200).json({
         success: true,
@@ -232,16 +233,16 @@ const offeringController = {
    */
   deleteOfferingsByCourseAndSection: async (req, res) => {
     try {
-      const { courseId, sectionId } = req.body;
+      const { courseId, sectionNumber } = req.body;
       
-      if (!courseId || !sectionId) {
+      if (!courseId || sectionNumber === undefined) {
         return res.status(400).json({
           success: false,
-          message: 'Course ID and section ID are required'
+          message: 'Course ID and section number are required'
         });
       }
       
-      const deletedCount = await offeringService.deleteOfferingByCourseAndSection(courseId, sectionId);
+      const deletedCount = await offeringService.deleteOfferingByCourseAndSection(courseId, parseInt(sectionNumber));
       
       if (deletedCount === 0) {
         return res.status(404).json({
@@ -313,11 +314,16 @@ const offeringController = {
       const results = [];
       const filePath = req.file.path;
 
+      // Map to store timeslots for each offering
+      const offeringTimeslots = new Map();
+
       fs.createReadStream(filePath)
         .pipe(csv())
         .on("data", (data) => {
           // Transform data to match expected format
           const transformedData = {};
+          const timeslotData = {};
+          let hasTimeslot = false;
           
           // Map CSV columns to offering fields (case-insensitive)
           Object.keys(data).forEach(key => {
@@ -329,12 +335,34 @@ const offeringController = {
               transformedData.sectionNumber = parseInt(data[key].trim(), 10);
             } else if (lowerKey === 'semesterid' || lowerKey === 'semester_id') {
               transformedData.semesterId = data[key].trim();
+            } else if (lowerKey === 'day') {
+              timeslotData.day = data[key].trim();
+              hasTimeslot = true;
+            } else if (lowerKey === 'starttime' || lowerKey === 'start_time') {
+              timeslotData.startTime = data[key].trim();
+              hasTimeslot = true;
+            } else if (lowerKey === 'endtime' || lowerKey === 'end_time') {
+              timeslotData.endTime = data[key].trim();
+              hasTimeslot = true;
             }
           });
           
           // Only add if we have the minimum required fields
-          if (transformedData.courseId && transformedData.sectionNumber && transformedData.semesterId) {
-            results.push(transformedData);
+          if (transformedData.courseId && transformedData.sectionNumber !== undefined && transformedData.semesterId) {
+            // Create a unique key for this offering
+            const offeringKey = `${transformedData.courseId}-${transformedData.sectionNumber}-${transformedData.semesterId}`;
+            
+            // Check if we've seen this offering before
+            if (!offeringTimeslots.has(offeringKey)) {
+              // First time seeing this offering, add it to results
+              offeringTimeslots.set(offeringKey, []);
+              results.push(transformedData);
+            }
+            
+            // If we have timeslot data, add it to the corresponding offering
+            if (hasTimeslot && timeslotData.day && timeslotData.startTime && timeslotData.endTime) {
+              offeringTimeslots.get(offeringKey).push(timeslotData);
+            }
           }
         })
         .on("end", async () => {
@@ -351,6 +379,21 @@ const offeringController = {
             try {
               // Create the offering
               const offering = await offeringService.createOffering(offeringData);
+              
+              // Create timeslots if any
+              const offeringKey = `${offeringData.courseId}-${offeringData.sectionNumber}-${offeringData.semesterId}`;
+              const timeslots = offeringTimeslots.get(offeringKey) || [];
+              
+              if (timeslots.length > 0) {
+                try {
+                  await timeslotService.createTimeslotsForOffering(offering.id, timeslots);
+                  offering.timeslotsCreated = timeslots.length;
+                } catch (timeslotError) {
+                  console.error(`Error creating timeslots for offering ${offering.id}:`, timeslotError);
+                  offering.timeslotError = timeslotError.message;
+                }
+              }
+              
               createdOfferings.push(offering);
             } catch (error) {
               console.error(`Failed to create offering for course ${offeringData.courseId}, section ${offeringData.sectionNumber}:`, error);

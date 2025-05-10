@@ -134,8 +134,8 @@ Report.belongsTo(TimeSlot, { foreignKey: "timeSlotId" });
 TimeSlot.hasMany(Report, { foreignKey: "timeSlotId" });
 
 // Offering ↔ TimeSlot
-Offering.hasMany(TimeSlot, { foreignKey: "timeSlotId" });
-TimeSlot.belongsTo(Offering, { foreignKey: "timeSlotId" });
+Offering.hasMany(TimeSlot, { foreignKey: "offeringId" });
+TimeSlot.belongsTo(Offering, { foreignKey: "offeringId" });
 
 Offering.belongsTo(Course, { foreignKey: "courseId" });
 Course.hasMany(Offering, { foreignKey: "courseId" });
