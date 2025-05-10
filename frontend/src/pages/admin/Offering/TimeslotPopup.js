@@ -57,16 +57,48 @@ const TimeslotPopup = ({ onClose, onChange, initialTimeslots = [] }) => {
   
   const timeSlots = generateTimeSlots();
   
+  // Function to ensure time format is consistent (HH:MM:00)
+  const formatTimeForAPI = (timeString) => {
+    // If time is already in the right format, return as is
+    if (/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
+      return timeString;
+    }
+    
+    // Otherwise, format it properly
+    if (/^\d{2}:\d{2}$/.test(timeString)) {
+      return `${timeString}:00`;
+    }
+    
+    // If in other format, try to parse and format
+    const [hours, minutes] = timeString.split(':').map(part => parseInt(part));
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+  };
+  
+  // Convert initialTimeslots to proper format for the component
+  const formatInitialTimeslots = (timeslots) => {
+    return timeslots.map(slot => {
+      // Handle different time formats
+      const startTime = slot.startTime.substring(0, 5); // Get HH:MM format
+      const endTime = slot.endTime.substring(0, 5); // Get HH:MM format
+      
+      return `${slot.day}-${startTime}-${endTime}`;
+    });
+  };
+  
   // State to track selected timeslots
-  const [selectedTimeslots, setSelectedTimeslots] = useState(new Set(initialTimeslots.map(slot => 
-    `${slot.day}-${slot.startTime.slice(0, 5)}-${slot.endTime.slice(0, 5)}`
-  )));
+  const [selectedTimeslots, setSelectedTimeslots] = useState(
+    new Set(formatInitialTimeslots(initialTimeslots))
+  );
   
   // Effect to notify parent component when selections change
   useEffect(() => {
     const timeslotArray = Array.from(selectedTimeslots).map(slotString => {
       const [day, startTime, endTime] = slotString.split('-');
-      return { day, startTime, endTime };
+      return {
+        day,
+        startTime: formatTimeForAPI(startTime),
+        endTime: formatTimeForAPI(endTime)
+      };
     });
     
     onChange(timeslotArray);

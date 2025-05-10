@@ -7,15 +7,12 @@ const timeslotController = require('../../controllers/Admin/timeslotController')
 router.post('/', timeslotController.createTimeslots);
 
 // Get timeslots by offering ID
-router.get('/', timeslotController.getTimeslotsByOffering);
+router.get('/', timeslotController.getTimeslotsByOfferingId);
+
+// Delete timeslots by offering ID
+router.delete('/', timeslotController.deleteTimeslotsByOfferingId);
 
 // Update timeslots for an offering
 router.put('/', timeslotController.updateTimeslots);
-
-// Delete timeslots by offering ID
-router.delete('/', timeslotController.deleteTimeslotsByOffering);
-
-// Get all timeslots
-router.get('/all', timeslotController.getAllTimeslots);
 
 module.exports = router;

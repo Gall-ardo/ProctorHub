@@ -1,5 +1,8 @@
-// services/Admin/timeslotService.js
+// timeslotService.js
+// Add this file to your services/Admin directory if it doesn't exist
+
 const sequelize = require('../../config/db');
+const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
 
 // Access models through the sequelize instance
@@ -10,8 +13,8 @@ const timeslotService = {
   /**
    * Create timeslots for an offering
    * @param {string} offeringId - The offering ID
-   * @param {Array} timeslots - Array of timeslot data
-   * @returns {Promise<Array>} - Array of created timeslots
+   * @param {Array} timeslots - Array of timeslot objects with day, startTime, and endTime
+   * @returns {Promise<Array>} - The created timeslots
    */
   createTimeslotsForOffering: async (offeringId, timeslots) => {
     // Use a transaction to ensure data integrity
@@ -25,26 +28,29 @@ const timeslotService = {
         throw new Error(`Offering with ID ${offeringId} not found`);
       }
       
-      const createdTimeslots = [];
+      // Validate timeslots format
+      if (!Array.isArray(timeslots) || timeslots.length === 0) {
+        await transaction.rollback();
+        throw new Error('Timeslots must be a non-empty array');
+      }
       
-      // Create each timeslot
-      for (const timeslotData of timeslots) {
-        const timeslotId = uuidv4();
-        
-        // Format times to ensure proper format (HH:MM:00)
-        let startTime = timeslotData.startTime;
-        let endTime = timeslotData.endTime;
-        
-        // Ensure times are in HH:MM format
-        if (startTime.length === 5) startTime = `${startTime}:00`;
-        if (endTime.length === 5) endTime = `${endTime}:00`;
-        
+      // Validate each timeslot
+      for (const slot of timeslots) {
+        if (!slot.day || !slot.startTime || !slot.endTime) {
+          await transaction.rollback();
+          throw new Error('Each timeslot must have day, startTime, and endTime');
+        }
+      }
+      
+      // Create timeslots
+      const createdTimeslots = [];
+      for (const slot of timeslots) {
         const timeslot = await TimeSlot.create({
-          id: timeslotId,
-          day: timeslotData.day,
-          startTime: startTime,
-          endTime: endTime,
-          offeringId: offeringId
+          id: uuidv4(),
+          offeringId,
+          day: slot.day,
+          startTime: slot.startTime,
+          endTime: slot.endTime
         }, { transaction });
         
         createdTimeslots.push(timeslot);
@@ -56,18 +62,25 @@ const timeslotService = {
       return createdTimeslots;
     } catch (error) {
       // Rollback the transaction in case of an error
-      await transaction.rollback();
+      if (transaction) {
+        try {
+          await transaction.rollback();
+        } catch (rollbackError) {
+          console.error('Error rolling back transaction:', rollbackError);
+        }
+      }
+      
       console.error('Error creating timeslots:', error);
       throw error;
     }
   },
   
   /**
-   * Get timeslots by offering ID
+   * Get timeslots for an offering
    * @param {string} offeringId - The offering ID
    * @returns {Promise<Array>} - Array of timeslots
    */
-  getTimeslotsByOffering: async (offeringId) => {
+  getTimeslotsByOfferingId: async (offeringId) => {
     try {
       const timeslots = await TimeSlot.findAll({
         where: { offeringId },
@@ -85,10 +98,28 @@ const timeslotService = {
   },
   
   /**
+   * Delete timeslots for an offering
+   * @param {string} offeringId - The offering ID
+   * @returns {Promise<number>} - Number of deleted timeslots
+   */
+  deleteTimeslotsByOfferingId: async (offeringId) => {
+    try {
+      const deleted = await TimeSlot.destroy({
+        where: { offeringId }
+      });
+      
+      return deleted;
+    } catch (error) {
+      console.error(`Error deleting timeslots for offering ${offeringId}:`, error);
+      throw error;
+    }
+  },
+  
+  /**
    * Update timeslots for an offering
    * @param {string} offeringId - The offering ID
-   * @param {Array} timeslots - Array of timeslot data
-   * @returns {Promise<Array>} - Array of updated timeslots
+   * @param {Array} timeslots - Array of timeslot objects with day, startTime, and endTime
+   * @returns {Promise<Array>} - The updated timeslots
    */
   updateTimeslotsForOffering: async (offeringId, timeslots) => {
     // Use a transaction to ensure data integrity
@@ -102,90 +133,41 @@ const timeslotService = {
         throw new Error(`Offering with ID ${offeringId} not found`);
       }
       
-      // Delete existing timeslots for this offering
+      // Delete existing timeslots
       await TimeSlot.destroy({
         where: { offeringId },
         transaction
       });
       
-      // If no new timeslots provided, just return empty array
-      if (timeslots.length === 0) {
-        await transaction.commit();
-        return [];
-      }
-      
-      const updatedTimeslots = [];
-      
       // Create new timeslots
-      for (const timeslotData of timeslots) {
-        const timeslotId = uuidv4();
-        
-        // Format times to ensure proper format (HH:MM:00)
-        let startTime = timeslotData.startTime;
-        let endTime = timeslotData.endTime;
-        
-        // Ensure times are in HH:MM format
-        if (startTime.length === 5) startTime = `${startTime}:00`;
-        if (endTime.length === 5) endTime = `${endTime}:00`;
-        
+      const createdTimeslots = [];
+      for (const slot of timeslots) {
         const timeslot = await TimeSlot.create({
-          id: timeslotId,
-          day: timeslotData.day,
-          startTime: startTime,
-          endTime: endTime,
-          offeringId: offeringId
+          id: uuidv4(),
+          offeringId,
+          day: slot.day,
+          startTime: slot.startTime,
+          endTime: slot.endTime
         }, { transaction });
         
-        updatedTimeslots.push(timeslot);
+        createdTimeslots.push(timeslot);
       }
       
       // Commit the transaction
       await transaction.commit();
       
-      return updatedTimeslots;
+      return createdTimeslots;
     } catch (error) {
       // Rollback the transaction in case of an error
-      await transaction.rollback();
+      if (transaction) {
+        try {
+          await transaction.rollback();
+        } catch (rollbackError) {
+          console.error('Error rolling back transaction:', rollbackError);
+        }
+      }
+      
       console.error('Error updating timeslots:', error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Delete timeslots by offering ID
-   * @param {string} offeringId - The offering ID
-   * @returns {Promise<number>} - Number of deleted timeslots
-   */
-  deleteTimeslotsByOffering: async (offeringId) => {
-    try {
-      const deletedCount = await TimeSlot.destroy({
-        where: { offeringId }
-      });
-      
-      return deletedCount;
-    } catch (error) {
-      console.error(`Error deleting timeslots for offering ${offeringId}:`, error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Get all timeslots
-   * @returns {Promise<Array>} - Array of all timeslots
-   */
-  getAllTimeslots: async () => {
-    try {
-      const timeslots = await TimeSlot.findAll({
-        order: [
-          ['day', 'ASC'],
-          ['startTime', 'ASC']
-        ],
-        include: [{ model: Offering }]
-      });
-      
-      return timeslots;
-    } catch (error) {
-      console.error('Error getting all timeslots:', error);
       throw error;
     }
   }

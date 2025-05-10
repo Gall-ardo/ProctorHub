@@ -1,6 +1,5 @@
 // controllers/Admin/timeslotController.js
 const timeslotService = require('../../services/Admin/timeslotService');
-const { v4: uuidv4 } = require('uuid');
 
 const timeslotController = {
   /**
@@ -13,21 +12,11 @@ const timeslotController = {
       const { offeringId, timeslots } = req.body;
       
       // Validate required fields
-      if (!offeringId || !timeslots || !Array.isArray(timeslots) || timeslots.length === 0) {
+      if (!offeringId || !Array.isArray(timeslots) || timeslots.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Missing required fields: offeringId and timeslots array are required'
+          message: 'Missing required fields: offeringId and timeslots (array) are required'
         });
-      }
-      
-      // Validate timeslot format
-      for (const timeslot of timeslots) {
-        if (!timeslot.day || !timeslot.startTime || !timeslot.endTime) {
-          return res.status(400).json({
-            success: false,
-            message: 'Each timeslot must have day, startTime, and endTime'
-          });
-        }
       }
       
       // Create timeslots
@@ -52,7 +41,7 @@ const timeslotController = {
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
-  getTimeslotsByOffering: async (req, res) => {
+  getTimeslotsByOfferingId: async (req, res) => {
     try {
       const { offeringId } = req.query;
       
@@ -63,7 +52,7 @@ const timeslotController = {
         });
       }
       
-      const timeslots = await timeslotService.getTimeslotsByOffering(offeringId);
+      const timeslots = await timeslotService.getTimeslotsByOfferingId(offeringId);
       
       res.status(200).json({
         success: true,
@@ -79,47 +68,13 @@ const timeslotController = {
   },
   
   /**
-   * Update timeslots for an offering
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   */
-  updateTimeslots: async (req, res) => {
-    try {
-      const { offeringId, timeslots } = req.body;
-      
-      // Validate required fields
-      if (!offeringId || !timeslots || !Array.isArray(timeslots)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required fields: offeringId and timeslots array are required'
-        });
-      }
-      
-      // Update timeslots
-      const updatedTimeslots = await timeslotService.updateTimeslotsForOffering(offeringId, timeslots);
-      
-      res.status(200).json({
-        success: true,
-        message: `Timeslots updated successfully`,
-        data: updatedTimeslots
-      });
-    } catch (error) {
-      console.error('Error updating timeslots:', error);
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Failed to update timeslots'
-      });
-    }
-  },
-  
-  /**
    * Delete timeslots by offering ID
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
-  deleteTimeslotsByOffering: async (req, res) => {
+  deleteTimeslotsByOfferingId: async (req, res) => {
     try {
-      const { offeringId } = req.body;
+      const { offeringId } = req.query;
       
       if (!offeringId) {
         return res.status(400).json({
@@ -128,7 +83,7 @@ const timeslotController = {
         });
       }
       
-      const deletedCount = await timeslotService.deleteTimeslotsByOffering(offeringId);
+      const deletedCount = await timeslotService.deleteTimeslotsByOfferingId(offeringId);
       
       res.status(200).json({
         success: true,
@@ -144,23 +99,35 @@ const timeslotController = {
   },
   
   /**
-   * Get all timeslots
+   * Update timeslots for an offering
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
-  getAllTimeslots: async (req, res) => {
+  updateTimeslots: async (req, res) => {
     try {
-      const timeslots = await timeslotService.getAllTimeslots();
+      const { offeringId, timeslots } = req.body;
+      
+      // Validate required fields
+      if (!offeringId || !Array.isArray(timeslots)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: offeringId and timeslots (array) are required'
+        });
+      }
+      
+      // Update timeslots
+      const updatedTimeslots = await timeslotService.updateTimeslotsForOffering(offeringId, timeslots);
       
       res.status(200).json({
         success: true,
-        data: timeslots
+        message: `${updatedTimeslots.length} timeslots updated successfully`,
+        data: updatedTimeslots
       });
     } catch (error) {
-      console.error('Error fetching all timeslots:', error);
+      console.error('Error updating timeslots:', error);
       res.status(500).json({
         success: false,
-        message: error.message || 'Failed to fetch timeslots'
+        message: error.message || 'Failed to update timeslots'
       });
     }
   }
