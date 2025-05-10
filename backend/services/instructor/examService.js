@@ -296,20 +296,20 @@ class ExamService {
                 },
                 order: [['date', 'ASC']]
             });
-            console.log("examsss",exams);
+            //console.log("examsss",exams);
 
             // Process exams to include formatted dates and times
             const formattedExams = exams.map(exam => {
                 const examData = exam.get({ plain: true });
-                console.log('Raw exam data:', examData);
-                console.log('Raw date from database:', examData.date);
+                //console.log('Raw exam data:', examData);
+                //console.log('Raw date from database:', examData.date);
                 
                 // Ensure classrooms is always an array
                 examData.classrooms = examData.classrooms ? examData.classrooms.split(',') : [];
 
                 // Format date and calculate start/end times
                 const examDate = new Date(examData.date);
-                console.log('Parsed date:', examDate);
+                //console.log('Parsed date:', examDate);
                 
                 // Check if date is valid
                 if (isNaN(examDate.getTime())) {
@@ -505,48 +505,111 @@ class ExamService {
             const { v4: uuidv4 } = require('uuid');
             const Proctoring = require('../../models/Proctoring');
             
-            // Step 2.1: Use the new method to get eligible TAs considering leave requests
+            // Step 2.1: Use the new method to get eligible TAs considering leave requests and offering conflicts
             let availableTAs = [];
             let tasWithLeave = [];
+            let tasWithProctoringConflict = [];
+            let tasWithOfferingConflict = [];
+            let tasWithOfferingCourseExamConflict = [];
             
-            if (checkLeaveRequests && examDate) {
-                // Get TAs with their leave status
-                availableTAs = await this.getAvailableTAsForExam({
-                    department,
-                    courseId: courseName,
-                    examDate,
-                    checkLeaveRequests: true
-                });
-                
-                // Extract TAs with leave for warning message
+            // ALWAYS check for conflicts regardless of checkLeaveRequests flag
+            availableTAs = await this.getAvailableTAsForExam({
+                department,
+                courseId: courseName,
+                examDate,
+                checkLeaveRequests: checkLeaveRequests
+            });
+            
+            console.log(`Found ${availableTAs.length} TAs before filtering conflicts`);
+            
+            // Extract TAs with various conflicts
+            tasWithOfferingConflict = availableTAs
+                .filter(ta => ta.hasOfferingConflict)
+                .map(ta => ta.id);
+            
+            tasWithOfferingCourseExamConflict = availableTAs
+                .filter(ta => ta.hasOfferingCourseExamConflict)
+                .map(ta => ta.id);
+            
+            tasWithProctoringConflict = availableTAs
+                .filter(ta => ta.hasProctoringConflict)
+                .map(ta => ta.id);
+            
+            // Always filter out TAs with offering conflicts and offering course exam conflicts
+            availableTAs = availableTAs.filter(ta => 
+                !ta.hasOfferingConflict &&
+                !ta.hasOfferingCourseExamConflict &&
+                !ta.hasProctoringConflict
+            );
+            
+            console.log(`Found ${availableTAs.length} TAs after filtering conflicts`);
+            
+            if (checkLeaveRequests) {
                 tasWithLeave = availableTAs
                     .filter(ta => ta.onLeave)
                     .map(ta => ta.id);
                 
-                // If strictLeaveCheck is true, filter out TAs with leave
+                // If strictLeaveCheck is true, also filter out TAs with leave
                 if (strictLeaveCheck) {
                     availableTAs = availableTAs.filter(ta => !ta.onLeave);
+                    console.log(`Found ${availableTAs.length} TAs after filtering leave conflicts`);
                 }
-            } else {
-                // If no leave checks needed, just get all TAs
-                availableTAs = await this.getAvailableTAsForExam({
-                    department,
-                    courseId: courseName,
-                    checkLeaveRequests: false
-                });
             }
             
-            // Step 2.2: Filter out TAs with approved leave from manually selected TAs
-            let filteredManualTAs = manuallySelectedTAs;
-            if (checkLeaveRequests && tasWithLeave.length > 0 && strictLeaveCheck) {
-                const originalLength = filteredManualTAs.length;
-                filteredManualTAs = filteredManualTAs.filter(taId => !tasWithLeave.includes(taId));
-                
-                if (filteredManualTAs.length < originalLength) {
-                    console.log(`Filtered out ${originalLength - filteredManualTAs.length} manually selected TAs with approved leave`);
+            // Step 2.2: Filter out TAs with conflicts from manually selected TAs
+            let filteredManualTAs = [...manuallySelectedTAs]; // Create a copy to avoid modifying the original
+            
+            // Always filter out TAs with offering conflicts, offering course exam conflicts, and proctoring conflicts
+            const originalLength = filteredManualTAs.length;
+            
+            // Log the manual selections before filtering
+            console.log(`Manually selected TAs before filtering: ${filteredManualTAs.join(', ')}`);
+            
+            // Apply the filters one by one to better track which TAs are filtered out
+            if (tasWithOfferingConflict.length > 0) {
+                const beforeFilter = [...filteredManualTAs];
+                filteredManualTAs = filteredManualTAs.filter(taId => !tasWithOfferingConflict.includes(taId));
+                const filteredOut = beforeFilter.filter(taId => !filteredManualTAs.includes(taId));
+                if (filteredOut.length > 0) {
+                    console.log(`Filtered out TAs with offering conflicts: ${filteredOut.join(', ')}`);
                 }
             }
-
+            
+            if (tasWithOfferingCourseExamConflict.length > 0) {
+                const beforeFilter = [...filteredManualTAs];
+                filteredManualTAs = filteredManualTAs.filter(taId => !tasWithOfferingCourseExamConflict.includes(taId));
+                const filteredOut = beforeFilter.filter(taId => !filteredManualTAs.includes(taId));
+                if (filteredOut.length > 0) {
+                    console.log(`Filtered out TAs with offering course exam conflicts: ${filteredOut.join(', ')}`);
+                }
+            }
+            
+            if (tasWithProctoringConflict.length > 0) {
+                const beforeFilter = [...filteredManualTAs];
+                filteredManualTAs = filteredManualTAs.filter(taId => !tasWithProctoringConflict.includes(taId));
+                const filteredOut = beforeFilter.filter(taId => !filteredManualTAs.includes(taId));
+                if (filteredOut.length > 0) {
+                    console.log(`Filtered out TAs with proctoring conflicts: ${filteredOut.join(', ')}`);
+                }
+            }
+            
+            // Only filter leave if strictLeaveCheck is true
+            if (checkLeaveRequests && strictLeaveCheck && tasWithLeave.length > 0) {
+                const beforeFilter = [...filteredManualTAs];
+                filteredManualTAs = filteredManualTAs.filter(taId => !tasWithLeave.includes(taId));
+                const filteredOut = beforeFilter.filter(taId => !filteredManualTAs.includes(taId));
+                if (filteredOut.length > 0) {
+                    console.log(`Filtered out TAs with leave: ${filteredOut.join(', ')}`);
+                }
+            }
+            
+            // Log the manual selections after filtering
+            console.log(`Manually selected TAs after filtering: ${filteredManualTAs.join(', ')}`);
+            
+            if (filteredManualTAs.length < originalLength) {
+                console.log(`Filtered out ${originalLength - filteredManualTAs.length} manually selected TAs with conflicts`);
+            }
+            
             // Step 3: If there are already proctors assigned to this exam, remove them
             if (examId) {
                 await Proctoring.destroy({
@@ -743,8 +806,16 @@ class ExamService {
                 autoAssignedTAs: assignedProctors.filter(p => !p.isManualAssignment).length,
                 totalAssigned: assignedProctors.length,
                 requiredProctors: proctorNum,
-                warnings: checkLeaveRequests && tasWithLeave.length > 0 ? 
-                    [`${tasWithLeave.length} TAs were excluded due to approved leave requests on ${examDate}`] : []
+                warnings: [
+                    ...(checkLeaveRequests && tasWithLeave.length > 0 ? 
+                        [`${tasWithLeave.length} TAs were excluded due to approved leave requests on ${examDate}`] : []),
+                    ...(tasWithProctoringConflict.length > 0 ? 
+                        [`${tasWithProctoringConflict.length} TAs were excluded due to existing proctoring assignments on ${examDate}`] : []),
+                    ...(tasWithOfferingConflict.length > 0 ? 
+                        [`${tasWithOfferingConflict.length} TAs were excluded because they have offerings for this course`] : []),
+                    ...(tasWithOfferingCourseExamConflict.length > 0 ? 
+                        [`${tasWithOfferingCourseExamConflict.length} TAs were excluded because they have offerings for courses with exams on the same date`] : [])
+                ]
             };
         } catch (error) {
             await t.rollback();
@@ -995,19 +1066,87 @@ class ExamService {
             const TeachingAssistant = require('../../models/TeachingAssistant');
             const User = require('../../models/User');
             const Course = require('../../models/Course');
-            const db = require('../../config/db'); // Use db.js instead of sequelize.js
+            const db = require('../../config/db');
+            const Proctoring = require('../../models/Proctoring');
+            const Exam = require('../../models/Exam');
+            const Offering = require('../../models/Offering');
             
-            // Get all TAs with their user information
+            // Get all TAs with their user information and offerings
             const tas = await TeachingAssistant.findAll({
-                include: {
-                    model: User,
-                    as: 'taUser',
-                    attributes: ['id', 'name', 'email']
-                }
+                include: [
+                    {
+                        model: User,
+                        as: 'taUser',
+                        attributes: ['id', 'name', 'email']
+                    },
+                    {
+                        model: Offering,
+                        as: 'offerings',
+                        attributes: ['id', 'courseId']
+                    }
+                ]
             });
+            
+            // Find exams on the same date if examDate is provided
+            let examsOnDate = [];
+            if (examDate) {
+                //console.log("abcd::", examDate);
+
+                // Normalize the examDate to YYYY-MM-DD format
+                let formattedDate;
+                if (typeof examDate === 'string') {
+                    // If input is already a string, extract just the date part (works for both formats)
+                    formattedDate = examDate.split('T')[0];
+                } else {
+                    // If it's a Date object
+                    formattedDate = examDate.toISOString().split('T')[0];
+                }
+                //console.log("ggrvdfef", formattedDate);
+
+                // Find all exams on the same date
+                examsOnDate = await Exam.findAll({
+                    where: db.literal(`DATE(date) = '${formattedDate}'`), // Using SQL DATE function for consistent comparison
+                    attributes: ['id', 'courseName', 'date']
+                });
+
+                console.log(`Found ${examsOnDate.length} exams on date ${formattedDate}`);
+                examsOnDate.forEach(exam => {
+                    console.log(`- Exam ${exam.id} for course ${exam.courseName} on ${exam.date}`);
+                });
+            }
             
             // Transform the data to match the format expected by the frontend
             let transformedTAs = tas.map(ta => {
+                // Get the courseIds of the TA's offerings
+                const offeringCourseIds = ta.offerings ? ta.offerings.map(offering => offering.courseId) : [];
+                
+                // Check if TA has an offering for the exam course
+                const hasOfferingForCourse = courseId ? offeringCourseIds.includes(courseId) : false;
+                
+                // Check if any of the TA's offering courses have exams on the same date
+                let hasOfferingCourseExamConflict = false;
+                let offeringCourseExamConflictReason = null;
+                
+                if (examDate && offeringCourseIds.length > 0) {
+                    // Find exams for the TA's offering courses that are on the same date
+                    console.log(`Checking TA ${ta.id} with offerings for courses: ${offeringCourseIds.join(', ')}`);
+                    
+                    const conflictingExams = examsOnDate.filter(exam => {
+                        const match = offeringCourseIds.includes(exam.courseName);
+                        if (match) {
+                            console.log(`Match found: TA ${ta.id} has offering for course ${exam.courseName} with exam on same date`);
+                        }
+                        return match;
+                    });
+                    
+                    if (conflictingExams.length > 0) {
+                        hasOfferingCourseExamConflict = true;
+                        const conflictingCourses = conflictingExams.map(exam => exam.courseName).join(', ');
+                        offeringCourseExamConflictReason = `TA has offerings for courses with exams on the same date: ${conflictingCourses}`;
+                        console.log(`Conflict detected for TA ${ta.id}: ${offeringCourseExamConflictReason}`);
+                    }
+                }
+                
                 return {
                     id: ta.id,
                     name: ta.taUser ? ta.taUser.name : 'Unknown',
@@ -1016,10 +1155,18 @@ class ExamService {
                     isPHD: ta.isPHD || false,
                     isPartTime: ta.isPartTime || false,
                     totalWorkload: ta.totalWorkload || 0,
-                    // Default leave status
+                    // Default statuses
                     onLeave: false,
                     leaveStatus: null,
-                    isSameDepartment: ta.department === department
+                    hasProctoringConflict: false,
+                    proctoringConflictReason: null,
+                    hasOfferingConflict: hasOfferingForCourse,
+                    offeringConflictReason: hasOfferingForCourse ? `TA has an offering for course ${courseId}` : null,
+                    hasOfferingCourseExamConflict,
+                    offeringCourseExamConflictReason,
+                    isSameDepartment: ta.department === department,
+                    // Include the offering course IDs for reference
+                    offeringCourseIds: offeringCourseIds
                 }
             });
             
@@ -1050,6 +1197,64 @@ class ExamService {
                     isCourseTa: courseTAIds.includes(ta.id),
                     isGradCourse: course?.isGradCourse || false
                 }));
+            }
+            
+            // Check for proctoring conflicts if examDate is provided
+            if (examDate) {
+                // Convert examDate to Date object if it's a string
+                const checkDate = typeof examDate === 'string' ? new Date(examDate) : examDate;
+                
+                // Format date to YYYY-MM-DD for database comparison
+                const formattedDate = checkDate.toISOString().split('T')[0];
+                
+                // Get all proctoring assignments with their associated exams
+                const proctoringAssignments = await Proctoring.findAll({
+                    where: {
+                        status: {
+                            [Op.in]: ['PENDING', 'ACCEPTED'] // Only check active assignments
+                        }
+                    },
+                    include: [
+                        {
+                            model: Exam,
+                            as: 'exam', 
+                            attributes: ['date']
+                        }
+                    ]
+                });
+                
+                // Group proctoring assignments by TA
+                const taProctoringMap = {};
+                proctoringAssignments.forEach(assignment => {
+                    if (!taProctoringMap[assignment.taId]) {
+                        taProctoringMap[assignment.taId] = [];
+                    }
+                    taProctoringMap[assignment.taId].push(assignment);
+                });
+                
+                // Check each TA for conflicts
+                transformedTAs = transformedTAs.map(ta => {
+                    const assignments = taProctoringMap[ta.id] || [];
+                    
+                    if (assignments.length > 0) {
+                        // Check if any assignment's exam is on the same date
+                        const hasConflict = assignments.some(assignment => {
+                            const examDate = new Date(assignment.exam.date);
+                            const examDateStr = examDate.toISOString().split('T')[0];
+                            return examDateStr === formattedDate;
+                        });
+                        
+                        if (hasConflict) {
+                            return {
+                                ...ta,
+                                hasProctoringConflict: true,
+                                proctoringConflictReason: 'Already assigned to another exam on the same date'
+                            };
+                        }
+                    }
+                    
+                    return ta;
+                });
             }
             
             // Check leave status if examDate is provided and checkLeaveRequests is true

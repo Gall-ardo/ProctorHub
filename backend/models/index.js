@@ -49,9 +49,15 @@ Course.hasMany(Exam, { foreignKey: "courseId" });
 Course.belongsTo(Semester, { foreignKey: "semesterId" });
 Semester.hasMany(Course, { foreignKey: "semesterId" });
 
+/*
 // Course ↔ TeachingAssistant (student TAs)
 Course.belongsToMany(TeachingAssistant, { through: "TakenCourseTAs", as: "studentTAs" });
 TeachingAssistant.belongsToMany(Course, { through: "TakenCourseTAs", as: "courses" });
+*/
+
+// Offering ↔ TeachingAssistant (student TAs)
+Offering.belongsToMany(TeachingAssistant, { through: "TakenOfferingTAs", as: "studentTAs" });
+TeachingAssistant.belongsToMany(Offering, { through: "TakenOfferingTAs", as: "offerings" });
 
 // Course ↔ TA (assistants)
 Course.belongsToMany(TeachingAssistant, { through: "GivenCourseTAs", as: "TAs" });
