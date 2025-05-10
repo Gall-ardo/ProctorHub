@@ -22,6 +22,10 @@ class StudentController {
       // Create student
       const student = await studentService.createStudent(req.body);
       
+      // Format response with courses
+      const courseCodes = student.enrolledCourses ? 
+        student.enrolledCourses.map(course => course.courseCode) : [];
+      
       console.log('Student created successfully:', student.id);
       res.status(201).json({
         success: true,
@@ -32,7 +36,7 @@ class StudentController {
           nameSurname: student.nameSurname,
           email: student.email,
           department: student.department,
-          courses: student.courses
+          courses: courseCodes
         }
       });
     } catch (error) {
@@ -69,9 +73,20 @@ class StudentController {
         });
       }
       
+      // Format courses as an array of course codes
+      const courseCodes = student.enrolledCourses ? 
+        student.enrolledCourses.map(course => course.courseCode) : [];
+      
       res.status(200).json({
         success: true,
-        data: student
+        data: {
+          id: student.id,
+          studentId: student.studentId,
+          nameSurname: student.nameSurname,
+          email: student.email,
+          department: student.department,
+          courses: courseCodes
+        }
       });
     } catch (error) {
       console.error("Error getting student:", error);
@@ -89,10 +104,25 @@ class StudentController {
       
       const students = await studentService.findStudents(req.query);
       
+      // Format response to include courses as an array of course codes
+      const formattedStudents = students.map(student => {
+        const courseCodes = student.enrolledCourses ? 
+          student.enrolledCourses.map(course => course.courseCode) : [];
+        
+        return {
+          id: student.id,
+          studentId: student.studentId,
+          nameSurname: student.nameSurname,
+          email: student.email,
+          department: student.department,
+          courses: courseCodes
+        };
+      });
+      
       res.status(200).json({
         success: true,
-        count: students.length,
-        data: students
+        count: formattedStudents.length,
+        data: formattedStudents
       });
     } catch (error) {
       console.error("Error finding students:", error);
@@ -120,6 +150,10 @@ class StudentController {
       
       const updatedStudent = await studentService.updateStudent(req.params.id, req.body);
       
+      // Format courses as an array of course codes
+      const courseCodes = updatedStudent.enrolledCourses ? 
+        updatedStudent.enrolledCourses.map(course => course.courseCode) : [];
+      
       res.status(200).json({
         success: true,
         message: 'Student updated successfully',
@@ -129,7 +163,7 @@ class StudentController {
           nameSurname: updatedStudent.nameSurname,
           email: updatedStudent.email,
           department: updatedStudent.department,
-          courses: updatedStudent.courses
+          courses: courseCodes
         }
       });
     } catch (error) {
@@ -152,6 +186,7 @@ class StudentController {
     }
   }
 
+  // The rest of the controller remains the same
   async deleteStudent(req, res) {
     try {
       console.log(`Delete student request for ID ${req.params.id}`);
@@ -195,6 +230,7 @@ class StudentController {
   }
 
   async uploadStudents(req, res) {
+    // This method remains the same
     try {
       if (!req.file) {
         return res.status(400).json({

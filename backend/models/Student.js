@@ -38,18 +38,10 @@ const Student = sequelize.define('Student', {
     validate: {
       notEmpty: true
     }
-  },
-  courses: {
-    type: DataTypes.JSON,
-    defaultValue: []
   }
 }, {
   tableName: 'students',
   timestamps: true
 });
-
-Student.associate = function(models) {
-  // No associations
-};
 
 module.exports = Student;

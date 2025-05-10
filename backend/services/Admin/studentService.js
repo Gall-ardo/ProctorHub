@@ -1,69 +1,117 @@
 // services/Admin/studentService.js
 const Student = require('../../models/Student');
+const Course = require('../../models/Course');
 const { Op } = require('sequelize');
 const sequelize = require('../../config/db');
 
 class StudentService {
   async createStudent(studentData) {
-    const t = await sequelize.transaction();
+  const t = await sequelize.transaction();
+  
+  try {
+    // Check if student with the same ID or email already exists
+    const existingStudent = await Student.findOne({
+      where: {
+        [Op.or]: [
+          { studentId: studentData.studentId },
+          { email: studentData.email }
+        ]
+      },
+      transaction: t
+    });
+
+    if (existingStudent) {
+      throw new Error(`Student with ID: ${studentData.studentId} or email: ${studentData.email} already exists`);
+    }
+
+    // Validate required fields
+    if (!studentData.studentId || !studentData.nameSurname || !studentData.email || !studentData.department) {
+      throw new Error("Missing required fields: studentId, nameSurname, email, and department are required");
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(studentData.email)) {
+      throw new Error("Invalid email format");
+    }
+
+    // Create the student without courses initially
+    const student = await Student.create({
+      studentId: studentData.studentId,
+      nameSurname: studentData.nameSurname,
+      email: studentData.email,
+      department: studentData.department
+    }, { transaction: t });
     
-    try {
-      // Check if student with the same ID or email already exists
-      const existingStudent = await Student.findOne({
-        where: {
-          [Op.or]: [
-            { studentId: studentData.studentId },
-            { email: studentData.email }
-          ]
-        },
-        transaction: t
-      });
+    console.log(`Student created with ID: ${student.id}`);
+    
+    // Add courses if they exist
+    if (studentData.courses && Array.isArray(studentData.courses) && studentData.courses.length > 0) {
+      // Parse course codes to extract department and number
+      const courseMatches = studentData.courses.map(course => {
+        const match = course.match(/^([A-Z]+)\s*(\d+)$/);
+        return match ? { dept: match[1], code: match[2] } : null;
+      }).filter(Boolean);
 
-      if (existingStudent) {
-        throw new Error(`Student with ID: ${studentData.studentId} or email: ${studentData.email} already exists`);
-      }
-
-      // Validate required fields
-      if (!studentData.studentId || !studentData.nameSurname || !studentData.email || !studentData.department) {
-        throw new Error("Missing required fields: studentId, nameSurname, email, and department are required");
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(studentData.email)) {
-        throw new Error("Invalid email format");
-      }
-
-      // Prepare courses array if it exists
-      if (studentData.courses && !Array.isArray(studentData.courses)) {
-        if (typeof studentData.courses === 'string') {
-          studentData.courses = studentData.courses.split(',').map(course => course.trim());
+      console.log(`Parsed course codes:`, courseMatches);
+      
+      if (courseMatches.length > 0) {
+        // Use Sequelize's complex OR query to find courses
+        const courseWhere = {
+          [Op.or]: courseMatches.map(match => {
+            return sequelize.literal(`CONCAT(department, courseCode) = '${match.dept}${match.code}'`);
+          })
+        };
+        
+        console.log('Looking for courses with query:', JSON.stringify(courseWhere, null, 2));
+        
+        const courses = await Course.findAll({
+          where: courseWhere,
+          transaction: t
+        });
+        
+        console.log(`Found ${courses.length} courses:`, courses.map(c => `${c.department}${c.courseCode}`).join(', '));
+        
+        // Associate student with courses
+        if (courses.length > 0) {
+          await student.addEnrolledCourses(courses, { transaction: t });
+          console.log(`Associated student with ${courses.length} courses`);
         } else {
-          studentData.courses = [];
+          console.log('No matching courses found to associate with student');
         }
       }
-
-      // Create the student
-      const student = await Student.create({
-        studentId: studentData.studentId,
-        nameSurname: studentData.nameSurname,
-        email: studentData.email,
-        department: studentData.department,
-        courses: studentData.courses || []
-      }, { transaction: t });
-      
-      await t.commit();
-      return student;
-    } catch (error) {
-      console.error("Transaction error in createStudent:", error);
-      await t.rollback();
-      throw error;
     }
+    
+    await t.commit();
+    console.log('Transaction committed successfully');
+    
+    // Refresh student with courses
+    const refreshedStudent = await Student.findByPk(student.id, {
+      include: [{
+        model: Course,
+        as: 'enrolledCourses',
+        through: { attributes: [] }
+      }]
+    });
+    
+    console.log(`Student refreshed, has ${refreshedStudent.enrolledCourses ? refreshedStudent.enrolledCourses.length : 0} courses`);
+    return refreshedStudent;
+  } catch (error) {
+    console.error("Transaction error in createStudent:", error);
+    await t.rollback();
+    throw error;
   }
+}
 
   async findStudentById(id) {
     try {
-      return await Student.findByPk(id);
+      return await Student.findByPk(id, {
+        include: [{
+          model: Course,
+          as: 'enrolledCourses',
+          through: { attributes: [] } // Exclude junction table attributes
+        }]
+      });
     } catch (error) {
       console.error(`Error finding student by ID ${id}:`, error);
       throw error;
@@ -72,7 +120,14 @@ class StudentService {
 
   async findStudentByStudentId(studentId) {
     try {
-      return await Student.findOne({ where: { studentId } });
+      return await Student.findOne({ 
+        where: { studentId },
+        include: [{
+          model: Course,
+          as: 'enrolledCourses',
+          through: { attributes: [] }
+        }]
+      });
     } catch (error) {
       console.error(`Error finding student by studentId ${studentId}:`, error);
       throw error;
@@ -81,7 +136,14 @@ class StudentService {
 
   async findStudentByEmail(email) {
     try {
-      return await Student.findOne({ where: { email } });
+      return await Student.findOne({ 
+        where: { email },
+        include: [{
+          model: Course,
+          as: 'enrolledCourses',
+          through: { attributes: [] }
+        }]
+      });
     } catch (error) {
       console.error(`Error finding student by email ${email}:`, error);
       throw error;
@@ -114,6 +176,11 @@ class StudentService {
 
       return await Student.findAll({ 
         where: whereClause,
+        include: [{
+          model: Course,
+          as: 'enrolledCourses',
+          through: { attributes: [] }
+        }],
         order: [['nameSurname', 'ASC']] 
       });
     } catch (error) {
@@ -127,7 +194,14 @@ class StudentService {
     
     try {
       // Find the student
-      const student = await Student.findByPk(id, { transaction: t });
+      const student = await Student.findByPk(id, { 
+        include: [{
+          model: Course,
+          as: 'enrolledCourses',
+          through: { attributes: [] }
+        }],
+        transaction: t 
+      });
       
       if (!student) {
         throw new Error("Student not found");
@@ -163,20 +237,45 @@ class StudentService {
         }
       }
       
-      // Prepare courses array if it exists
-      if (studentData.courses) {
-        if (!Array.isArray(studentData.courses)) {
-          if (typeof studentData.courses === 'string') {
-            studentData.courses = studentData.courses.split(',').map(course => course.trim());
+      // Update basic student data (excluding courses)
+      const { courses, ...studentBasicData } = studentData;
+      await student.update(studentBasicData, { transaction: t });
+      
+      // Update courses if they are provided
+      if (courses !== undefined) {
+        let courseCodes = [];
+        
+        // Convert courses to array if it's a string
+        if (!Array.isArray(courses)) {
+          if (typeof courses === 'string') {
+            courseCodes = courses.split(',').map(code => code.trim());
           }
+        } else {
+          courseCodes = courses;
         }
+        
+        // Find courses by their courseCode
+        const coursesToAssociate = await Course.findAll({
+          where: {
+            courseCode: { [Op.in]: courseCodes }
+          },
+          transaction: t
+        });
+        
+        // Remove existing associations and add new ones
+        await student.setEnrolledCourses(coursesToAssociate, { transaction: t });
       }
       
-      // Update the student
-      await student.update(studentData, { transaction: t });
-      
       await t.commit();
-      return student;
+      
+      // Refresh the student with updated courses
+      return await Student.findByPk(id, {
+        include: [{
+          model: Course,
+          as: 'enrolledCourses',
+          through: { attributes: [] }
+        }]
+      });
     } catch (error) {
       console.error(`Transaction error in updateStudent for ID ${id}:`, error);
       await t.rollback();
@@ -194,7 +293,7 @@ class StudentService {
         throw new Error("Student not found");
       }
       
-      // Delete the student
+      // Delete the student (associations will be automatically removed from junction table)
       await Student.destroy({ where: { id }, transaction: t });
       
       await t.commit();
