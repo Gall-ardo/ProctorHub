@@ -7,6 +7,10 @@ const Instructor = sequelize.define("Instructor", {
     primaryKey: true,
   },
   department: DataTypes.STRING,
+  isTaAssigner: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 module.exports = Instructor;

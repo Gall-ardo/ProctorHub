@@ -19,10 +19,13 @@ class CourseService {
       // Check if course with the same course code already exists
       const existingCourse = await Course.findOne({
         where: {
-          courseCode: courseData.courseCode
+          courseCode: courseData.courseCode,
+          department: courseData.department,
+          semesterId: courseData.semesterId
         },
         transaction: t
       });
+
 
       if (existingCourse) {
         throw new Error(`Course with code: ${courseData.courseCode} already exists`);
