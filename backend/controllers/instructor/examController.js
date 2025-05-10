@@ -475,6 +475,28 @@ class ExamController {
             });
         }
     }
+
+    /**
+     * Get all available classrooms
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async getAllClassrooms(req, res) {
+        try {
+            const classrooms = await examService.getAllClassrooms();
+            
+            return res.status(200).json({
+                success: true,
+                data: classrooms
+            });
+        } catch (error) {
+            console.error('Error getting classrooms:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to get classrooms'
+            });
+        }
+    }
 }
 
 module.exports = new ExamController();

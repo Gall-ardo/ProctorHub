@@ -21,18 +21,15 @@ class ExamService {
             // Generate a unique ID for the exam if not provided
             const examId = examData.id || uuidv4();
 
-            // Process classrooms array into comma-separated string if it exists
-            if (examData.classrooms && Array.isArray(examData.classrooms)) {
-                examData.classrooms = examData.classrooms.join(',');
-            }
-
+            // Get classrooms from examData.classrooms (now an array of classroom IDs)
+            const classroomIds = examData.classrooms || [];
+            
             // Debug log
-            console.log("courseeid",examData.courseName);
-            const course = await Course.findByPk(examData.courseName);
+            console.log("Creating exam with data:", examData);
+            console.log("Course ID:", examData.courseName);
+            console.log("Classroom IDs:", classroomIds);
 
-            console.log('Creating exam with data:', examData);
-
-            // Create the exam with the generated ID
+            // Create the exam
             const exam = await Exam.create({
                 id: examId,
                 courseName: examData.courseName,
@@ -41,12 +38,25 @@ class ExamService {
                 date: examData.date,
                 duration: examData.duration,
                 examType: examData.examType,
-                classrooms: examData.classrooms || '',
                 proctorNum: examData.proctorNum,
                 department: examData.department,
                 manualAssignedTAs: examData.manualAssignedTAs || 0,
                 autoAssignedTAs: examData.autoAssignedTAs || 0
             }, { transaction: t });
+
+            // Associate classrooms with the exam if any are provided
+            if (classroomIds.length > 0) {
+                const Classroom = require('../../models/Classroom');
+                const ExamClassrooms = sequelize.models.ExamClassrooms;
+                
+                // Create the associations
+                for (const classroomId of classroomIds) {
+                    await ExamClassrooms.create({
+                        ExamId: examId,
+                        ClassroomId: classroomId
+                    }, { transaction: t });
+                }
+            }
 
             await t.commit();
             return exam;
@@ -63,18 +73,32 @@ class ExamService {
      */
     async getExamsByInstructorId(instructorId) {
         try {
+            const Classroom = require('../../models/Classroom');
+            
             const exams = await Exam.findAll({
                 where: {
                     instructorId,
                     isOutdated: false
                 },
+                include: [
+                    {
+                        model: Classroom,
+                        as: 'examRooms',
+                        through: { attributes: [] }
+                    }
+                ],
                 order: [['date', 'ASC']]
             });
 
-            // Process the exams to convert classrooms back to arrays and format dates
+            // Process the exams to format dates and prepare classroom data
             return exams.map(exam => {
                 const examData = exam.get({ plain: true });
-                examData.classrooms = examData.classrooms.split(',');
+                
+                // Extract classroom information
+                examData.classroomDetails = examData.examRooms || [];
+                examData.classrooms = examData.examRooms 
+                    ? examData.examRooms.map(room => room.id) 
+                    : [];
 
                 // Format date and calculate start/end times
                 const examDate = new Date(examData.date);
@@ -116,14 +140,30 @@ class ExamService {
      */
     async getExamById(examId) {
         try {
-            const exam = await Exam.findByPk(examId);
+            const Classroom = require('../../models/Classroom');
+            
+            const exam = await Exam.findByPk(examId, {
+                include: [
+                    {
+                        model: Classroom,
+                        as: 'examRooms',
+                        through: { attributes: [] }
+                    }
+                ]
+            });
 
             if (!exam) {
                 throw new Error('Exam not found');
             }
 
             const examData = exam.get({ plain: true });
-            console.log("examData",examData);
+            
+            // Extract classroom IDs for the frontend
+            examData.classrooms = examData.examRooms 
+                ? examData.examRooms.map(room => room.id) 
+                : [];
+                
+            console.log("examData", examData);
             return examData;
         } catch (error) {
             throw new Error(`Failed to get exam: ${error.message}`);
@@ -146,23 +186,43 @@ class ExamService {
                 throw new Error('Exam not found');
             }
 
-            // Process classrooms array into comma-separated string
-            if (Array.isArray(examData.classrooms)) {
-                examData.classrooms = examData.classrooms.join(',');
+            // Handle classroom updates
+            if (examData.classrooms !== undefined) {
+                const classroomIds = examData.classrooms || [];
+                const ExamClassrooms = sequelize.models.ExamClassrooms;
+                
+                // Remove existing classroom associations
+                await ExamClassrooms.destroy({
+                    where: { ExamId: examId },
+                    transaction: t
+                });
+                
+                // Add new classroom associations
+                for (const classroomId of classroomIds) {
+                    await ExamClassrooms.create({
+                        ExamId: examId,
+                        ClassroomId: classroomId
+                    }, { transaction: t });
+                }
+                
+                // Remove classrooms from the update data as we've handled it separately
+                delete examData.classrooms;
             }
-
+            
             // Update the exam
             await exam.update(examData, { transaction: t });
 
-            for (const taId of examData.teachingAssistants) {
-                await Notification.create({
-                    id: uuidv4(),
-                    recipientId: taId,
-                    subject: 'Exam Updated',
-                    message: `The exam for ${examData.courseName} on ${examData.date} has been updated.`,
-                    date: new Date(),
-                    isRead: false
-                });
+            if (examData.teachingAssistants) {
+                for (const taId of examData.teachingAssistants) {
+                    await Notification.create({
+                        id: uuidv4(),
+                        recipientId: taId,
+                        subject: 'Exam Updated',
+                        message: `The exam for ${examData.courseName} on ${examData.date} has been updated.`,
+                        date: new Date(),
+                        isRead: false
+                    });
+                }
             }
 
             await t.commit();
@@ -308,6 +368,7 @@ class ExamService {
 
 
             // Find all exams for these courses
+            const Classroom = require('../../models/Classroom');
             const exams = await Exam.findAll({
                 where: {
                     courseName: {
@@ -315,6 +376,13 @@ class ExamService {
                     },
                     isOutdated: false
                 },
+                include: [
+                    {
+                        model: Classroom,
+                        as: 'examRooms',
+                        through: { attributes: [] }
+                    }
+                ],
                 order: [['date', 'ASC']]
             });
             //console.log("examsss",exams);
@@ -326,7 +394,10 @@ class ExamService {
                 //console.log('Raw date from database:', examData.date);
                 
                 // Ensure classrooms is always an array
-                examData.classrooms = examData.classrooms ? examData.classrooms.split(',') : [];
+                examData.classroomDetails = examData.examRooms || [];
+                examData.classrooms = examData.examRooms 
+                    ? examData.examRooms.map(room => room.id) 
+                    : [];
 
                 // Format date and calculate start/end times
                 const examDate = new Date(examData.date);
@@ -1403,6 +1474,24 @@ class ExamService {
         } catch (error) {
             console.error('Error in getAvailableTAsForExam service:', error);
             throw new Error(`Failed to retrieve available TAs: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get all classrooms
+     * @returns {Promise<Array>} List of classrooms
+     */
+    async getAllClassrooms() {
+        try {
+            const Classroom = require('../../models/Classroom');
+            
+            const classrooms = await Classroom.findAll({
+                order: [['building', 'ASC'], ['name', 'ASC']]
+            });
+            
+            return classrooms;
+        } catch (error) {
+            throw new Error(`Failed to get classrooms: ${error.message}`);
         }
     }
 }

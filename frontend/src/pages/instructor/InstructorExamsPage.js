@@ -12,6 +12,7 @@ function InstructorExamsPage() {
   // State variables
   const [exams, setExams] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -131,15 +132,11 @@ function InstructorExamsPage() {
     fetchData();
   }, []);
 
-  // Add a separate useEffect for course loading
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
   // Add an effect to fetch courses when modals open
   useEffect(() => {
     if (isAddExamOpen || isChangeExamOpen) {
       fetchCourses();
+      fetchClassrooms(); // Also fetch classrooms
     }
   }, [isAddExamOpen, isChangeExamOpen]);
 
@@ -418,24 +415,22 @@ function InstructorExamsPage() {
     }
   };
 
-  // Handle classroom input
-  const handleAddClassroom = (e) => {
-    if (e.key === 'Enter' && e.target.value.trim()) {
-      const newClassroom = e.target.value.trim();
-      if (!formData.classrooms.includes(newClassroom)) {
-        setFormData({
-          ...formData,
-          classrooms: [...formData.classrooms, newClassroom]
-        });
-      }
-      e.target.value = '';
+  // Handle classroom selection
+  const handleClassroomSelect = (e) => {
+    const selectedClassroomId = e.target.value;
+    
+    if (selectedClassroomId && !formData.classrooms.includes(selectedClassroomId)) {
+      setFormData({
+        ...formData,
+        classrooms: [...formData.classrooms, selectedClassroomId]
+      });
     }
   };
 
-  const handleRemoveClassroom = (classroom) => {
+  const handleRemoveClassroom = (classroomId) => {
     setFormData({
       ...formData,
-      classrooms: formData.classrooms.filter(c => c !== classroom)
+      classrooms: formData.classrooms.filter(id => id !== classroomId)
     });
   };
 
@@ -683,6 +678,22 @@ function InstructorExamsPage() {
     }
   };
 
+  // Fetch available classrooms
+  const fetchClassrooms = async () => {
+    try {
+      const headers = getAuthHeader();
+      const response = await axios.get(`${API_URL}/instructor/classrooms`, { headers });
+      
+      if (response.data.success) {
+        setClassrooms(response.data.data);
+      } else {
+        console.error('Failed to fetch classrooms');
+      }
+    } catch (err) {
+      console.error('Error fetching classrooms:', err);
+    }
+  };
+
   return (
       <div className="instructor-exams-page">
         {/* Top Navbar */}
@@ -882,16 +893,32 @@ function InstructorExamsPage() {
                   <div className="form-row">
                     <label>Classroom(s):</label>
                     <div className="classroom-container">
-                      <input
-                          type="text"
-                          placeholder="Add classroom and press Enter"
-                          onKeyDown={handleAddClassroom}
-                      />
-                      {formData.classrooms.map((classroom, idx) => (
-                          <div key={idx} className="classroom-tag">
-                            {classroom} <span className="remove-tag" onClick={() => handleRemoveClassroom(classroom)}>×</span>
-                          </div>
-                      ))}
+                      <select 
+                        onChange={handleClassroomSelect}
+                        value=""
+                      >
+                        <option value="">Select a classroom</option>
+                        {classrooms.map(classroom => (
+                          <option 
+                            key={classroom.id} 
+                            value={classroom.id}
+                            disabled={formData.classrooms.includes(classroom.id)}
+                          >
+                            {classroom.building} - {classroom.name} (Capacity: {classroom.examSeatingCapacity || classroom.capacity})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="selected-classrooms">
+                        {formData.classrooms.map((classroomId) => {
+                          const classroom = classrooms.find(c => c.id === classroomId);
+                          return classroom ? (
+                            <div key={classroomId} className="classroom-tag">
+                              {classroom.building} - {classroom.name}
+                              <span className="remove-tag" onClick={() => handleRemoveClassroom(classroomId)}>×</span>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
                     </div>
                   </div>
 
@@ -1043,16 +1070,32 @@ function InstructorExamsPage() {
                   <div className="form-row">
                     <label>Classroom(s):</label>
                     <div className="classroom-container">
-                      <input
-                          type="text"
-                          placeholder="Add classroom and press Enter"
-                          onKeyDown={handleAddClassroom}
-                      />
-                      {formData.classrooms.map((classroom, idx) => (
-                          <div key={idx} className="classroom-tag">
-                            {classroom} <span className="remove-tag" onClick={() => handleRemoveClassroom(classroom)}>×</span>
-                          </div>
-                      ))}
+                      <select 
+                        onChange={handleClassroomSelect}
+                        value=""
+                      >
+                        <option value="">Select a classroom</option>
+                        {classrooms.map(classroom => (
+                          <option 
+                            key={classroom.id} 
+                            value={classroom.id}
+                            disabled={formData.classrooms.includes(classroom.id)}
+                          >
+                            {classroom.building} - {classroom.name} (Capacity: {classroom.examSeatingCapacity || classroom.capacity})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="selected-classrooms">
+                        {formData.classrooms.map((classroomId) => {
+                          const classroom = classrooms.find(c => c.id === classroomId);
+                          return classroom ? (
+                            <div key={classroomId} className="classroom-tag">
+                              {classroom.building} - {classroom.name}
+                              <span className="remove-tag" onClick={() => handleRemoveClassroom(classroomId)}>×</span>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
                     </div>
                   </div>
 

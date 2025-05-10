@@ -184,4 +184,12 @@ router.get(
     examController.getSwapHistory
 );
 
+// Get all classrooms
+router.get(
+    '/classrooms',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.getAllClassrooms
+);
+
 module.exports = router;
