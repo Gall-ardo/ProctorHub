@@ -174,44 +174,37 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
   }, [currentUserExams, isOpen]);
 
   const fetchUserExams = async () => {
-    try {
-      setLoading(true);
-      // Get the token from localStorage
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      
-      if (!token) {
-        setError('Authentication required. Please log in again.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await axios.get(`${API_URL}/ta/swaps/my-exams`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.data.success) {
-        setExams(response.data.data);
-      } else {
-        setError(response.data.message || 'Failed to fetch exams');
-      }
-    } catch (err) {
-      if (err.response) {
-        console.error('Server error:', err.response.data);
-        setError(err.response.data.message || 'Server error');
-      } else if (err.request) {
-        console.error('No response received:', err.request);
-        setError('No response from server.');
-      } else {
-        console.error('Error', err.message);
-        setError('Unexpected error: ' + err.message);
-      }
-      
-    } finally {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      setError('Authentication required. Please log in again.');
       setLoading(false);
+      return;
     }
-  };
+
+    const queryParams = [];
+    if (startDate) queryParams.push(`startDate=${encodeURIComponent(startDate)}`);
+    if (endDate) queryParams.push(`endDate=${encodeURIComponent(endDate)}`);
+    const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+    const response = await axios.get(`${API_URL}/ta/swaps/my-exams${queryString}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (response.data.success) {
+      setExams(response.data.data);
+    } else {
+      setError(response.data.message || 'Failed to fetch exams');
+    }
+  } catch (err) {
+    setError(err.response?.data?.message || 'An error occurred while fetching exams');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Fetch teaching assistants from the same department
   const fetchDepartmentTAs = async () => {
@@ -406,24 +399,8 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
             isLoading={loadingDepartmentTAs}
           />
           
-          {/* TA Email Input */}
-          <div className="ta-personal-swap-section" style={{ position: 'relative' }}>
-            <label className="ta-personal-swap-label">TA Email</label>
-            <input 
-              type="email" 
-              className="ta-personal-swap-input" 
-              placeholder="Enter TA e-mail" 
-              value={taEmail} 
-              onChange={(e) => {
-                setTaEmail(e.target.value);
-                // Clear selected TA if email is changed manually
-                if (selectedTA && selectedTA.email !== e.target.value) {
-                  setSelectedTA(null);
-                }
-              }}
-              onFocus={handleEmailInputFocus}
-              onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
-            />
+          
+            
             
             {/* Email Suggestions Component */}
             <EmailSuggestions 
@@ -431,7 +408,7 @@ const TAPersonalSwapRequest = ({ isOpen, onClose, currentUserExams = [] }) => {
               onSelect={handleEmailSelection} 
               visible={showEmailSuggestions}
             />
-          </div>
+          
           
           {/* Date Selection */}
           <div className="ta-personal-swap-section">

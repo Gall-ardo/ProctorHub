@@ -89,7 +89,6 @@ const TASubmitForumRequest = ({ isOpen, onClose, userExams = [] }) => {
             <label className="ta-submit-forum-label">Select date</label>
             <div className="ta-submit-forum-date-container">
               <div className="ta-submit-forum-date-header">
-                <span>Enter available dates</span>
               </div>
               
               <div className="ta-submit-forum-date-inputs">

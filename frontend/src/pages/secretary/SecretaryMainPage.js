@@ -13,7 +13,17 @@ export default function SecretaryMainPage() {
   const [error,         setError]         = useState(null);
 
   // Base URL for all API calls
-  const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
+  const API_URL = 'http://localhost:5001/api';
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+  };
 
   useEffect(() => {
     const fetchDashboard = async () => {
