@@ -189,8 +189,17 @@ class ExamService {
                 throw new Error('Exam not found');
             }
 
-            // Delete related proctoring assignments first
+            // Get teaching assistants assigned to this exam through Proctoring
             const Proctoring = require('../../models/Proctoring');
+            const proctorAssignments = await Proctoring.findAll({
+                where: { examId },
+                transaction: t
+            });
+            
+            // Extract TA IDs from proctor assignments
+            const taIds = proctorAssignments.map(assignment => assignment.taId);
+
+            // Delete related proctoring assignments first
             await Proctoring.destroy({
                 where: { examId },
                 transaction: t
@@ -199,19 +208,31 @@ class ExamService {
             // Delete related swap history records if they exist
             try {
                 const SwapHistory = require('../../models/SwapHistory');
-                await SwapHistory.destroy({
-                    where: { examId },
-                    transaction: t
-                });
+                // Check if table exists before trying to delete from it
+                try {
+                    await SwapHistory.findAll({ where: { examId }, limit: 1, transaction: t });
+                    // If the above call succeeds, table exists, so delete from it
+                    await SwapHistory.destroy({
+                        where: { examId },
+                        transaction: t
+                    });
+                } catch (tableError) {
+                    // If table doesn't exist, just log and continue
+                    console.log('SwapHistory table does not exist:', tableError.message);
+                }
             } catch (error) {
-                console.log('No swap history found or error deleting swap history:', error.message);
+                console.log('Error handling swap history deletion:', error.message);
                 // Continue with exam deletion even if swap history deletion fails
             }
 
             // Finally delete the exam
             await exam.destroy({ transaction: t });
 
-            for (const taId of exam.teachingAssistants) {
+            // Send notifications to TAs who were assigned to this exam
+            const Notification = require('../../models/Notification');
+            const { v4: uuidv4 } = require('uuid');
+            
+            for (const taId of taIds) {
                 await Notification.create({
                     id: uuidv4(),
                     recipientId: taId,
@@ -219,7 +240,7 @@ class ExamService {
                     message: `The exam for ${exam.courseName} on ${exam.date} has been deleted.`,
                     date: new Date(),
                     isRead: false
-                });
+                }, { transaction: t });
             }
 
             await t.commit();
