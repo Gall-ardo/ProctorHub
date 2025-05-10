@@ -5,6 +5,7 @@ const Instructor = require('../../models/Instructor');
 const User = require('../../models/User');
 const Exam = require('../../models/Exam');
 const Course = require('../../models/Course');
+const Notification = require('../../models/Notification');
 
 
 class ExamService {
@@ -153,7 +154,19 @@ class ExamService {
             // Update the exam
             await exam.update(examData, { transaction: t });
 
+            for (const taId of examData.teachingAssistants) {
+                await Notification.create({
+                    id: uuidv4(),
+                    recipientId: taId,
+                    subject: 'Exam Updated',
+                    message: `The exam for ${examData.courseName} on ${examData.date} has been updated.`,
+                    date: new Date(),
+                    isRead: false
+                });
+            }
+
             await t.commit();
+
             return this.getExamById(examId);
         } catch (error) {
             await t.rollback();
@@ -198,7 +211,19 @@ class ExamService {
             // Finally delete the exam
             await exam.destroy({ transaction: t });
 
+            for (const taId of exam.teachingAssistants) {
+                await Notification.create({
+                    id: uuidv4(),
+                    recipientId: taId,
+                    subject: 'Exam Deleted',
+                    message: `The exam for ${exam.courseName} on ${exam.date} has been deleted.`,
+                    date: new Date(),
+                    isRead: false
+                });
+            }
+
             await t.commit();
+
             return true;
         } catch (error) {
             await t.rollback();
@@ -558,6 +583,16 @@ class ExamService {
                             assignedBy: instructorId,
                             status: 'PENDING'
                         }, { transaction: t });
+
+                        // Notify the TA about the assignment
+                        await Notification.create({
+                            id: uuidv4(),
+                            recipientId: ta.id,
+                            subject: 'Proctoring Assignment',
+                            message: `You have been assigned as a proctor for the exam on ${exam.date}.`,
+                            date: new Date(),
+                            isRead: false
+                        }, { transaction: t });
                     }
                     
                     // Add to assigned proctors list for the response
@@ -665,6 +700,16 @@ class ExamService {
                             isManualAssignment: false,
                             assignedBy: instructorId,
                             status: 'PENDING'
+                        }, { transaction: t });
+
+                        // Notify the TA about the assignment
+                        await Notification.create({
+                            id: uuidv4(),
+                            recipientId: ta.id,
+                            subject: 'Proctoring Assignment',
+                            message: `You have been automatically assigned as a proctor for ${exam.courseName} on ${exam.date}.`,
+                            date: new Date(),
+                            isRead: false
                         }, { transaction: t });
                     }
                     
@@ -792,6 +837,23 @@ class ExamService {
             await exam.update({
                 swapCount: (exam.swapCount || 0) + 1
             }, { transaction: t });
+
+            await Notification.create({
+                id: uuidv4(),
+                recipientId: oldProctorId,
+                subject: 'Proctoring Assignment Removed',
+                message: `You have been removed from proctoring the exam for ${exam.courseName} on ${exam.date}.`,
+                date: new Date(),
+                isRead: false
+            });
+            await Notification.create({
+                id: uuidv4(),
+                recipientId: newProctorId,
+                subject: 'New Proctoring Assignment',
+                message: `You have been assigned to proctor an exam for ${exam.courseName} on ${exam.date}.`,
+                date: new Date(),
+                isRead: false
+            });
 
             await t.commit();
 
