@@ -38,7 +38,6 @@ import SecretaryTAWorkloadPage from './pages/secretary/SecretaryTAWorkloadPage';
 import SecretaryLeaveRequestPage from './pages/secretary/SecretaryLeaveRequestPage';
 
 import './App.css';
-import InstructorTAAssignerPage from './pages/instructor/InstructorTAAssignerPage';
 
 function App() {
   return (
@@ -121,11 +120,6 @@ function App() {
             <InstructorNavBar />
           </ProtectedRoute>
         } />
-        <Route path="/instructor/assign-tas-to-course" element={
-          <ProtectedRoute allowedRoles={['instructor']}>
-            <InstructorTAAssignerPage />
-          </ProtectedRoute>
-        } />
         
         {/* Protected Department Chair Routes */}
         <Route path="/departmentchair/home" element={
@@ -170,6 +164,30 @@ function App() {
             <DeansOfficeLeaveRequestPage />
           </ProtectedRoute>
         } />
+
+        {/* Protected Secretary Routes */}
+        <Route path="/secretary/home" element={
+          <ProtectedRoute allowedRoles={['secretary']}>
+            <SecretaryMainPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/secretary/ta-workload" element={
+          <ProtectedRoute allowedRoles={['secretary']}>
+            <SecretaryTAWorkloadPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/secretary/exams" element={
+          <ProtectedRoute allowedRoles={['secretary']}>
+            <SecretaryExamsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/secretary/leaverequest" element={
+          <ProtectedRoute allowedRoles={['secretary']}>
+            <SecretaryLeaveRequestPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Protected Routes for all roles */}
         
         
         {/* Catch-all route - redirect to login */}

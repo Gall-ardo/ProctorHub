@@ -32,7 +32,7 @@ function Login() {
       case 'chair':      target = '/departmentchair/home'; break;
       case 'dean':       target = '/deansoffice/home'; break;
       case 'student':    target = '/student/home'; break;
-      //case 'secretary':  target = '/secretary/home'; break;
+      case 'secretary':  target = '/secretary/home'; break;
     }
   }, []); // ← empty array ensures this runs exactly once
 
@@ -72,7 +72,7 @@ function Login() {
         case 'chair':      path = '/departmentchair/home'; break;
         case 'dean':       path = '/deansoffice/home'; break;
         case 'student':    path = '/student/home'; break;
-        //case 'secretary':  path = '/secretary/home'; break;
+        case 'secretary':  path = '/secretary/home'; break;
       }
       navigate(path, { replace: true });
 
