@@ -13,55 +13,67 @@ const { Op } = require('sequelize');
  */
 const generateStudentPDF = (exam, students, classrooms, { shuffle = false }) => {
   const doc = new PDFDocument({ autoFirstPage: false });
-  
-  // Sort or shuffle students
+
+  // No students and/or no classrooms
+  if (students.length === 0 || classrooms.length === 0) {
+    doc.addPage();
+    doc.fontSize(14).text(`Exam: ${exam.courseName} - ${exam.examType}`);
+    doc.text(`Date: ${new Date(exam.date).toLocaleDateString()}`);
+    doc.moveDown();
+
+    if (students.length === 0) {
+      doc.fontSize(12).fillColor('red').text('⚠ No students are enrolled in this course for the exam.');
+    }
+
+    if (classrooms.length === 0) {
+      doc.fontSize(12).fillColor('red').text('⚠ No classrooms are assigned for this exam.');
+    }
+
+    doc.end();
+    return doc;
+  }
+
+  // Proceed normally if we have students and classrooms
   const studentList = shuffle 
     ? [...students].sort(() => Math.random() - 0.5) 
-    : [...students].sort((a, b) => a.nameSurname.localeCompare(b.nameSurname));
-  
+    : [...students].sort((a, b) => (a.nameSurname || '').localeCompare(b.nameSurname || ''));
+
   const totalCapacity = classrooms.reduce((sum, c) => sum + (c.examSeatingCapacity || c.capacity || 0), 0);
   const overCapacity = studentList.length > totalCapacity;
-  
+
   let studentIndex = 0;
-  
+
   for (const classroom of classrooms) {
     const roomCapacity = classroom.examSeatingCapacity || classroom.capacity;
     const assignedStudents = studentList.slice(studentIndex, studentIndex + roomCapacity);
     studentIndex += assignedStudents.length;
-    
+
     doc.addPage();
     doc.fontSize(14).text(`Exam: ${exam.courseName} - ${exam.examType}`);
     doc.text(`Date: ${new Date(exam.date).toLocaleDateString()}`);
     doc.text(`Classroom: ${classroom.building} - ${classroom.name}`);
     doc.text(`Capacity: ${roomCapacity}`);
     doc.moveDown();
-    
+
     if (overCapacity) {
       doc.fontSize(12).fillColor('red').text('⚠ Total student count exceeds available seating!');
       doc.fillColor('black');
       doc.moveDown();
     }
-    
+
     doc.fontSize(12).text('Index | Student ID | Student Name');
     doc.moveDown();
-    
+
     for (let i = 0; i < assignedStudents.length; i++) {
       const s = assignedStudents[i];
       doc.text(`${i} | ${s.id} | ${s.nameSurname}`);
     }
-    
-    // Leave remaining slots blank if overCapacity is true
-    /*if (!overCapacity) {
-      for (let i = assignedStudents.length; i < roomCapacity; i++) {
-        doc.text(`${i} | _________ | ___________________`);
-      }
-    }*/
   }
-  
-  // Finalize PDF and return as stream
+
   doc.end();
   return doc;
 };
+
 
 /**
  * Get all data needed for generating the PDF
@@ -118,14 +130,6 @@ const generateExamSeatingPDF = async (examId, shuffle = false) => {
     });
     
     console.log(`Found ${classrooms.length} classrooms assigned to the exam`);
-
-    if (students.length === 0) {
-      throw new Error('No students found for this exam');
-    }
-
-    if (classrooms.length === 0) {
-      throw new Error('No classrooms assigned for this exam');
-    }
 
     // Generate the PDF
     const pdfStream = generateStudentPDF(exam, students, classrooms, { shuffle });

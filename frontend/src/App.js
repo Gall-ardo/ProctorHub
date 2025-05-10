@@ -36,9 +36,8 @@ import SecretaryMainPage from './pages/secretary/SecretaryMainPage';
 import SecretaryExamsPage from './pages/secretary/SecretaryExamsPage';
 import SecretaryTAWorkloadPage from './pages/secretary/SecretaryTAWorkloadPage';
 import SecretaryLeaveRequestPage from './pages/secretary/SecretaryLeaveRequestPage';
-
+import InstructorTAAssignerPage from './pages/instructor/InstructorTAAssignerPage';
 import './App.css';
-
 function App() {
   return (
     <BrowserRouter>
@@ -120,6 +119,11 @@ function App() {
             <InstructorNavBar />
           </ProtectedRoute>
         } />
+        <Route path="/instructor/assign-tas-to-course" element={
+          <ProtectedRoute allowedRoles={['instructor']}>
+            <InstructorTAAssignerPage />
+          </ProtectedRoute>
+        } />
         
         {/* Protected Department Chair Routes */}
         <Route path="/departmentchair/home" element={
@@ -164,7 +168,6 @@ function App() {
             <DeansOfficeLeaveRequestPage />
           </ProtectedRoute>
         } />
-
         {/* Protected Secretary Routes */}
         <Route path="/secretary/home" element={
           <ProtectedRoute allowedRoles={['secretary']}>
@@ -188,7 +191,6 @@ function App() {
         } />
 
         {/* Protected Routes for all roles */}
-        
         
         {/* Catch-all route - redirect to login */}
         <Route path="*" element={<Navigate to="/" />} />
