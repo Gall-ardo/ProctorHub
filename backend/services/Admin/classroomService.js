@@ -1,10 +1,8 @@
-// services/Admin/classroomService.js
 const Classroom = require("../../models/Classroom");
 const csv = require("csv-parser");
 const fs = require("fs");
 const path = require("path");
 const { Op } = require("sequelize");
-const sequelize = require("../../config/db");
 
 class ClassroomService {
   async createClassroom(classroomData) {
@@ -12,8 +10,8 @@ class ClassroomService {
     const compositeId = `${classroomData.building}_${classroomData.classroomId}`;
     
     // Check if classroom already exists
-    const existingClassroom = await Classroom.findByPk(compositeId);
-    if (existingClassroom) {
+    const existing = await Classroom.findByPk(compositeId);
+    if (existing) {
       throw new Error('Classroom already exists with this building and ID combination');
     }
     
@@ -35,17 +33,9 @@ class ClassroomService {
     return await Classroom.findByPk(id);
   }
 
-  async getClassroomByBuildingAndId(building, classroomId) {
-    const compositeId = `${building}_${classroomId}`;
-    return await Classroom.findByPk(compositeId);
-  }
-
   async updateClassroom(id, classroomData) {
     const classroom = await Classroom.findByPk(id);
-    if (!classroom) {
-      return null;
-    }
-    
+    if (!classroom) return null;
     return await classroom.update({
       name: classroomData.classroomId || classroom.name,
       capacity: classroomData.capacity || classroom.capacity,
@@ -55,100 +45,67 @@ class ClassroomService {
 
   async deleteClassroom(id) {
     const classroom = await Classroom.findByPk(id);
-    if (!classroom) {
-      return null;
-    }
-    
+    if (!classroom) return null;
     await classroom.destroy();
     return true;
   }
 
   async processClassroomFile(file) {
-    // Create a temporary path to save the uploaded file
-    const tempPath = path.join(__dirname, '../../uploads', `classrooms_${Date.now()}.csv`);
-    
-    // Save the file
-    await file.mv(tempPath);
-    
+    // Multer stores upload on disk: file.path
+    const filePath = file.path;
     const results = [];
     const errors = [];
-    
+
     return new Promise((resolve, reject) => {
-      fs.createReadStream(tempPath)
+      fs.createReadStream(filePath)
         .pipe(csv())
-        .on('data', async (row) => {
+        .on("data", async (row) => {
+          // Validate required fields (case-sensitive keys based on CSV header)
+          const building = row.Building || row.building;
+          const classroomId = row.ClassroomId || row.classroomId;
+          const cap = row.Capacity || row.capacity;
+          const examCap = row.ExamCapacity || row.examCapacity;
+
+          if (!building || !classroomId || !cap || !examCap) {
+            errors.push(`Missing fields in row: ${JSON.stringify(row)}`);
+            return;
+          }
+          
           try {
-            // Check if we have all the required fields
-            if (!row.building || !row.classroomId || !row.capacity || !row.examCapacity) {
-              errors.push(`Missing fields in row: ${JSON.stringify(row)}`);
-              return;
-            }
-            
-            // Create classroom
             const classroomData = {
-              building: row.building,
-              classroomId: row.classroomId,
-              capacity: parseInt(row.capacity),
-              examCapacity: parseInt(row.examCapacity)
+              building: building.trim(),
+              classroomId: classroomId.trim(),
+              capacity: parseInt(cap, 10),
+              examCapacity: parseInt(examCap, 10)
             };
-            
-            // Create the classroom
             const classroom = await this.createClassroom(classroomData);
             results.push(classroom);
-          } catch (error) {
-            errors.push(`Error processing row ${JSON.stringify(row)}: ${error.message}`);
+          } catch (err) {
+            errors.push(`Error processing row ${JSON.stringify(row)}: ${err.message}`);
           }
         })
-        .on('end', () => {
-          // Delete the temporary file
-          fs.unlinkSync(tempPath);
-          
-          resolve({
-            processed: results.length,
-            successful: results.length,
-            errors: errors
-          });
+        .on("end", async () => {
+          // Clean up the uploaded file
+          try { fs.unlinkSync(filePath); } catch {}
+          resolve({ processed: results.length, successful: results.length, errors });
         })
-        .on('error', (error) => {
-          // Delete the temporary file if it exists
-          if (fs.existsSync(tempPath)) {
-            fs.unlinkSync(tempPath);
-          }
-          
-          reject(error);
+        .on("error", (err) => {
+          // Clean up and reject
+          try { fs.unlinkSync(filePath); } catch {}
+          reject(err);
         });
     });
   }
 
   async findClassrooms(query) {
-    try {
-      const whereClause = {};
-      
-      if (query.building) {
-        whereClause.building = { [Op.like]: `%${query.building}%` };
-      }
-      
-      if (query.id) {
-        whereClause.id = { [Op.like]: `%${query.id}%` };
-      }
-      
-      if (query.name) {
-        whereClause.name = { [Op.like]: `%${query.name}%` };
-      }
-      
-      if (query.capacity) {
-        whereClause.capacity = { [Op.gte]: parseInt(query.capacity) };
-      }
-      
-      if (query.examCapacity) {
-        whereClause.examSeatingCapacity = { [Op.gte]: parseInt(query.examCapacity) };
-      }
+    const where = {};
+    if (query.building) where.building = { [Op.like]: `%${query.building}%` };
+    if (query.id) where.id = { [Op.like]: `%${query.id}%` };
+    if (query.name) where.name = { [Op.like]: `%${query.name}%` };
+    if (query.capacity) where.capacity = { [Op.gte]: parseInt(query.capacity, 10) };
+    if (query.examCapacity) where.examSeatingCapacity = { [Op.gte]: parseInt(query.examCapacity, 10) };
 
-      return await Classroom.findAll({ where: whereClause });
-    } catch (error) {
-      console.error("Error in findClassrooms:", error);
-      throw error;
-    }
+    return await Classroom.findAll({ where });
   }
 }
 

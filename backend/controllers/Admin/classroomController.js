@@ -1,4 +1,3 @@
-// controllers/Admin/classroomController.js
 const classroomService = require('../../services/Admin/classroomService');
 
 class ClassroomController {
@@ -11,6 +10,7 @@ class ClassroomController {
         data: classroom
       });
     } catch (error) {
+      console.error("Error creating classroom:", error);
       res.status(400).json({
         success: false,
         message: 'Error creating classroom',
@@ -104,24 +104,23 @@ class ClassroomController {
 
   async uploadClassrooms(req, res) {
     try {
-      if (!req.files || !req.files.file) {
+      if (!req.file) {
         return res.status(400).json({
           success: false,
           message: 'No file uploaded'
         });
       }
-      
-      const { file } = req.files;
-      
-      // Call service method to process the file
-      const result = await classroomService.processClassroomFile(file);
-      
+
+      // Delegate file processing to service
+      const result = await classroomService.processClassroomFile(req.file);
+
       res.status(200).json({
         success: true,
         message: 'Classrooms imported successfully',
         data: result
       });
     } catch (error) {
+      console.error("Error processing classroom file:", error);
       res.status(400).json({
         success: false,
         message: 'Error processing classroom file',
@@ -132,20 +131,16 @@ class ClassroomController {
 
   async findClassrooms(req, res) {
     try {
-      console.log('Find classrooms request, query:', req.query);
-      
       const classrooms = await classroomService.findClassrooms(req.query);
-      
       res.status(200).json({
         success: true,
         data: classrooms
       });
     } catch (error) {
-      console.error("Error finding classrooms:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: "Failed to find classrooms", 
-        error: error.message 
+        message: 'Failed to find classrooms',
+        error: error.message
       });
     }
   }

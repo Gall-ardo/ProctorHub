@@ -275,12 +275,7 @@ const AdminClassroomManagement = () => {
       
       const response = await axios.post(
         `${API_URL}/api/admin/classrooms/upload`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }
+        formData
       );
       
       if (response.data.success) {
@@ -514,9 +509,9 @@ const AdminClassroomManagement = () => {
                     <label>Classroom ID <span className={styles.requiredField}>*</span></label>
                     <input 
                       type="text" 
-                      placeholder="Enter classroom ID" 
                       value={classroomId}
-                      onChange={(e) => setClassroomId(e.target.value)}
+                      disabled
+                      className={styles.readOnly}
                     />
                   </div>
                   <div className={styles.formGroup}>
