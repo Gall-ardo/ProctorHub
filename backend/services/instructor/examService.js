@@ -715,6 +715,13 @@ class ExamService {
                 
                 // Sort department TAs
                 departmentMatchTAs.sort((a, b) => {
+                    // ABSOLUTE PRIORITY: TAs without consecutive day assignments
+                    // This will override all other sorting criteria
+                    if (!a.hasConsecutiveDayAssignment && b.hasConsecutiveDayAssignment) return -1;
+                    if (a.hasConsecutiveDayAssignment && !b.hasConsecutiveDayAssignment) return 1;
+
+                    // Only if both TAs have the same consecutive day status, consider other factors
+                    
                     // For weekend exams, prioritize part-time TAs
                     if (isWeekend) {
                         if (a.isPartTime && !b.isPartTime) return -1;
@@ -739,6 +746,13 @@ class ExamService {
                 
                 // Sort other TAs
                 otherTAs.sort((a, b) => {
+                    // ABSOLUTE PRIORITY: TAs without consecutive day assignments
+                    // This will override all other sorting criteria
+                    if (!a.hasConsecutiveDayAssignment && b.hasConsecutiveDayAssignment) return -1;
+                    if (a.hasConsecutiveDayAssignment && !b.hasConsecutiveDayAssignment) return 1;
+
+                    // Only if both TAs have the same consecutive day status, consider other factors
+                    
                     // For weekend exams, prioritize part-time TAs
                     if (isWeekend) {
                         if (a.isPartTime && !b.isPartTime) return -1;
@@ -764,9 +778,17 @@ class ExamService {
                 // Combine the sorted lists: department TAs first, then others
                 eligibleTAs = [...departmentMatchTAs, ...otherTAs];
                 
+                // Log eligible TAs with their consecutive day status
+                console.log('Sorted eligible TAs for assignment:');
+                eligibleTAs.forEach((ta, index) => {
+                    console.log(`${index + 1}. TA ${ta.id} (${ta.name}): Consecutive days: ${ta.hasConsecutiveDayAssignment ? 'YES' : 'NO'}, Workload: ${ta.totalWorkload || 0}`);
+                });
+                
                 // Assign up to the remaining number needed
                 for (let i = 0; i < Math.min(remainingProctorsNeeded, eligibleTAs.length); i++) {
                     const ta = eligibleTAs[i];
+                    
+                    console.log(`Selecting TA ${ta.id} (${ta.name}) for assignment. Consecutive days: ${ta.hasConsecutiveDayAssignment ? 'YES' : 'NO'}`);
                     
                     // Double-check leave status to be extra safe
                     if (checkLeaveRequests && examDate && strictLeaveCheck && ta.onLeave) {
@@ -835,7 +857,10 @@ class ExamService {
                     ...(tasWithOfferingConflict.length > 0 ? 
                         [`${tasWithOfferingConflict.length} TAs were excluded because they have offerings for this course`] : []),
                     ...(tasWithOfferingCourseExamConflict.length > 0 ? 
-                        [`${tasWithOfferingCourseExamConflict.length} TAs were excluded because they have offerings for courses with exams on the same date`] : [])
+                        [`${tasWithOfferingCourseExamConflict.length} TAs were excluded because they have offerings for courses with exams on the same date`] : []),
+                    // Add warning about consecutive day assignments (not excluded but lower priority)
+                    ...(availableTAs.filter(ta => ta.hasConsecutiveDayAssignment).length > 0 ?
+                        [`${availableTAs.filter(ta => ta.hasConsecutiveDayAssignment).length} TAs have proctoring assignments on consecutive days (day before or after) and received lower priority`] : [])
                 ]
             };
         } catch (error) {
@@ -1110,6 +1135,7 @@ class ExamService {
             
             // Find exams on the same date if examDate is provided
             let examsOnDate = [];
+            let examDate_obj = null;
             if (examDate) {
                 //console.log("abcd::", examDate);
 
@@ -1118,9 +1144,11 @@ class ExamService {
                 if (typeof examDate === 'string') {
                     // If input is already a string, extract just the date part (works for both formats)
                     formattedDate = examDate.split('T')[0];
+                    examDate_obj = new Date(examDate);
                 } else {
                     // If it's a Date object
                     formattedDate = examDate.toISOString().split('T')[0];
+                    examDate_obj = examDate;
                 }
                 //console.log("ggrvdfef", formattedDate);
 
@@ -1186,6 +1214,9 @@ class ExamService {
                     hasOfferingCourseExamConflict,
                     offeringCourseExamConflictReason,
                     isSameDepartment: ta.department === department,
+                    // Add default values for consecutive assignment check
+                    hasConsecutiveDayAssignment: false,
+                    consecutiveDayReason: null,
                     // Include the offering course IDs for reference
                     offeringCourseIds: offeringCourseIds
                 }
@@ -1239,10 +1270,12 @@ class ExamService {
                         {
                             model: Exam,
                             as: 'exam', 
-                            attributes: ['date']
+                            attributes: ['id', 'date']
                         }
                     ]
                 });
+                
+                console.log(`Found ${proctoringAssignments.length} active proctoring assignments`);
                 
                 // Group proctoring assignments by TA
                 const taProctoringMap = {};
@@ -1253,28 +1286,100 @@ class ExamService {
                     taProctoringMap[assignment.taId].push(assignment);
                 });
                 
-                // Check each TA for conflicts
+                // Log TAs with assignments
+                Object.keys(taProctoringMap).forEach(taId => {
+                    console.log(`TA ${taId} has ${taProctoringMap[taId].length} active assignments`);
+                });
+                
+                // Check each TA for conflicts and consecutive day assignments
                 transformedTAs = transformedTAs.map(ta => {
                     const assignments = taProctoringMap[ta.id] || [];
+                    let hasProctoringConflict = false;
+                    let proctoringConflictReason = null;
+                    let hasConsecutiveDayAssignment = false;
+                    let consecutiveDayReason = null;
                     
                     if (assignments.length > 0) {
-                        // Check if any assignment's exam is on the same date
-                        const hasConflict = assignments.some(assignment => {
-                            const examDate = new Date(assignment.exam.date);
-                            const examDateStr = examDate.toISOString().split('T')[0];
-                            return examDateStr === formattedDate;
+                        // Check if any assignment's exam is on the same date (conflict)
+                        assignments.some(assignment => {
+                            if (!assignment.exam) return false;
+                            
+                            const assignedExamDate = new Date(assignment.exam.date);
+                            const assignedDateStr = assignedExamDate.toISOString().split('T')[0];
+                            
+                            if (assignedDateStr === formattedDate) {
+                                hasProctoringConflict = true;
+                                proctoringConflictReason = `Already assigned to exam ${assignment.exam.id} on the same date`;
+                                return true; // Stop iteration once conflict found
+                            }
+                            return false;
                         });
                         
-                        if (hasConflict) {
-                            return {
-                                ...ta,
-                                hasProctoringConflict: true,
-                                proctoringConflictReason: 'Already assigned to another exam on the same date'
-                            };
+                        // Only check for consecutive days if there's no same-day conflict
+                        if (!hasProctoringConflict && examDate_obj) {
+                            // Check for assignments on day before or day after
+                            const dayBefore = new Date(examDate_obj);
+                            dayBefore.setDate(dayBefore.getDate() - 1);
+                            const dayBeforeStr = dayBefore.toISOString().split('T')[0];
+                            
+                            const dayAfter = new Date(examDate_obj);
+                            dayAfter.setDate(dayAfter.getDate() + 1);
+                            const dayAfterStr = dayAfter.toISOString().split('T')[0];
+                            
+                            console.log(`Checking consecutive days for TA ${ta.id} (${ta.name})`);
+                            console.log(`Exam date: ${formattedDate}, day before: ${dayBeforeStr}, day after: ${dayAfterStr}`);
+                            
+                            assignments.forEach(assignment => {
+                                if (!assignment.exam) {
+                                    console.log(`- Assignment has no exam data`);
+                                    return;
+                                }
+                                
+                                const assignedExamDate = new Date(assignment.exam.date);
+                                const assignedDateStr = assignedExamDate.toISOString().split('T')[0];
+                                
+                                console.log(`- Assignment for exam ${assignment.exam.id} on ${assignedDateStr} (status: ${assignment.status})`);
+                            });
+                            
+                            // Filter assignments to only include those with PENDING or ACCEPTED status
+                            const consecutiveDayAssignments = assignments.filter(assignment => {
+                                if (!assignment.exam) return false;
+                                
+                                // Make sure we're only considering pending or accepted assignments
+                                if (assignment.status !== 'PENDING' && assignment.status !== 'ACCEPTED') return false;
+                                
+                                const assignedExamDate = new Date(assignment.exam.date);
+                                const assignedDateStr = assignedExamDate.toISOString().split('T')[0];
+                                
+                                const isConsecutive = assignedDateStr === dayBeforeStr || assignedDateStr === dayAfterStr;
+                                if (isConsecutive) {
+                                    console.log(`  ✓ Found consecutive day assignment: exam ${assignment.exam.id} on ${assignedDateStr}`);
+                                }
+                                return isConsecutive;
+                            });
+                            
+                            if (consecutiveDayAssignments.length > 0) {
+                                hasConsecutiveDayAssignment = true;
+                                const examDateInfo = consecutiveDayAssignments.map(a => {
+                                    const aDate = new Date(a.exam.date);
+                                    const diff = Math.round((aDate - examDate_obj) / (1000 * 60 * 60 * 24));
+                                    return `${a.exam.id} (${diff > 0 ? 'day after' : 'day before'})`;
+                                }).join(', ');
+                                consecutiveDayReason = `Has proctoring assignments on consecutive days: ${examDateInfo}`;
+                                console.log(`TA ${ta.id} (${ta.name}) ${consecutiveDayReason}`);
+                            } else {
+                                console.log(`No consecutive day assignments found for TA ${ta.id}`);
+                            }
                         }
                     }
                     
-                    return ta;
+                    return {
+                        ...ta,
+                        hasProctoringConflict,
+                        proctoringConflictReason,
+                        hasConsecutiveDayAssignment,
+                        consecutiveDayReason
+                    };
                 });
             }
             
