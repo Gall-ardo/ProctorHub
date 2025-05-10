@@ -26,7 +26,6 @@ class CourseService {
         transaction: t
       });
 
-
       if (existingCourse) {
         throw new Error(`Course with code: ${courseData.courseCode} already exists`);
       }
@@ -55,32 +54,50 @@ class CourseService {
         studentCount: courseData.studentCount || 0
       }, { transaction: t });
       
+      // Log for debugging
+      console.log(`Created course: ${course.id}, checking for instructors and TAs`);
+      
       // Associate instructors if provided
       if (courseData.instructorIds && Array.isArray(courseData.instructorIds) && courseData.instructorIds.length > 0) {
+        console.log(`Course ${course.id} has instructorIds: ${JSON.stringify(courseData.instructorIds)}`);
+        
         const instructors = await Instructor.findAll({
           where: { id: courseData.instructorIds },
           transaction: t
         });
         
+        console.log(`Found ${instructors.length} instructors for association`);
+        
         if (instructors.length > 0) {
           await course.addInstructors(instructors, { transaction: t });
+          console.log(`Associated ${instructors.length} instructors with course ${course.id}`);
+        } else {
+          console.log(`Warning: No instructors found for IDs: ${JSON.stringify(courseData.instructorIds)}`);
         }
       }
       
       // Associate teaching assistants if provided
       if (courseData.taIds && Array.isArray(courseData.taIds) && courseData.taIds.length > 0) {
+        console.log(`Course ${course.id} has taIds: ${JSON.stringify(courseData.taIds)}`);
+        
         const teachingAssistants = await TeachingAssistant.findAll({
           where: { id: courseData.taIds },
           transaction: t
         });
         
+        console.log(`Found ${teachingAssistants.length} TAs for association`);
+        
         if (teachingAssistants.length > 0) {
           // Use the 'TAs' alias to properly associate teaching assistants
           await course.addTAs(teachingAssistants, { transaction: t });
+          console.log(`Associated ${teachingAssistants.length} TAs with course ${course.id}`);
+        } else {
+          console.log(`Warning: No TAs found for IDs: ${JSON.stringify(courseData.taIds)}`);
         }
       }
       
       await t.commit();
+      console.log(`Successfully created course ${course.id} with all associations`);
       return course;
     } catch (error) {
       console.error("Transaction error in createCourse:", error);
@@ -218,30 +235,40 @@ class CourseService {
       
       // Handle instructor associations if provided
       if (courseData.instructorIds && Array.isArray(courseData.instructorIds)) {
+        console.log(`Updating course ${course.id} with instructorIds: ${JSON.stringify(courseData.instructorIds)}`);
+        
         // Find all instructors that match the provided IDs
         const instructors = await Instructor.findAll({
           where: { id: courseData.instructorIds },
           transaction: t
         });
         
+        console.log(`Found ${instructors.length} instructors for association`);
+        
         // Replace existing instructors with the new set
         if (instructors.length > 0 || courseData.instructorIds.length === 0) {
           await course.setInstructors(instructors, { transaction: t });
+          console.log(`Updated instructors for course ${course.id}`);
         }
       }
       
       // Handle teaching assistant associations if provided
       if (courseData.taIds && Array.isArray(courseData.taIds)) {
+        console.log(`Updating course ${course.id} with taIds: ${JSON.stringify(courseData.taIds)}`);
+        
         // Find all teaching assistants that match the provided IDs
         const teachingAssistants = await TeachingAssistant.findAll({
           where: { id: courseData.taIds },
           transaction: t
         });
         
+        console.log(`Found ${teachingAssistants.length} TAs for association`);
+        
         // Replace existing teaching assistants with the new set
         // Use the 'TAs' alias to properly associate teaching assistants
         if (teachingAssistants.length > 0 || courseData.taIds.length === 0) {
           await course.setTAs(teachingAssistants, { transaction: t });
+          console.log(`Updated TAs for course ${course.id}`);
         }
       }
       
@@ -392,6 +419,30 @@ class CourseService {
   }
 
   /**
+   * Get all instructors for a course
+   * @param {String} courseId - The course ID
+   * @returns {Promise<Array>} List of instructors
+   */
+  async getInstructorsForCourse(courseId) {
+    try {
+      const course = await Course.findByPk(courseId, {
+        include: [
+          { model: Instructor, as: 'instructors', through: { attributes: [] } }
+        ]
+      });
+      
+      if (!course) {
+        throw new Error("Course not found");
+      }
+      
+      return course.instructors;
+    } catch (error) {
+      console.error(`Error getting instructors for course ID ${courseId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Import courses from CSV data
    * @param {Array} coursesData - Array of course data objects
    * @returns {Promise<Object>} Result with success count and errors
@@ -414,6 +465,14 @@ class CourseService {
             error: "Missing required fields: course code, department, and semester ID"
           });
           continue;
+        }
+        
+        console.log(`Importing course from CSV: ${courseData.courseCode}`);
+        if (courseData.instructorIds) {
+          console.log(`With instructor IDs: ${JSON.stringify(courseData.instructorIds)}`);
+        }
+        if (courseData.taIds) {
+          console.log(`With TA IDs: ${JSON.stringify(courseData.taIds)}`);
         }
         
         // Create course

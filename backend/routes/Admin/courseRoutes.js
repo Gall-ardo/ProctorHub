@@ -64,7 +64,19 @@ if (typeof authMiddleware === 'function') {
 router.post('/', courseController.createCourse);
 
 // Import courses from CSV
-router.post('/import', upload.single('file'), courseController.importCoursesFromCSV);
+// Verify that courseController.importCoursesFromCSV is defined
+if (courseController.importCoursesFromCSV) {
+  router.post('/import', upload.single('file'), courseController.importCoursesFromCSV);
+} else {
+  console.error("Error: courseController.importCoursesFromCSV is undefined");
+  // Provide a fallback route that returns an error message
+  router.post('/import', upload.single('file'), (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: "CSV import function is not available. Please check server implementation."
+    });
+  });
+}
 
 // Get all courses with optional filters
 router.get('/', courseController.getAllCourses);
@@ -83,5 +95,11 @@ router.put('/:id', courseController.updateCourse);
 
 // Delete a course
 router.delete('/:id', courseController.deleteCourse);
+
+// Get instructors for a course
+router.get('/:id/instructors', courseController.getInstructors);
+
+// Get teaching assistants for a course
+router.get('/:id/teaching-assistants', courseController.getTeachingAssistants);
 
 module.exports = router;

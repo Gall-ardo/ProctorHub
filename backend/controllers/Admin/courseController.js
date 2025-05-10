@@ -2,6 +2,89 @@
 const courseService = require('../../services/Admin/courseService');
 const fs = require('fs');
 const csv = require('csv-parser');
+const Instructor = require('../../models/Instructor');
+const TeachingAssistant = require('../../models/TeachingAssistant');
+const { Op } = require('sequelize');
+
+async function processInstructorsAndTAs(coursesData) {
+  const processedData = [];
+  
+  for (const courseData of coursesData) {
+    const processedCourse = { ...courseData };
+    
+    // Look up instructor IDs by name if names are provided
+    if (courseData.instructorNames && courseData.instructorNames.length > 0) {
+      try {
+        const instructors = await Instructor.findAll({
+          include: {
+            model: require('../../models/User'),
+            as: 'instructorUser',
+            where: {
+              name: {
+                [Op.in]: courseData.instructorNames
+              }
+            }
+          }
+        });
+
+        
+        console.log(`Found ${instructors.length} instructors for ${courseData.instructorNames.length} instructor names`);
+        
+        if (instructors.length > 0) {
+          processedCourse.instructorIds = instructors.map(instructor => instructor.id);
+          console.log(`Mapped instructor names to IDs: ${JSON.stringify(processedCourse.instructorIds)}`);
+        } else {
+          console.warn(`No instructors found for names: ${JSON.stringify(courseData.instructorNames)}`);
+        }
+        
+        // Remove the instructorNames property since we've processed it
+        delete processedCourse.instructorNames;
+      } catch (error) {
+        console.error("Error looking up instructors by name:", error);
+        // Keep the original data without IDs
+        delete processedCourse.instructorNames;
+      }
+    }
+    
+    // Look up TA IDs by name if names are provided
+    if (courseData.taNames && courseData.taNames.length > 0) {
+      try {
+        const teachingAssistants = await TeachingAssistant.findAll({
+          include: {
+            model: require('../../models/User'),
+            as: 'taUser',
+            where: {
+              name: {
+                [Op.in]: courseData.taNames
+              }
+            }
+          }
+        });
+
+        
+        console.log(`Found ${teachingAssistants.length} TAs for ${courseData.taNames.length} TA names`);
+        
+        if (teachingAssistants.length > 0) {
+          processedCourse.taIds = teachingAssistants.map(ta => ta.id);
+          console.log(`Mapped TA names to IDs: ${JSON.stringify(processedCourse.taIds)}`);
+        } else {
+          console.warn(`No TAs found for names: ${JSON.stringify(courseData.taNames)}`);
+        }
+        
+        // Remove the taNames property since we've processed it
+        delete processedCourse.taNames;
+      } catch (error) {
+        console.error("Error looking up TAs by name:", error);
+        // Keep the original data without IDs
+        delete processedCourse.taNames;
+      }
+    }
+    
+    processedData.push(processedCourse);
+  }
+  
+  return processedData;
+}
 
 class CourseController {
   async createCourse(req, res) {
@@ -332,6 +415,42 @@ class CourseController {
     }
   }
 
+  async getInstructors(req, res) {
+    try {
+      console.log(`Get instructors request for course ID ${req.params.id}`);
+      
+      // First check if the course exists
+      const course = await courseService.getCourseById(req.params.id);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+          error: "Course not found with the provided ID"
+        });
+      }
+      
+      const instructors = await courseService.getInstructorsForCourse(req.params.id);
+      
+      res.status(200).json({
+        success: true,
+        data: instructors
+      });
+    } catch (error) {
+      console.error("Error getting instructors:", error);
+      
+      let statusCode = 500;
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        message: "Failed to get instructors", 
+        error: error.message 
+      });
+    }
+  }
+
   async importCoursesFromCSV(req, res) {
     try {
       if (!req.file) {
@@ -371,10 +490,34 @@ class CourseController {
               transformedData.semesterId = data[key];
             } else if (lowerKey === 'studentcount' || lowerKey === 'students') {
               transformedData.studentCount = parseInt(data[key], 10);
-            } else if (lowerKey === 'instructorids' || lowerKey === 'instructors') {
-              transformedData.instructorIds = data[key].split(',').map(id => id.trim());
-            } else if (lowerKey === 'taids' || lowerKey === 'teachingassistants' || lowerKey === 'tas') {
-              transformedData.taIds = data[key].split(',').map(id => id.trim());
+            } 
+            // Handle either instructor IDs or instructor names
+            else if (lowerKey === 'instructorids') {
+              if (data[key] && data[key].trim() !== '') {
+                transformedData.instructorIds = data[key].split(',').map(id => id.trim());
+                console.log(`Parsed instructor IDs for ${transformedData.courseCode}: ${JSON.stringify(transformedData.instructorIds)}`);
+              }
+            }
+            else if (lowerKey === 'instructor' || lowerKey === 'instructors') {
+              if (data[key] && data[key].trim() !== '') {
+                // Store instructor names to look up IDs later
+                transformedData.instructorNames = data[key].split(',').map(name => name.trim());
+                console.log(`Parsed instructor names for ${transformedData.courseCode}: ${JSON.stringify(transformedData.instructorNames)}`);
+              }
+            }
+            // Handle either TA IDs or TA names
+            else if (lowerKey === 'taids') {
+              if (data[key] && data[key].trim() !== '') {
+                transformedData.taIds = data[key].split(',').map(id => id.trim());
+                console.log(`Parsed TA IDs for ${transformedData.courseCode}: ${JSON.stringify(transformedData.taIds)}`);
+              }
+            }
+            else if (lowerKey === 'teachingassistant' || lowerKey === 'ta' || lowerKey === 'tas' || lowerKey === 'teachingassistants') {
+              if (data[key] && data[key].trim() !== '') {
+                // Store TA names to look up IDs later
+                transformedData.taNames = data[key].split(',').map(name => name.trim());
+                console.log(`Parsed TA names for ${transformedData.courseCode}: ${JSON.stringify(transformedData.taNames)}`);
+              }
             }
           });
           
@@ -384,22 +527,32 @@ class CourseController {
           }
         })
         .on("end", async () => {
-          // Remove the temporary file
-          fs.unlinkSync(filePath);
-          
-          console.log(`Parsed ${results.length} courses from CSV`);
+          try {
+            // Remove the temporary file
+            fs.unlinkSync(filePath);
+            
+            console.log(`Parsed ${results.length} courses from CSV`);
 
-          // Process and create courses
-          const uploadResult = await courseService.importCoursesFromCSV(results);
-          
-          res.status(201).json({ 
-            success: true,
-            message: `${uploadResult.success} courses created successfully, ${uploadResult.errors.length} failed.`,
-            coursesCreated: uploadResult.success,
-            coursesFailed: uploadResult.errors.length,
-            totalRecords: results.length,
-            errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
-          });
+            // Use the standalone function instead of a class method
+            const processedResults = await processInstructorsAndTAs(results);
+            const uploadResult = await courseService.importCoursesFromCSV(processedResults);
+            
+            res.status(201).json({ 
+              success: true,
+              message: `${uploadResult.success} courses created successfully, ${uploadResult.errors.length} failed.`,
+              coursesCreated: uploadResult.success,
+              coursesFailed: uploadResult.errors.length,
+              totalRecords: results.length,
+              errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
+            });
+          } catch (error) {
+            console.error("Error processing course data:", error);
+            res.status(500).json({
+              success: false,
+              message: "Failed to process course data",
+              error: error.message
+            });
+          }
         })
         .on("error", (error) => {
           console.error("Error parsing CSV:", error);
