@@ -58,30 +58,9 @@ const TimeslotPopup = ({ onClose, onChange, initialTimeslots = [] }) => {
   const timeSlots = generateTimeSlots();
   
   // State to track selected timeslots
-  const [selectedTimeslots, setSelectedTimeslots] = useState(new Set());
-  
-  // Initialize selected timeslots from props
-  useEffect(() => {
-    // Process initial timeslots to match the expected format
-    const initialSet = new Set();
-    
-    if (initialTimeslots && initialTimeslots.length > 0) {
-      initialTimeslots.forEach(slot => {
-        // Handle both object format and string format
-        if (typeof slot === 'object') {
-          const startTime = slot.startTime ? slot.startTime.substring(0, 5) : '';
-          const endTime = slot.endTime ? slot.endTime.substring(0, 5) : '';
-          if (slot.day && startTime && endTime) {
-            initialSet.add(`${slot.day}-${startTime}-${endTime}`);
-          }
-        } else if (typeof slot === 'string') {
-          initialSet.add(slot);
-        }
-      });
-    }
-    
-    setSelectedTimeslots(initialSet);
-  }, [initialTimeslots]);
+  const [selectedTimeslots, setSelectedTimeslots] = useState(new Set(initialTimeslots.map(slot => 
+    `${slot.day}-${slot.startTime.slice(0, 5)}-${slot.endTime.slice(0, 5)}`
+  )));
   
   // Effect to notify parent component when selections change
   useEffect(() => {
