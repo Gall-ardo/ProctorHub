@@ -1,16 +1,17 @@
 // src/components/InstructorMainPage.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import InstructorNavBar from './InstructorNavBar';
 import './InstructorMainPage.css';
+import './InstructorExamsPage.css'; // Import the exams page styles
 
 export default function InstructorMainPage() {
   const [upcomingExams, setUpcomingExams] = useState([]);
   const [latestSwaps,   setLatestSwaps]   = useState([]);
-  const [selectedInfo,  setSelectedInfo]  = useState(null);
-  const [isModalOpen,   setIsModalOpen]   = useState(false);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
+  const [courses,       setCourses]       = useState([]);
 
   // Base URL for all API calls
   const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
@@ -29,11 +30,20 @@ export default function InstructorMainPage() {
           headers: { Authorization: `Bearer ${token}` }
         });
 
+        // Fetch courses to display proper course codes
+        const coursesResponse = await axios.get(`${API_URL}/instructor/my-courses`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (coursesResponse.data.success) {
+          setCourses(coursesResponse.data.data);
+        }
+
         // Your controller does: res.json({ upcomingExams, latestSwaps })
         const { upcomingExams, latestSwaps } = response.data;
 
         setUpcomingExams(upcomingExams || []);
-        setLatestSwaps(latestSwaps   || []);
+        setLatestSwaps(latestSwaps || []);
       } catch (err) {
         console.error('Error loading dashboard:', err);
         if (err.response?.data) {
@@ -48,17 +58,19 @@ export default function InstructorMainPage() {
     fetchDashboard();
   }, []);
 
-  const openModal  = info => { setSelectedInfo(info); setIsModalOpen(true); };
-  const closeModal = () => { setIsModalOpen(false); setSelectedInfo(null); };
-
   return (
     <div className="instructor-main-page">
       <InstructorNavBar />
 
       <main className="main-content">
-        {/* Upcoming Exams */}
-        <section className="content-panel upcoming-exams-section">
-          <h2>Upcoming Exams</h2>
+        {/* Upcoming Exams with improved styling */}
+        <section className="content-panel exams-container">
+          <div className="exams-header">
+            <h2>Upcoming Exams</h2>
+            <Link to="/instructor/exams" className="add-exam-btn">
+              Manage Exams
+            </Link>
+          </div>
 
           {loading ? (
             <div className="loading">Loading exams…</div>
@@ -68,28 +80,39 @@ export default function InstructorMainPage() {
             <div className="empty">No upcoming exams found</div>
           ) : (
             <div className="cards-container">
-              {upcomingExams.map((exam, i) => (
-                <div className="card" key={i}>
-                  <div className="card-info">
-                    <h3>{exam.course}</h3>
-                    <p>{exam.date}</p>
-                    <p>{exam.time}</p>
+              {upcomingExams.map((exam, i) => {
+                // Find the course to display proper course code
+                const course = courses.find(c => c.id === exam.course || c.courseName === exam.course);
+                const displayCode = course?.courseCode || exam.course;
+                
+                return (
+                  <div className="exam-card" key={i}>
+                    <div className="exam-card-header">
+                      <h3>{displayCode}</h3>
+                    </div>
+                    <p><strong>Date:</strong> {exam.date}</p>
+                    <p><strong>Time:</strong> {exam.time}</p>
+                    {exam.classrooms && exam.classrooms.length > 0 && (
+                      <p><strong>Classroom(s):</strong>{" "}
+                        {exam.classrooms ? exam.classrooms.join(", ") : "None"}</p>
+                    )}
+                    <div className="card-buttons">
+                      <Link to="/instructor/exams" className="info-button">
+                        View Details
+                      </Link>
+                    </div>
                   </div>
-                  <button
-                    className="info-button"
-                    onClick={() => openModal({ type: 'exam', data: exam })}
-                  >
-                    ⓘ
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
 
         {/* Latest Swaps */}
-        <section className="content-panel latest-swaps-section">
-          <h2>Latest Swaps</h2>
+        <section className="content-panel exams-container">
+          <div className="exams-header">
+            <h2>Latest Swap Requests</h2>
+          </div>
 
           {loading ? (
             <div className="loading">Loading swaps…</div>
@@ -100,51 +123,25 @@ export default function InstructorMainPage() {
           ) : (
             <div className="cards-container">
               {latestSwaps.map((swap, i) => (
-                <div className="card" key={i}>
-                  <div className="card-info">
-                    <h3>{swap.from} → {swap.to}</h3>
-                    <p>{swap.swapInfo}</p>
-                    <p>{swap.date} {swap.time}</p>
+                <div className="exam-card" key={i}>
+                  <div className="exam-card-header">
+                    <h3>TA Swap Request</h3>
                   </div>
-                  <button
-                    className="info-button"
-                    onClick={() => openModal({ type: 'swap', data: swap })}
-                  >
-                    ⓘ
-                  </button>
+                  <p><strong>From:</strong> {swap.from}</p>
+                  <p><strong>To:</strong> {swap.to}</p>
+                  <p><strong>Info:</strong> {swap.swapInfo}</p>
+                  <p><strong>Date & Time:</strong> {swap.date} {swap.time}</p>
+                  <div className="card-buttons">
+                    <Link to="/instructor/exams" className="info-button">
+                      View Details
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </section>
       </main>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="modal-backdrop">
-          <div className="modal-content">
-            <button className="close-button" onClick={closeModal}>×</button>
-
-            {selectedInfo.type === 'exam' ? (
-              <>
-                <h3>{selectedInfo.data.course}</h3>
-                <p><strong>Date:</strong> {selectedInfo.data.date}</p>
-                <p><strong>Time:</strong> {selectedInfo.data.time}</p>
-                <p><strong>Duration:</strong> {selectedInfo.data.duration}</p>
-                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms.join(', ')}</p>
-              </>
-            ) : (
-              <>
-                <h3>{selectedInfo.data.from} → {selectedInfo.data.to}</h3>
-                <p><strong>Swap Info:</strong> {selectedInfo.data.swapInfo}</p>
-                <p><strong>Date & Time:</strong> {selectedInfo.data.date} {selectedInfo.data.time}</p>
-                <p><strong>Duration:</strong> {selectedInfo.data.duration}</p>
-                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms.join(', ')}</p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
-);
+  );
 }
