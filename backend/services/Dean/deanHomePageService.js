@@ -53,7 +53,7 @@ exports.getAllExams = async () => {
         model: Classroom,
         as: 'examRooms',
         through: { attributes: [] },
-        attributes: ['name']
+        attributes: ['id']
       }
     ],
     order: [['date', 'ASC']]
@@ -64,7 +64,7 @@ exports.getAllExams = async () => {
     date: exam.date?.toISOString().split('T')[0] || 'N/A',
     time: `${exam.duration} min`,
     duration: exam.duration,
-    classrooms: (exam.examRooms || []).map(room => room.name)
+    classrooms: (exam.examRooms || []).map(room => room.id)
   }));
 };
 

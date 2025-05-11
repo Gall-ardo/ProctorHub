@@ -59,7 +59,7 @@ function DeanHomePage() {
                 <div className="card" key={exam.course}>
                   <div className="card-info">
                     <h3>{exam.course.match(/[A-Z]+\d{3}/i)[0]}</h3> {/* Extract course code with exactly 3 digits */}
-                    <p>{exam.date} at {exam.time}</p>
+                    <p>{exam.date}</p>
                     <p>Duration: {exam.duration} min</p>
                     {exam.classrooms && <p>Classrooms: {exam.classrooms.join(', ')}</p>}
                   </div>
