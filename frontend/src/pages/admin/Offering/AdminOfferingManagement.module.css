@@ -589,3 +589,13 @@
     margin-top: 5px;
   }
 }
+
+/* Add this new style for optional indicators */
+.optionalIndicator {
+  color: #777;
+  font-style: italic;
+  font-weight: normal;
+  margin-left: 3px;
+  font-size: 0.9rem;
+}
+
