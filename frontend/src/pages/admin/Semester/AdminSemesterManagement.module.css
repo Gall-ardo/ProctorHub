@@ -15,13 +15,13 @@
 /* Two Column Layout */
 .twoColumnLayout {
   display: flex;
-  gap: 1.25rem;
+  gap: 2rem; /* Increased from 1.25rem to create more space between columns */
   margin-bottom: 1.5rem;
   align-items: flex-start;
 }
 
 .leftColumn {
-  flex: 0 0 30%; /* Fixed width */
+  flex: 0 0 28%; /* Slightly reduced from 30% to give more space to right column */
   min-width: 300px;
 }
 
@@ -30,12 +30,13 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding-left: 1rem; /* Added padding to move content to the right */
 }
 
 /* Upload Section Title */
 .uploadSectionTitle {
   font-size: 1.25rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem; /* Increased from 0.75rem */
   color: #333;
   text-align: center;
 }
@@ -45,8 +46,8 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, auto);
-  gap: 0.75rem;
-  max-height: 500px; /* Limit the max height to keep all boxes visible */
+  gap: 1rem; /* Increased from 0.75rem */
+  max-height: 600px; /* Increased from 500px to allow for larger boxes */
 }
 
 /* Action Buttons Section */
@@ -206,80 +207,81 @@
   cursor: not-allowed;
 }
 
-/* Upload Box */
+/* Upload Box - UPDATED STYLES */
 .uploadBox {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 0.75rem;
+  padding: 1rem; /* Increased from 0.75rem */
   height: 100%;
   display: flex;
   flex-direction: column;
-  max-height: 200px;
+  max-height: 250px; /* Increased from 200px */
 }
 
 .uploadTitle {
-  font-size: 0.9rem;
+  font-size: 1rem; /* Increased from 0.9rem */
   text-align: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem; /* Increased from 0.5rem */
   color: #333;
+  font-weight: 600; /* Added font weight */
 }
 
 .uploadArea {
   border: 2px dashed #ccc;
   border-radius: 4px;
-  padding: 0.75rem 0.5rem;
+  padding: 1rem 0.5rem; /* Increased from 0.75rem */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 0.3rem;
-  min-height: 80px;
+  gap: 0.5rem; /* Increased from 0.3rem */
+  min-height: 100px; /* Increased from 80px */
   flex: 1;
 }
 
 .uploadIcon {
-  width: 24px;
-  height: 24px;
+  width: 32px; /* Increased from 24px */
+  height: 32px; /* Increased from 24px */
   opacity: 0.6;
 }
 
 .uploadText {
-  font-size: 0.75rem;
+  font-size: 0.85rem; /* Increased from 0.75rem */
   color: #555;
 }
 
 .uploadDivider {
-  font-size: 0.7rem;
+  font-size: 0.8rem; /* Increased from 0.7rem */
   color: #777;
 }
 
 .selectFileBtn {
   background-color: #c42626;
   color: white;
-  padding: 0.3rem 0.6rem;
+  padding: 0.4rem 0.8rem; /* Increased from 0.3rem 0.6rem */
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.85rem; /* Increased from 0.75rem */
 }
 
 .selectedFile {
-  margin-top: 0.3rem;
-  font-size: 0.7rem;
+  margin-top: 0.5rem; /* Increased from 0.3rem */
+  font-size: 0.8rem; /* Increased from 0.7rem */
   color: #444;
   word-break: break-all;
 }
 
 .uploadNote {
-  margin-top: 0.5rem;
-  font-size: 0.65rem;
+  margin-top: 0.75rem; /* Increased from 0.5rem */
+  font-size: 0.75rem; /* Increased from 0.65rem */
   color: #666;
   text-align: center;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3; /* Increased from 2 to show more text */
   -webkit-box-orient: vertical;
 }
 
@@ -383,6 +385,17 @@
   animation: slideIn 0.3s ease-out;
 }
 
+/* Warning Box */
+.warningBox {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  border-left: 4px solid #ffeeba;
+}
+
 /* Responsive styles */
 @media (max-width: 900px) {
   .twoColumnLayout {
@@ -396,6 +409,10 @@
   .uploadGrid {
     grid-template-columns: 1fr;
     grid-template-rows: repeat(4, auto);
+  }
+  
+  .rightColumn {
+    padding-left: 0; /* Remove padding on mobile */
   }
 }
 
