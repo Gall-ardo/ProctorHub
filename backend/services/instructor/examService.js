@@ -761,7 +761,7 @@ class ExamService {
             }
 
             // Step 5: Handle automatic assignments if needed
-            const remainingProctorsNeeded = proctorNum - assignedProctors.filter(p => !p.isManualAssignment).length;
+            const remainingProctorsNeeded = proctorNum;
             
             if (autoAssignRemainingTAs && remainingProctorsNeeded > 0) {
                 // Get already assigned TAs to exclude them
@@ -781,8 +781,8 @@ class ExamService {
                 
                 // Filter and sort TAs based on multiple criteria
                 // 1. Department TAs first
-                const departmentMatchTAs = eligibleTAs.filter(ta => ta.isSameDepartment);
-                const otherTAs = eligibleTAs.filter(ta => !ta.isSameDepartment);
+                const departmentMatchTAs = eligibleTAs.filter(ta => ta.department===department);
+                const otherTAs = eligibleTAs.filter(ta => !(ta.department===department));
                 
                 // Sort department TAs
                 departmentMatchTAs.sort((a, b) => {
@@ -797,6 +797,11 @@ class ExamService {
                     if (isWeekend) {
                         if (a.isPartTime && !b.isPartTime) return -1;
                         if (!a.isPartTime && b.isPartTime) return 1;
+                    }
+                    // For weekday exams, prioritize full-time TAs
+                    else {
+                        if (!a.isPartTime && b.isPartTime) return -1;
+                        if (a.isPartTime && !b.isPartTime) return 1;
                     }
                     
                     // Then prioritize course TAs if option enabled
@@ -829,6 +834,11 @@ class ExamService {
                         if (a.isPartTime && !b.isPartTime) return -1;
                         if (!a.isPartTime && b.isPartTime) return 1;
                     }
+                    // For weekday exams, prioritize full-time TAs
+                    else {
+                        if (!a.isPartTime && b.isPartTime) return -1;
+                        if (a.isPartTime && !b.isPartTime) return 1;
+                    }
                     
                     // Then prioritize course TAs if option enabled
                     if (prioritizeCourseAssistants) {
@@ -847,17 +857,19 @@ class ExamService {
                 });
                 
                 // Combine the sorted lists: department TAs first, then others
-                eligibleTAs = [...departmentMatchTAs, ...otherTAs];
-                
+                // This way ALL department TAs get priority over ANY other TAs regardless of workload
+                const sortedTAs = [...departmentMatchTAs, ...otherTAs];
+                console.log("deparmentvffdv", departmentMatchTAs);
+                console.log("otherrrsdv", otherTAs);
                 // Log eligible TAs with their consecutive day status
                 console.log('Sorted eligible TAs for assignment:');
-                eligibleTAs.forEach((ta, index) => {
+                sortedTAs.forEach((ta, index) => {
                     console.log(`${index + 1}. TA ${ta.id} (${ta.name}): Consecutive days: ${ta.hasConsecutiveDayAssignment ? 'YES' : 'NO'}, Workload: ${ta.totalWorkload || 0}`);
                 });
                 
                 // Assign up to the remaining number needed
-                for (let i = 0; i < Math.min(remainingProctorsNeeded, eligibleTAs.length); i++) {
-                    const ta = eligibleTAs[i];
+                for (let i = 0; i < Math.min(remainingProctorsNeeded, sortedTAs.length); i++) {
+                    const ta = sortedTAs[i];
                     
                     console.log(`Selecting TA ${ta.id} (${ta.name}) for assignment. Consecutive days: ${ta.hasConsecutiveDayAssignment ? 'YES' : 'NO'}`);
                     
@@ -1742,8 +1754,8 @@ class ExamService {
             
             // Sort TAs by the same criteria used in assignProctors method
             // 1. Department TAs first
-            const departmentMatchTAs = eligibleTAs.filter(ta => ta.isSameDepartment);
-            const otherTAs = eligibleTAs.filter(ta => !ta.isSameDepartment);
+            const departmentMatchTAs = eligibleTAs.filter(ta => ta.department === department);
+            const otherTAs = eligibleTAs.filter(ta => !(ta.department === department));
             
             // Get weekend flag for exam date
             const isWeekend = examDate ? new Date(examDate).getDay() === 0 || new Date(examDate).getDay() === 6 : false;
@@ -1753,19 +1765,29 @@ class ExamService {
             
             // Sort department TAs
             departmentMatchTAs.sort((a, b) => {
-                // Priority: TAs without consecutive day assignments
+                // ABSOLUTE PRIORITY: TAs without consecutive day assignments
+                // This will override all other sorting criteria
                 if (!a.hasConsecutiveDayAssignment && b.hasConsecutiveDayAssignment) return -1;
                 if (a.hasConsecutiveDayAssignment && !b.hasConsecutiveDayAssignment) return 1;
+
+                // Only if both TAs have the same consecutive day status, consider other factors
                 
                 // For weekend exams, prioritize part-time TAs
                 if (isWeekend) {
                     if (a.isPartTime && !b.isPartTime) return -1;
                     if (!a.isPartTime && b.isPartTime) return 1;
                 }
+                // For weekday exams, prioritize full-time TAs
+                else {
+                    if (!a.isPartTime && b.isPartTime) return -1;
+                    if (a.isPartTime && !b.isPartTime) return 1;
+                }
                 
-                // Then prioritize course TAs
-                if (a.isCourseTa && !b.isCourseTa) return -1;
-                if (!a.isCourseTa && b.isCourseTa) return 1;
+                // Then prioritize course TAs if option enabled
+                if (prioritizeCourseAssistants) {
+                    if (a.isCourseTa && !b.isCourseTa) return -1;
+                    if (!a.isCourseTa && b.isCourseTa) return 1;
+                }
                 
                 // Then prioritize PhD status for grad courses
                 if (isGradCourse) {
@@ -1777,28 +1799,44 @@ class ExamService {
                 return (a.totalWorkload || 0) - (b.totalWorkload || 0);
             });
             
-            // Sort other TAs similarly
+            // Sort other TAs
             otherTAs.sort((a, b) => {
+                // ABSOLUTE PRIORITY: TAs without consecutive day assignments
+                // This will override all other sorting criteria
                 if (!a.hasConsecutiveDayAssignment && b.hasConsecutiveDayAssignment) return -1;
                 if (a.hasConsecutiveDayAssignment && !b.hasConsecutiveDayAssignment) return 1;
+
+                // Only if both TAs have the same consecutive day status, consider other factors
                 
+                // For weekend exams, prioritize part-time TAs
                 if (isWeekend) {
                     if (a.isPartTime && !b.isPartTime) return -1;
                     if (!a.isPartTime && b.isPartTime) return 1;
                 }
+                // For weekday exams, prioritize full-time TAs
+                else {
+                    if (!a.isPartTime && b.isPartTime) return -1;
+                    if (a.isPartTime && !b.isPartTime) return 1;
+                }
                 
-                if (a.isCourseTa && !b.isCourseTa) return -1;
-                if (!a.isCourseTa && b.isCourseTa) return 1;
+                // Then prioritize course TAs if option enabled
+                if (prioritizeCourseAssistants) {
+                    if (a.isCourseTa && !b.isCourseTa) return -1;
+                    if (!a.isCourseTa && b.isCourseTa) return 1;
+                }
                 
+                // Then prioritize PhD status for grad courses
                 if (isGradCourse) {
                     if (a.isPHD && !b.isPHD) return -1;
                     if (!a.isPHD && b.isPHD) return 1;
                 }
                 
+                // Finally sort by workload
                 return (a.totalWorkload || 0) - (b.totalWorkload || 0);
             });
             
             // Combine the sorted lists: department TAs first, then others
+            // This way ALL department TAs get priority over ANY other TAs regardless of workload
             const sortedTAs = [...departmentMatchTAs, ...otherTAs];
             
             if (sortedTAs.length === 0) {

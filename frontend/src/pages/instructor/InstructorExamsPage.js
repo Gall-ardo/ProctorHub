@@ -441,14 +441,28 @@ const handlePrintStudentsRandomly = async (examId) => {
         // 4. PhD TAs (for graduate courses)
         // 5. Workload (lowest first)
         const sortedTAs = availableTAs.sort((a, b) => {
-          // First prioritize same department (always)
+          // Debug logging for department matching
+          console.log(`Comparing TAs: ${a.name} (dept: ${a.department}) vs ${b.name} (dept: ${b.department})`);
+          console.log(`Exam department: ${department}`);
+          console.log(`${a.name} isSameDepartment: ${a.isSameDepartment}, ${b.name} isSameDepartment: ${b.isSameDepartment}`);
+        
+          // First prioritize same department (HIGHEST PRIORITY)
+          // Same department TAs are ALWAYS prioritized over other department TAs
           if (a.isSameDepartment && !b.isSameDepartment) return -1;
           if (!a.isSameDepartment && b.isSameDepartment) return 1;
+          
+          // If both TAs are from the same department (or both from different departments),
+          // then consider the other factors
           
           // For weekend exams, prioritize part-time TAs
           if (isWeekend) {
             if (a.isPartTime && !b.isPartTime) return -1;
             if (!a.isPartTime && b.isPartTime) return 1;
+          }
+          // For weekday exams, prioritize full-time TAs
+          else {
+            if (!a.isPartTime && b.isPartTime) return -1;
+            if (a.isPartTime && !b.isPartTime) return 1;
           }
           
           // Then prioritize course TAs if checkbox is selected
@@ -1420,7 +1434,7 @@ const handlePrintStudentsRandomly = async (examId) => {
                       Prioritize TAs of selected course
                     </label>
                     <p className="hint-text">
-                      TAs will be prioritized in this order: 1) Department TAs, 2) Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
+                      TAs will be prioritized in this order: 1) Department TAs (highest priority - always selected first regardless of workload), 2) Full-time TAs for weekday exams or Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
                       For graduate courses, PhD TAs will also be prioritized. TAs with approved leave requests on the exam date cannot be assigned.
                     </p>
                   </div>
@@ -1598,7 +1612,7 @@ const handlePrintStudentsRandomly = async (examId) => {
                       Prioritize TAs of selected course
                     </label>
                     <p className="hint-text">
-                      TAs will be prioritized in this order: 1) Department TAs, 2) Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
+                      TAs will be prioritized in this order: 1) Department TAs (highest priority - always selected first regardless of workload), 2) Full-time TAs for weekday exams or Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
                       For graduate courses, PhD TAs will also be prioritized. TAs with approved leave requests on the exam date cannot be assigned.
                     </p>
                   </div>

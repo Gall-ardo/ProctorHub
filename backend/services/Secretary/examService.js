@@ -638,6 +638,12 @@ class ExamService {
             
             console.log(`Found ${availableTAs.length} TAs after filtering by department compatibility`);
             
+            // Log department match status for debugging
+            console.log('Department match status for TAs:');
+            availableTAs.forEach(ta => {
+                console.log(`TA ${ta.id} (${ta.name}): department=${ta.department}, exam department=${department}, isMultidepartmentExam=${ta.isMultidepartmentExam}, isSameDepartment=${ta.isSameDepartment}`);
+            });
+            
             if (checkLeaveRequests) {
                 tasWithLeave = availableTAs
                     .filter(ta => ta.onLeave)
@@ -775,6 +781,18 @@ class ExamService {
                     (!strictLeaveCheck || !ta.onLeave)
                 );
                 
+                // Ensure isSameDepartment is explicitly set for all TAs
+                eligibleTAs = eligibleTAs.map(ta => ({
+                    ...ta,
+                    isSameDepartment: ta.department === department || ta.isMultidepartmentExam === true
+                }));
+                
+                // Log isSameDepartment status for debugging
+                console.log('Eligible TAs with department match status:');
+                eligibleTAs.forEach(ta => {
+                    console.log(`TA ${ta.id} (${ta.name}): department=${ta.department}, isMultidepartmentExam=${ta.isMultidepartmentExam}, isSameDepartment=${ta.isSameDepartment}`);
+                });
+                
                 // Get weekend flag for exam date
                 const isWeekend = examDate ? new Date(examDate).getDay() === 0 || new Date(examDate).getDay() === 6 : false;
                 
@@ -799,6 +817,11 @@ class ExamService {
                     if (isWeekend) {
                         if (a.isPartTime && !b.isPartTime) return -1;
                         if (!a.isPartTime && b.isPartTime) return 1;
+                    }
+                    // For weekday exams, prioritize full-time TAs
+                    else {
+                        if (!a.isPartTime && b.isPartTime) return -1;
+                        if (a.isPartTime && !b.isPartTime) return 1;
                     }
                     
                     // Then prioritize course TAs if option enabled
@@ -831,6 +854,11 @@ class ExamService {
                         if (a.isPartTime && !b.isPartTime) return -1;
                         if (!a.isPartTime && b.isPartTime) return 1;
                     }
+                    // For weekday exams, prioritize full-time TAs
+                    else {
+                        if (!a.isPartTime && b.isPartTime) return -1;
+                        if (a.isPartTime && !b.isPartTime) return 1;
+                    }
                     
                     // Then prioritize course TAs if option enabled
                     if (prioritizeCourseAssistants) {
@@ -849,6 +877,7 @@ class ExamService {
                 });
                 
                 // Combine the sorted lists: department TAs first, then others
+                // This way ALL department TAs get priority over ANY other TAs regardless of workload
                 eligibleTAs = [...departmentMatchTAs, ...otherTAs];
                 
                 // Log eligible TAs with their consecutive day status
