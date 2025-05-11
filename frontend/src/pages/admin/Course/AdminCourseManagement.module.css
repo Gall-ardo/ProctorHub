@@ -518,3 +518,35 @@
   cursor: not-allowed;
   border: 1px solid #cccccc;
 }
+
+.editButton {
+  background-color: #4a90e2;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.editButton:hover {
+  background-color: #357ABD;
+}
+
+.dangerButton {
+  background-color: #e74c3c;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.dangerButton:hover {
+  background-color: #c0392b;
+}
