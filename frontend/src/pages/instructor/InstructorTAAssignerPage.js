@@ -50,6 +50,7 @@ function InstructorTAAssignerPage() {
                 setDepartmentCourses(courses);
                 setAvailableTAs(tasResponse.data.data || []);
                 setTaRequests(requestsResponse.data.data || []);
+                console.log("💡 TA-requests payload:", requestsResponse.data);
             } catch (err) {
                 console.error("Error fetching data:", err);
                 setError("Failed to load department data. Please try again later.");
@@ -445,7 +446,7 @@ function InstructorTAAssignerPage() {
 
     if (loading) {
         return (
-            <div className="instructor-assign-page">
+            <div className="departmentchair-assign-page">
                 <InstructorNavBar />
                 <div className="loading-container">
                     <div className="loading-spinner"></div>
@@ -457,7 +458,7 @@ function InstructorTAAssignerPage() {
 
     if (error) {
         return (
-            <div className="instructor-assign-page">
+            <div className="departmentchair-assign-page">
                 <InstructorNavBar />
                 <div className="error-container">
                     <p className="error-message">{error}</p>
@@ -470,7 +471,7 @@ function InstructorTAAssignerPage() {
     }
 
     return (
-        <div className="instructor-assign-page">
+        <div className="departmentchair-assign-page">
             <InstructorNavBar />
 
             <div className="assign-content-container">
@@ -591,8 +592,8 @@ function InstructorTAAssignerPage() {
                             {getRequestsForCourse(selectedCourse.id).length > 0 ? (
                                 <>
                                     {getInstructorsForCourse(selectedCourse.id).map(instructor => (
-                                        <div key={instructor.id} className="instructor-requests-container">
-                                            <h3 className="instructor-name">{instructor.name}</h3>
+                                        <div key={instructor.id} className="departmentchair-requests-container">
+                                            <h3 className="departmentchair-name">{instructor.name}</h3>
                                             <div className="ta-requests-list">
                                                 {getRequestsByInstructor(selectedCourse.id, instructor.id).map(request => (
                                                     <div key={request.id} className={`ta-request-card priority-${request.priority.toLowerCase()}`}>
@@ -646,7 +647,7 @@ function InstructorTAAssignerPage() {
                                 <div className="preferences-table">
                                     <div className="preferences-header">
                                         <div className="header-name">TA Name</div>
-                                        <div className="header-instructor">Instructor</div>
+                                        <div className="header-departmentchair">Instructor</div>
                                         <div className="header-priority">Priority</div>
                                         <div className="header-reason">Reason</div>
                                         <div className="header-status">Status</div>
@@ -657,7 +658,7 @@ function InstructorTAAssignerPage() {
                                         return (
                                             <div key={request.id} className="preference-row">
                                                 <div className="row-name">{request.ta?.name || 'Unknown'}</div>
-                                                <div className="row-instructor">{request.instructor?.name || 'Unknown'}</div>
+                                                <div className="row-departmentchair">{request.instructor?.name || 'Unknown'}</div>
                                                 <div className={`row-priority priority-${request.priority.toLowerCase()}`}>{request.priority}</div>
                                                 <div className="row-reason">{request.reason}</div>
                                                 <div className="row-status">

@@ -131,7 +131,6 @@ export default function SecretaryNavBar() {
       <div className="secretary-nav-links">
         <Link to="/secretary/home"       className={isActive('/secretary/home')       ? 'active' : ''}>Home</Link>
         <Link to="/secretary/ta-workload" className={isActive('/secretary/ta-workload') ? 'active' : ''}>TA Workload</Link>
-        <Link to="/secretary/exams"      className={isActive('/secretary/exams')      ? 'active' : ''}>Exams</Link>
         <Link to="/secretary/leaverequest"     className={isActive('/secretary/leaverequest')     ? 'active' : ''}>TA Leave Request</Link>
       </div>
 

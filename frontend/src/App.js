@@ -127,9 +127,7 @@ function App() {
         
         {/* Protected Department Chair Routes */}
         <Route path="/departmentchair/home" element={
-          <ProtectedRoute allowedRoles={['chair']}>
             <DepartmentChairMainPage />
-          </ProtectedRoute>
         } />
         <Route path="/departmentchair/ta-workload" element={
           <ProtectedRoute allowedRoles={['chair']}>
@@ -147,9 +145,7 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/departmentchair/assign" element={
-          <ProtectedRoute allowedRoles={['chair']}>
             <DepartmentChairAssignPage />
-          </ProtectedRoute>
         } />
         
         {/* Protected Dean's Office Routes */}

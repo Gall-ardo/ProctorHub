@@ -1200,7 +1200,7 @@ const handlePrintStudentsRandomly = async (examId) => {
                   // find the full course object for this exam
                   const course = courses.find(c => c.id === exam.courseName);
                   // use courseCode if available, otherwise fall back to whatever's in exam.courseName
-                  const displayCode = course?.courseCode || exam.courseName;
+                  const displayCode = course?.department + course?.courseCode || exam.courseName;
               
                   return (
                     <div className="exam-card" key={exam.id}>
@@ -1705,18 +1705,35 @@ const handlePrintStudentsRandomly = async (examId) => {
         {isSwapTAsOpen && selectedExam && (
             <div className="modal-overlay">
               <div className="modal-content">
-                <h2>Request TA Swap for {selectedExam.courseName} {selectedExam.examType}</h2>
+                <div className="modal-header">
+                  <h2>Request TA Swap for {(() => {
+                    const course = courses.find(c => c.id === selectedExam.courseName || c.courseName === selectedExam.courseName);
+                    return course?.department + course?.courseCode || selectedExam.courseName;
+                  })()} {selectedExam.examType}</h2>
+                  <button className="close-modal-btn" onClick={closeAllModals}>×</button>
+                </div>
+                
                 <div className="swap-proctor-info">
                   <p>This will send a request to the selected TA to take over the proctoring assignment. The TA will need to accept your request before the swap is finalized.</p>
                 </div>
-                <form onSubmit={handleSwapTA}>
-                  <p>Current Proctor(s): {selectedExam.proctors ? selectedExam.proctors
-                    .filter(p => p.status === 'ACCEPTED' || p.status === 'PENDING')
-                    .map(p => `${p.name} ${p.status === 'PENDING' ? '(pending)' : ''}`)
-                    .join(', ') : 'None'}</p>
+                
+                <form onSubmit={handleSwapTA} className="swap-ta-form">
+                  <div className="form-row">
+                    <label>Current Proctor(s):</label>
+                    <div className="proctors-list">
+                      {selectedExam.proctors ? selectedExam.proctors
+                        .filter(p => p.status === 'ACCEPTED' || p.status === 'PENDING')
+                        .map(p => (
+                          <span key={p.id} className={`proctor-tag ${p.status === 'PENDING' ? 'pending' : ''}`}>
+                            {p.name} {p.status === 'PENDING' ? '(pending)' : ''}
+                          </span>
+                        )) : 'None'}
+                    </div>
+                  </div>
+                  
                   <div className="form-row">
                     <label>Proctor To Swap:</label>
-                    <select name="oldProctor" required>
+                    <select name="oldProctor" required className="swap-select">
                       <option value="">Select Proctor</option>
                       {selectedExam.proctors && selectedExam.proctors
                         .filter(p => p.status === 'ACCEPTED' || p.status === 'PENDING')
@@ -1727,9 +1744,10 @@ const handlePrintStudentsRandomly = async (examId) => {
                         ))}
                     </select>
                   </div>
+                  
                   <div className="form-row">
                     <label>New Proctor:</label>
-                    <select name="newProctor" required>
+                    <select name="newProctor" required className="swap-select">
                       <option value="">Select New Proctor</option>
                       {availableTAs.map((ta) => (
                           <option key={ta.id} value={ta.id}>
@@ -1738,21 +1756,14 @@ const handlePrintStudentsRandomly = async (examId) => {
                       ))}
                     </select>
                   </div>
+                  
                   <div className="button-row">
                     <button 
                       type="submit" 
-                      className="primary-btn"
+                      className="primary-btn send-swap-btn"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Sending Request...' : 'Send Swap Request'}
-                    </button>
-                    <button 
-                      type="button" 
-                      className="close-btn" 
-                      onClick={closeAllModals}
-                      disabled={isLoading}
-                    >
-                      Close
                     </button>
                   </div>
                 </form>

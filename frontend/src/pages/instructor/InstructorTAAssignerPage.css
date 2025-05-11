@@ -20,32 +20,9 @@
     --font-size-heading: 18px;
 }
 
-.assign-content-container {
-    display: grid;
-    grid-template-columns: 250px 1fr 1fr; /* first col fixed 250px, then courses & available each flex 1 */
-    grid-gap: 1rem;
-    padding: 1rem;
-  }
-  
-  /* you can adjust 250px to whatever width you like */
-  .selected-tas-panel {
-    background: #fff;
-    border-radius: 8px;
-    padding: 1rem;
-    /* any other styling you already had… */
-  }
-  
-  .course-selection-panel {
-    /* now lives in the middle column */
-  }
-  
-  .right-panels-container {
-    /* now lives in the right column */
-  }
-
 /* Removed duplicate navbar styling since it's now in DepartmentChairNavBar.css */
 
-.instructor-assign-page {
+.departmentchair-assign-page {
     background-color: #f5f7fa;
     min-height: 100vh;
     padding-top: 60px; /* Keep this to ensure content starts below navbar */
@@ -94,7 +71,6 @@
 
 .assign-content-container {
     display: flex;
-    align-items: flex-start;    /* ← add this */
     padding: 20px;
     gap: 20px;
     max-width: 1800px;
@@ -165,35 +141,10 @@
 
 /* Selected TAs panel */
 .selected-tas-panel {
-    margin-top: 0;               /* ← remove extra top gap */
-    padding-top: 0;              /* ← remove extra top gap */
-    border-top: none;            /* ← optional: remove the line if you like */
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
 }
-
-.selected-tas-panel {
-    flex: 0 0 300px;                   /* same flex‐basis as .course-selection-panel */
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;                     /* ← exactly the same padding as .course-selection-panel */
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* 2) Match the heading style exactly */
-  .selected-tas-panel h2 {
-    margin: 0 0 1rem;                  /* same top/bottom margin as your other h2s */
-    font-size: var(--font-size-heading);
-    font-weight: 600;
-  }
-  
-  /* 3) Make sure all three columns align at the top */
-  .assign-content-container {
-    display: flex;
-    align-items: flex-start;          /* force every child to the same top line */
-    gap: 20px;
-    padding: 20px;
-  }
 
 .selected-tas-list {
     margin: 15px 0;

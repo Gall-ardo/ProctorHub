@@ -35,7 +35,7 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message, isError = fal
   );
 };
 
-const SuccessDialog = ({ isOpen, onClose, message }) => {
+/*const SuccessDialog = ({ isOpen, onClose, message }) => {
   if (!isOpen) return null;
 
   return (
@@ -69,13 +69,13 @@ const SuccessDialog = ({ isOpen, onClose, message }) => {
       </div>
     </div>
   );
-};
+};*/
 
 const TAProctoringPage = () => {
   const [isMultidepartment, setIsMultidepartment] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  //const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentAction, setCurrentAction] = useState(null);
@@ -269,7 +269,7 @@ const TAProctoringPage = () => {
           // Show success message with workload hours information
           const departmentText = isDepartmentProctoring ? 'your department' : 'non-department';
           setSuccessMessage(`Proctoring assignment accepted successfully! ${hours} hour${hours !== 1 ? 's' : ''} has been added to your ${departmentText} proctoring count and total workload.`);
-          setSuccessDialogOpen(true);
+          //setSuccessDialogOpen(true);
           
           // Update statistics
           setProctoringStats(prev => {
@@ -317,9 +317,9 @@ const TAProctoringPage = () => {
     setErrorDialogOpen(false);
   };
   
-  const closeSuccessDialog = () => {
+  /*const closeSuccessDialog = () => {
     setSuccessDialogOpen(false);
-  };
+  };*/
 
   const renderWaitingProctoringList = () => {
     if (loading) return <div className="ta-proctoring-page-loading">Loading...</div>;
@@ -556,11 +556,7 @@ const TAProctoringPage = () => {
         isError={true}
       />
       
-      <SuccessDialog
-        isOpen={successDialogOpen}
-        onClose={closeSuccessDialog}
-        message={successMessage}
-      />
+      
     </div>
   );
 };

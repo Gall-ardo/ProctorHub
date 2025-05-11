@@ -46,7 +46,8 @@ const InstructorNavBar = () => {
   const modalRef                = useRef(null);
 
   // active‐link helper
-  const isActive = (navPath) => path.startsWith(navPath);
+  const isActive = (navPath, exact = false) =>
+    exact ? path === navPath : path.startsWith(navPath);
 
   // icon mapper
   const getNotificationIcon = (type) => {
@@ -207,7 +208,7 @@ const InstructorNavBar = () => {
         <Link to="/instructor/home"       className={isActive('/instructor/home')       ? 'active' : ''}>Home</Link>
         <Link to="/instructor/ta-workload" className={isActive('/instructor/ta-workload') ? 'active' : ''}>TA Workload</Link>
         <Link to="/instructor/exams"      className={isActive('/instructor/exams')      ? 'active' : ''}>Exams</Link>
-        <Link to="/instructor/assign"     className={isActive('/instructor/assign')     ? 'active' : ''}>TA Assign</Link>
+        <Link to="/instructor/assign"     className={isActive('/instructor/assign', true)     ? 'active' : ''}>TA Assign</Link>
         {isTaAssigner && (
           <Link
             to='/instructor/assign-tas-to-course'
