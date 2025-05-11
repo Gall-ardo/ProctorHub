@@ -1209,7 +1209,7 @@ const handlePrintStudentsRandomly = async (examId) => {
                   // find the full course object for this exam
                   const course = courses.find(c => c.id === exam.courseName);
                   // use courseCode if available, otherwise fall back to whatever's in exam.courseName
-                  const displayCode = course?.courseCode || exam.courseName;
+                  const displayCode = course.department + (course?.courseCode || exam.courseName);
                   return (
                     <div className="exam-card" key={exam.id}>
                       <div className="exam-card-header">
