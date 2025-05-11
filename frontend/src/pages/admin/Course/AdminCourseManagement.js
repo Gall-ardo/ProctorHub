@@ -21,14 +21,14 @@ const AdminCourseManagement = () => {
   const [credit, setCredit] = useState(3);
   const [isGradCourse, setIsGradCourse] = useState(false);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
-  const [selectedTAs, setSelectedTAs] = useState([]);
+  const [selectedTAs, setSelectedTAs] = useState([]); // Kept for Edit mode
   const [instructorCount, setInstructorCount] = useState(1);
-  const [teachingAssistantNumber, setTeachingAssistantNumber] = useState(1);
+  const [teachingAssistantNumber, setTeachingAssistantNumber] = useState(1); // Kept for Edit mode
   const [selectedFile, setSelectedFile] = useState(null);
   
   // Popup states
   const [showInstructorPopup, setShowInstructorPopup] = useState(false);
-  const [showTAPopup, setShowTAPopup] = useState(false);
+  const [showTAPopup, setShowTAPopup] = useState(false); // Kept for Edit mode
   
   // UI states
   const [isLoading, setIsLoading] = useState(false);
@@ -60,23 +60,16 @@ const AdminCourseManagement = () => {
     resetForm();
   }, [activeView]);
 
-  // Update the fetchSemesters function in AdminCourseManagement.jsx
   const fetchSemesters = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/admin/semesters`);
       if (response.data.success) {
         setSemesters(response.data.data);
-        
-        // Find the most recent semester as default if no active flag exists
         if (response.data.data.length > 0) {
-          // Sort by createdAt in descending order (newest first)
           const sortedSemesters = [...response.data.data].sort((a, b) => 
             new Date(b.createdAt) - new Date(a.createdAt)
           );
-          
-          // Try to find active semester first, then fall back to most recent
           const activeSemester = sortedSemesters.find(sem => sem.isActive === true) || sortedSemesters[0];
-          
           if (activeSemester) {
             setSelectedSemester(activeSemester.id);
           }
@@ -89,7 +82,6 @@ const AdminCourseManagement = () => {
     }
   };
 
-  // Reset all form fields
   const resetForm = () => {
     setDepartment('');
     setCourseCode('');
@@ -98,27 +90,23 @@ const AdminCourseManagement = () => {
     setIsGradCourse(false);
     setInstructorCount(1);
     setSelectedInstructors([]);
-    setTeachingAssistantNumber(1);
-    setSelectedTAs([]);
+    setTeachingAssistantNumber(1); // Reset for edit mode
+    setSelectedTAs([]); // Reset for edit mode
     setSelectedFile(null);
     setFoundCourse(null);
     setEditMode(false);
   };
 
-  // Handler functions for instructor popup
   const handleOpenInstructorPopup = () => {
     if (!department) {
       setErrorMessage('Please select a department first');
       setShowError(true);
       return;
     }
-    
-    // Clear previously selected instructors if department has changed
     if (selectedInstructors.length > 0 && selectedInstructors.some(instructor => instructor.department !== department)) {
       setSelectedInstructors([]);
       setInstructorCount(1);
     }
-    
     setShowInstructorPopup(true);
   };
 
@@ -128,24 +116,21 @@ const AdminCourseManagement = () => {
 
   const handleConfirmInstructorSelection = (instructors) => {
     setSelectedInstructors(instructors);
-    setInstructorCount(instructors.length);
+    setInstructorCount(instructors.length || 1); // Ensure count is at least 1 if instructors array is empty
     setShowInstructorPopup(false);
   };
 
-  // Handler functions for TA popup
+  // TA Popup handlers are kept for Edit mode
   const handleOpenTAPopup = () => {
     if (!department) {
       setErrorMessage('Please select a department first');
       setShowError(true);
       return;
     }
-    
-    // Clear previously selected TAs if department has changed
     if (selectedTAs.length > 0 && selectedTAs.some(ta => ta.department !== department)) {
       setSelectedTAs([]);
       setTeachingAssistantNumber(1);
     }
-    
     setShowTAPopup(true);
   };
 
@@ -155,11 +140,10 @@ const AdminCourseManagement = () => {
 
   const handleConfirmTASelection = (tas) => {
     setSelectedTAs(tas);
-    setTeachingAssistantNumber(tas.length);
+    setTeachingAssistantNumber(tas.length || 1); // Ensure count is at least 1 if TAs array is empty
     setShowTAPopup(false);
   };
 
-  // File handling functions
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
   };
@@ -175,13 +159,10 @@ const AdminCourseManagement = () => {
     }
   };
 
-  // Main form submission handler
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    
     try {
-      // Handle different form submissions based on active view
       switch(activeView) {
         case 'add':
           await addCourse();
@@ -210,7 +191,6 @@ const AdminCourseManagement = () => {
     }
   };
 
-  // Form validation function
   const validateForm = () => {
     if (activeView === 'add' || (activeView === 'edit' && editMode)) {
       if (!department || !courseCode || !selectedSemester || selectedInstructors.length === 0) {
@@ -218,13 +198,12 @@ const AdminCourseManagement = () => {
         setShowError(true);
         return false;
       }
-      
-      // Ensure all instructors and TAs match the selected department
       const invalidInstructors = selectedInstructors.filter(instructor => instructor.department !== department);
-      const invalidTAs = selectedTAs.filter(ta => ta.department !== department);
+      // TA validation is only relevant for edit mode now
+      const invalidTAs = activeView === 'edit' && editMode ? selectedTAs.filter(ta => ta.department !== department) : [];
       
       if (invalidInstructors.length > 0 || invalidTAs.length > 0) {
-        setErrorMessage(`All instructors and TAs must belong to the ${department} department.`);
+        setErrorMessage(`All instructors ${activeView === 'edit' && editMode ? 'and TAs ' : ''}must belong to the ${department} department.`);
         setShowError(true);
         return false;
       }
@@ -235,17 +214,14 @@ const AdminCourseManagement = () => {
         return false;
       }
     }
-    
     return true;
   };
 
-  // Update course associations with instructors and TAs
   const updateCourseAssociations = async (courseId, instructors, tas) => {
     try {
-      console.log(instructors.map(instructor => instructor.id));
       await axios.put(`${API_URL}/api/admin/courses/${courseId}`, {
         instructorIds: instructors.map(instructor => instructor.id),
-        taIds: tas.map(ta => ta.id)
+        taIds: tas.map(ta => ta.id) // This will be an empty array for new courses
       });
       return true;
     } catch (error) {
@@ -254,15 +230,12 @@ const AdminCourseManagement = () => {
     }
   };
 
-  // Add a new course
   const addCourse = async () => {
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
-
     try {
-      // Create base course data
       const courseData = {
         department,
         courseCode,
@@ -271,20 +244,15 @@ const AdminCourseManagement = () => {
         isGradCourse,
         semesterId: selectedSemester
       };
-
-      // Create the course
       const response = await axios.post(`${API_URL}/api/admin/courses`, courseData);
-      
       if (response.data.success) {
-        // Get the new course ID
         const courseId = response.data.data.id;
-        // Update course associations
+        // For adding a new course, TAs are not assigned initially from the form.
         await updateCourseAssociations(
           courseId,
           selectedInstructors,
-          selectedTAs
+          [] // Pass an empty array for TAs
         );
-        
         setSuccess('Course added successfully!');
         resetForm();
       }
@@ -294,22 +262,14 @@ const AdminCourseManagement = () => {
     }
   };
 
-  // Find a course to delete
   const findCourseToDelete = async () => {
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
-
     try {
-      // Generate the course ID using the same format as in courseService
       const courseId = `${department}${courseCode}${selectedSemester}`.replace(/\s+/g, '');
-      
-      console.log(`Finding course with ID: ${courseId}`);
-      
-      // Get the course by ID directly
       const response = await axios.get(`${API_URL}/api/admin/courses/${courseId}`);
-      
       if (response.data.success) {
         setFoundCourse(response.data.data);
         setCourseToDelete(response.data.data);
@@ -317,19 +277,16 @@ const AdminCourseManagement = () => {
       }
     } catch (error) {
       console.error('Error finding course:', error);
-      setErrorMessage('Course not found with the provided details. Please check the semester, department, and course code.');
+      setErrorMessage('Course not found. Please check semester, department, and course code.');
       setShowError(true);
     }
   };
 
-  // Handle course deletion confirmation
   const handleDeleteConfirm = async () => {
     setShowConfirmation(false);
     setIsLoading(true);
-    
     try {
       const response = await axios.delete(`${API_URL}/api/admin/courses/${courseToDelete.id}`);
-      
       if (response.data.success) {
         setSuccess('Course deleted successfully!');
         resetForm();
@@ -349,21 +306,12 @@ const AdminCourseManagement = () => {
       setIsLoading(false);
       return;
     }
-
     try {
-      // Generate the course ID using the same format as in courseService
       const courseId = `${department}${courseCode}${selectedSemester}`.replace(/\s+/g, '');
-      
-      console.log(`Finding course with ID: ${courseId}`);
-      
-      // Get the course by ID directly
       const response = await axios.get(`${API_URL}/api/admin/courses/${courseId}`);
-      
       if (response.data.success) {
         const course = response.data.data;
         setFoundCourse(course);
-        
-        // Populate form with course data
         setDepartment(course.department);
         setCourseCode(course.courseCode);
         setCourseName(course.courseName);
@@ -371,25 +319,13 @@ const AdminCourseManagement = () => {
         setIsGradCourse(course.isGradCourse);
         setSelectedSemester(course.semesterId);
         
-        // Fetch instructors with proper error handling
         try {
-          console.log(`Fetching instructors for course ${course.id}`);
           const instructorsResponse = await axios.get(`${API_URL}/api/admin/courses/${course.id}/instructors`);
-          
           if (instructorsResponse.data.success && Array.isArray(instructorsResponse.data.data)) {
-            const instructors = instructorsResponse.data.data;
-            console.log(`Found ${instructors.length} instructors for course ${course.id}`);
-            
-            // Ensure department property is set for each instructor
-            const departmentInstructors = instructors.map(instructor => ({
-              ...instructor,
-              department: instructor.department || course.department
-            }));
-            
-            setSelectedInstructors(departmentInstructors);
-            setInstructorCount(departmentInstructors.length || 1);
+            const instructors = instructorsResponse.data.data.map(inst => ({ ...inst, department: inst.department || course.department }));
+            setSelectedInstructors(instructors);
+            setInstructorCount(instructors.length || 1);
           } else {
-            console.warn('Invalid instructor data format:', instructorsResponse.data);
             setSelectedInstructors([]);
             setInstructorCount(1);
           }
@@ -399,25 +335,13 @@ const AdminCourseManagement = () => {
           setInstructorCount(1);
         }
         
-        // Fetch TAs with proper error handling
         try {
-          console.log(`Fetching TAs for course ${course.id}`);
           const tasResponse = await axios.get(`${API_URL}/api/admin/courses/${course.id}/teaching-assistants`);
-          
           if (tasResponse.data.success && Array.isArray(tasResponse.data.data)) {
-            const tas = tasResponse.data.data;
-            console.log(`Found ${tas.length} TAs for course ${course.id}`);
-            
-            // Ensure department property is set for each TA
-            const departmentTAs = tas.map(ta => ({
-              ...ta,
-              department: ta.department || course.department
-            }));
-            
-            setSelectedTAs(departmentTAs);
-            setTeachingAssistantNumber(departmentTAs.length || 1);
+            const tas = tasResponse.data.data.map(ta => ({ ...ta, department: ta.department || course.department }));
+            setSelectedTAs(tas);
+            setTeachingAssistantNumber(tas.length || 1);
           } else {
-            console.warn('Invalid TA data format:', tasResponse.data);
             setSelectedTAs([]);
             setTeachingAssistantNumber(1);
           }
@@ -426,28 +350,23 @@ const AdminCourseManagement = () => {
           setSelectedTAs([]);
           setTeachingAssistantNumber(1);
         }
-        
-        // Switch to edit mode
         setEditMode(true);
       }
     } catch (error) {
       console.error('Error finding course:', error);
-      setErrorMessage('Course not found with the provided details. Please check the semester, department, and course code.');
+      setErrorMessage('Course not found. Please check semester, department, and course code.');
       setShowError(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Update an existing course
   const updateCourse = async () => {
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
-
     try {
-      // Create updated course data
       const courseData = {
         department,
         courseCode,
@@ -456,18 +375,13 @@ const AdminCourseManagement = () => {
         isGradCourse,
         semesterId: selectedSemester
       };
-
-      // Update the course
       const response = await axios.put(`${API_URL}/api/admin/courses/${foundCourse.id}`, courseData);
-      
       if (response.data.success) {
-        // Update course associations
         await updateCourseAssociations(
           foundCourse.id, 
           selectedInstructors, 
-          selectedTAs
+          selectedTAs // TAs are included for updates
         );
-        
         setSuccess('Course updated successfully!');
         resetForm();
       }
@@ -481,50 +395,39 @@ const AdminCourseManagement = () => {
     resetForm();
   };
 
-  // Handle file upload for bulk course creation or deletion
   const handleFileUpload = async () => {
     if (!selectedFile) {
       setErrorMessage('Please select a file first');
       setShowError(true);
       return;
     }
-
     if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
       setErrorMessage('Only CSV files are allowed');
       setShowError(true);
       return;
     }
-
     setIsLoading(true);
     const formData = new FormData();
     formData.append('file', selectedFile);
-
     try {
       let response;
       if (activeView === 'add') {
         response = await axios.post(`${API_URL}/api/admin/courses/import`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
         setSuccess(response.data.message || `File uploaded successfully. ${response.data.coursesCreated} courses created, ${response.data.coursesFailed} failed.`);
       } else if (activeView === 'delete') {
-        // New endpoint for deleting courses by CSV
         response = await axios.post(`${API_URL}/api/admin/courses/delete-by-csv`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
         setSuccess(response.data.message || `File processed. ${response.data.coursesDeleted} courses deleted, ${response.data.coursesFailed} failed.`);
       } else {
-        // This case should ideally not be reached if UI is set up correctly
         setErrorMessage('Invalid action for file upload.');
         setShowError(true);
         setIsLoading(false);
         return;
       }
-
-      setSelectedFile(null); // Clear selected file on success
+      setSelectedFile(null);
     } catch (error) {
       console.error(`Error uploading file for ${activeView}:`, error);
       setErrorMessage(error.response?.data?.message || `Failed to process file for ${activeView}`);
@@ -536,92 +439,64 @@ const AdminCourseManagement = () => {
 
   return (
     <div className={styles.courseManagement}>
-      {/* Using the reusable AdminNavBar component */}
       <AdminNavBar />
-
       <div className={styles.mainContent}>
-        {/* Left Panel */}
         <div className={styles.leftPanel}>
           <div className={styles.actionButtons}>
             <div 
               className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
               onClick={() => setActiveView('add')}
             >
-              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
-                <span>+</span>
-              </div>
+              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}><span>+</span></div>
               <span className={`${styles.buttonLabel} ${activeView === 'add' ? styles.active : ''}`}>Add Course</span>
             </div>
-            
             <div 
               className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
               onClick={() => setActiveView('delete')}
             >
-              <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
-                <span>-</span>
-              </div>
+              <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}><span>-</span></div>
               <span className={`${styles.buttonLabel} ${activeView === 'delete' ? styles.active : ''}`}>Delete Course</span>
             </div>
-            
             <div 
               className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
               onClick={() => setActiveView('edit')}
             >
-              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
-                <span>✎</span>
-              </div>
+              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}><span>✎</span></div>
               <span className={`${styles.buttonLabel} ${activeView === 'edit' ? styles.active : ''}`}>Edit Course</span>
             </div>
           </div>
 
-{(activeView === 'add' || activeView === 'delete') && (
-          <div 
-            className={styles.fileUploadArea}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <div className={styles.uploadIcon}>
-              <img src="/upload-icon.png" alt="Upload" />
+          {(activeView === 'add' || activeView === 'delete') && (
+            <div className={styles.fileUploadArea} onDragOver={handleDragOver} onDrop={handleDrop}>
+              <div className={styles.uploadIcon}><img src="/upload-icon.png" alt="Upload" /></div>
+              <div className={styles.uploadText}>Drag and Drop here</div>
+              <div className={styles.uploadDivider}>or</div>
+              <label className={styles.selectFileBtn}>
+                Select file <input type="file" accept=".csv" hidden onChange={handleFileSelect}/>
+              </label>
+              {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
+              <button className={styles.uploadFileBtn} onClick={handleFileUpload} disabled={isLoading || !selectedFile}>
+                {isLoading ? 'Processing...' : (activeView === 'add' ? 'Upload to Add Courses' : 'Upload to Delete Courses')}
+              </button>
+              <div className={styles.uploadNote}>
+                {activeView === 'add' ? (
+                  <>
+                    Note: CSV for ADDING should contain columns for CourseCode, Department, and SemesterId.
+                    <br />
+                    Optional columns: CourseName, Credit, IsGradCourse, StudentCount, InstructorNames (comma-separated). {/* REMOVED TaNames */}
+                  </>
+                ) : activeView === 'delete' ? (
+                  <>
+                    Note: CSV for DELETING should contain columns for CourseCode, Department, and SemesterId.
+                    <br />
+                    Each row will identify a course to be deleted.
+                  </>
+                ) : null }
+              </div>
             </div>
-            <div className={styles.uploadText}>Drag and Drop here</div>
-            <div className={styles.uploadDivider}>or</div>
-            <label className={styles.selectFileBtn}>
-              Select file
-              <input 
-                type="file" 
-                accept=".csv"
-                hidden 
-                onChange={handleFileSelect}
-              />
-            </label>
-            {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
-            <button 
-              className={styles.uploadFileBtn}
-              onClick={handleFileUpload} // This now handles both add and delete
-              disabled={isLoading || !selectedFile} // Disable if no file or loading
-            >
-              {isLoading ? 'Processing...' : (activeView === 'add' ? 'Upload to Add Courses' : 'Upload to Delete Courses')}
-            </button>
-            <div className={styles.uploadNote}>
-              {activeView === 'add' ? (
-                <>
-                  Note: CSV for ADDING should contain columns for CourseCode, Department, and SemesterId.
-                  <br />
-                  Optional columns: CourseName, Credit, IsGradCourse, StudentCount, InstructorNames (comma-separated), TaNames (comma-separated).
-                </>
-              ) : activeView === 'delete' ? (
-                <>
-                  Note: CSV for DELETING should contain columns for CourseCode, Department, and SemesterId.
-                  <br />
-                  Each row will identify a course to be deleted.
-                </>
-              ) : null }
-            </div>
-          </div>
-        )}
+          )}
         </div>
 
-        {/* Right Panel - Form Section */}
         <div className={styles.rightPanel}>
           <div className={styles.formContainer}>
             {activeView === 'add' && (
@@ -633,63 +508,39 @@ const AdminCourseManagement = () => {
                     <div className={styles.departmentOptions}>
                       {departmentOptions.map((dept) => (
                         <div 
-                        key={dept.value} 
-                        className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
-                        onClick={() => {
-                          if (department !== dept.value) {
-                            setDepartment(dept.value);
-                            // Clear selected instructors and TAs when department changes
-                            setSelectedInstructors([]);
-                            setSelectedTAs([]);
-                            setInstructorCount(1);
-                            setTeachingAssistantNumber(1);
-                          }
-                        }}
-                      >
-                          {dept.label}
-                          <span className={styles.optionIndicator}></span>
+                          key={dept.value} 
+                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
+                          onClick={() => {
+                            if (department !== dept.value) {
+                              setDepartment(dept.value);
+                              setSelectedInstructors([]);
+                              setSelectedTAs([]); // Still clear for consistency if switching from edit
+                              setInstructorCount(1);
+                              setTeachingAssistantNumber(1); // Still clear for consistency
+                            }
+                          }}
+                        >
+                          {dept.label}<span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredField}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                    />
+                    <input type="text" placeholder="Enter course code" value={courseCode} onChange={(e) => setCourseCode(e.target.value)}/>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Course Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course name (optional)" 
-                      value={courseName}
-                      onChange={(e) => setCourseName(e.target.value)}
-                    />
-                    <div className={styles.helpText}>
-                      If not provided, it will be generated from department and course code.
-                    </div>
+                    <input type="text" placeholder="Enter course name (optional)" value={courseName} onChange={(e) => setCourseName(e.target.value)}/>
+                    <div className={styles.helpText}>If not provided, generated from department and course code.</div>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Credit</label>
-                    <input 
-                      type="number" 
-                      min="1"
-                      max="6"
-                      value={credit}
-                      onChange={(e) => setCredit(parseInt(e.target.value))}
-                    />
+                    <input type="number" min="1" max="6" value={credit} onChange={(e) => setCredit(parseInt(e.target.value))}/>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Semester <span className={styles.requiredField}>*</span></label>
-                    <select 
-                      value={selectedSemester}
-                      onChange={(e) => setSelectedSemester(e.target.value)}
-                      className={styles.selectInput}
-                    >
+                    <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} className={styles.selectInput}>
                       <option value="">Select Semester</option>
                       {semesters && semesters.length > 0 ? (
                         semesters.map(semester => (
@@ -698,94 +549,36 @@ const AdminCourseManagement = () => {
                             {semester.isActive ? ' (Active)' : ''}
                           </option>
                         ))
-                      ) : (
-                        <option value="" disabled>No semesters available</option>
-                      )}
+                      ) : <option value="" disabled>No semesters available</option>}
                     </select>
                   </div>
                   <div className={styles.formGroup}>
                     <div className={styles.checkboxGroup}>
                       <label>
-                        <input 
-                          type="checkbox" 
-                          checked={isGradCourse}
-                          onChange={() => setIsGradCourse(!isGradCourse)}
-                        />
+                        <input type="checkbox" checked={isGradCourse} onChange={() => setIsGradCourse(!isGradCourse)}/>
                         <span>Graduate Course</span>
                       </label>
                       <span className={`${styles.optionIndicator} ${isGradCourse ? styles.selected : ''}`}></span>
                     </div>
                   </div>
-
                   <div className={styles.formGroup}>
                     <label>Instructor(s) <span className={styles.requiredField}>*</span></label>
                     <div className={styles.taInputGroup}>
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={instructorCount}
-                        onChange={(e) => setInstructorCount(parseInt(e.target.value))}
-                        readOnly={selectedInstructors.length > 0}
-                      />
-                      <button 
-                        type="button" 
-                        className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`}
-                        onClick={handleOpenInstructorPopup}
-                        disabled={!department}
-                      >
+                      <input type="number" min="1" value={instructorCount} onChange={(e) => setInstructorCount(parseInt(e.target.value))} readOnly={selectedInstructors.length > 0}/>
+                      <button type="button" className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`} onClick={handleOpenInstructorPopup} disabled={!department}>
                         Select Instructor(s)
                       </button>
                     </div>
-                    
-                    {/* Display selected instructors */}
                     {selectedInstructors.length > 0 && (
                       <div className={styles.selectedAssistants}>
-                        {selectedInstructors.map(instructor => (
-                          <div key={instructor.id} className={styles.assistantChip}>
-                            {instructor.name}
-                          </div>
-                        ))}
+                        {selectedInstructors.map(instructor => (<div key={instructor.id} className={styles.assistantChip}>{instructor.name}</div>))}
                       </div>
                     )}
                   </div>
                   
-                  <div className={styles.formGroup}>
-                    <label>Teaching Assistant(s)</label>
-                    <div className={styles.taInputGroup}>
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={teachingAssistantNumber}
-                        onChange={(e) => setTeachingAssistantNumber(parseInt(e.target.value))}
-                        readOnly={selectedTAs.length > 0}
-                      />
-                      <button 
-                        type="button" 
-                        className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`}
-                        onClick={handleOpenTAPopup}
-                        disabled={!department}
-                      >
-                        Select Teaching Assistant(s)
-                      </button>
-                    </div>
-                    
-                    {/* Display selected teaching assistants */}
-                    {selectedTAs.length > 0 && (
-                      <div className={styles.selectedAssistants}>
-                        {selectedTAs.map(ta => (
-                          <div key={ta.id} className={styles.assistantChip}>
-                            {ta.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  {/* Teaching Assistant selection REMOVED for 'add' view */}
 
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={isLoading}
-                  >
+                  <button type="submit" className={styles.formSubmitBtn} disabled={isLoading}>
                     {isLoading ? 'Adding...' : 'Add Course'}
                   </button>
                 </form>
@@ -798,11 +591,7 @@ const AdminCourseManagement = () => {
                 <form onSubmit={handleFormSubmit}>
                   <div className={styles.formGroup}>
                     <label>Semester <span className={styles.requiredField}>*</span></label>
-                    <select 
-                      value={selectedSemester}
-                      onChange={(e) => setSelectedSemester(e.target.value)}
-                      className={styles.selectInput}
-                    >
+                    <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} className={styles.selectInput}>
                       <option value="">Select Semester</option>
                       {semesters && semesters.length > 0 ? (
                         semesters.map(semester => (
@@ -811,43 +600,24 @@ const AdminCourseManagement = () => {
                             {semester.isActive ? ' (Active)' : ''}
                           </option>
                         ))
-                      ) : (
-                        <option value="" disabled>No semesters available</option>
-                      )}
+                      ) : <option value="" disabled>No semesters available</option>}
                     </select>
                   </div>
-                  
                   <div className={styles.formGroup}>
                     <label>Department <span className={styles.requiredField}>*</span></label>
                     <div className={styles.departmentOptions}>
                       {departmentOptions.map((dept) => (
-                        <div 
-                          key={dept.value} 
-                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
-                          onClick={() => setDepartment(dept.value)}
-                        >
-                          {dept.label}
-                          <span className={styles.optionIndicator}></span>
+                        <div key={dept.value} className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`} onClick={() => setDepartment(dept.value)}>
+                          {dept.label}<span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredField}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                    />
+                    <input type="text" placeholder="Enter course code" value={courseCode} onChange={(e) => setCourseCode(e.target.value)}/>
                   </div>
-                  
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={isLoading}
-                  >
+                  <button type="submit" className={styles.formSubmitBtn} disabled={isLoading}>
                     {isLoading ? 'Finding...' : 'Find Course to Delete'}
                   </button>
                 </form>
@@ -858,13 +628,9 @@ const AdminCourseManagement = () => {
               <>
                 <h2 className={styles.formTitle}>Find Course to Edit</h2>
                 <form onSubmit={handleFormSubmit}>
-                  <div className={styles.formGroup}>
+                   <div className={styles.formGroup}>
                     <label>Semester <span className={styles.requiredField}>*</span></label>
-                    <select 
-                      value={selectedSemester}
-                      onChange={(e) => setSelectedSemester(e.target.value)}
-                      className={styles.selectInput}
-                    >
+                    <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} className={styles.selectInput}>
                       <option value="">Select Semester</option>
                       {semesters && semesters.length > 0 ? (
                         semesters.map(semester => (
@@ -873,43 +639,24 @@ const AdminCourseManagement = () => {
                             {semester.isActive ? ' (Active)' : ''}
                           </option>
                         ))
-                      ) : (
-                        <option value="" disabled>No semesters available</option>
-                      )}
+                      ) : <option value="" disabled>No semesters available</option>}
                     </select>
                   </div>
-                  
                   <div className={styles.formGroup}>
                     <label>Department <span className={styles.requiredField}>*</span></label>
                     <div className={styles.departmentOptions}>
                       {departmentOptions.map((dept) => (
-                        <div 
-                          key={dept.value} 
-                          className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`}
-                          onClick={() => setDepartment(dept.value)}
-                        >
-                          {dept.label}
-                          <span className={styles.optionIndicator}></span>
+                        <div key={dept.value} className={`${styles.departmentOption} ${department === dept.value ? styles.selected : ''}`} onClick={() => setDepartment(dept.value)}>
+                          {dept.label}<span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredField}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                    />
+                    <input type="text" placeholder="Enter course code" value={courseCode} onChange={(e) => setCourseCode(e.target.value)}/>
                   </div>
-                  
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={isLoading}
-                  >
+                  <button type="submit" className={styles.formSubmitBtn} disabled={isLoading}>
                     {isLoading ? 'Finding...' : 'Find Course to Edit'}
                   </button>
                 </form>
@@ -930,7 +677,6 @@ const AdminCourseManagement = () => {
                           onClick={() => {
                             if (department !== dept.value) {
                               setDepartment(dept.value);
-                              // Clear selected instructors and TAs when department changes
                               setSelectedInstructors([]);
                               setSelectedTAs([]);
                               setInstructorCount(1);
@@ -938,50 +684,30 @@ const AdminCourseManagement = () => {
                             }
                           }}
                         >
-                          {dept.label}
-                          <span className={styles.optionIndicator}></span>
+                          {dept.label}<span className={styles.optionIndicator}></span>
                         </div>
                       ))}
                     </div>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Course Code <span className={styles.requiredField}>*</span></label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course code" 
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
+                    <input type="text" placeholder="Enter course code" value={courseCode} onChange={(e) => setCourseCode(e.target.value)}
+                    readOnly={editMode}
+                    className={editMode ? styles.readOnlyInput : ''}
                     />
                   </div>
                   <div className={styles.formGroup}>
                     <label>Course Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter course name (optional)" 
-                      value={courseName}
-                      onChange={(e) => setCourseName(e.target.value)}
-                    />
-                    <div className={styles.helpText}>
-                      If not provided, it will be generated from department and course code.
-                    </div>
+                    <input type="text" placeholder="Enter course name (optional)" value={courseName} onChange={(e) => setCourseName(e.target.value)}/>
+                    <div className={styles.helpText}>If not provided, generated from department and course code.</div>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Credit</label>
-                    <input 
-                      type="number" 
-                      min="1"
-                      max="6"
-                      value={credit}
-                      onChange={(e) => setCredit(parseInt(e.target.value))}
-                    />
+                    <input type="number" min="1" max="6" value={credit} onChange={(e) => setCredit(parseInt(e.target.value))}/>
                   </div>
                   <div className={styles.formGroup}>
                     <label>Semester <span className={styles.requiredField}>*</span></label>
-                    <select 
-                      value={selectedSemester}
-                      onChange={(e) => setSelectedSemester(e.target.value)}
-                      className={styles.selectInput}
-                    >
+                    <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} className={styles.selectInput}>
                       <option value="">Select Semester</option>
                       {semesters.map(semester => (
                         <option key={semester.id} value={semester.id}>
@@ -994,93 +720,44 @@ const AdminCourseManagement = () => {
                   <div className={styles.formGroup}>
                     <div className={styles.checkboxGroup}>
                       <label>
-                        <input 
-                          type="checkbox" 
-                          checked={isGradCourse}
-                          onChange={() => setIsGradCourse(!isGradCourse)}
-                        />
+                        <input type="checkbox" checked={isGradCourse} onChange={() => setIsGradCourse(!isGradCourse)}/>
                         <span>Graduate Course</span>
                       </label>
                       <span className={`${styles.optionIndicator} ${isGradCourse ? styles.selected : ''}`}></span>
                     </div>
                   </div>
-                  
                   <div className={styles.formGroup}>
                     <label>Instructor(s) <span className={styles.requiredField}>*</span></label>
                     <div className={styles.taInputGroup}>
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={instructorCount}
-                        onChange={(e) => setInstructorCount(parseInt(e.target.value))}
-                        readOnly={selectedInstructors.length > 0}
-                      />
-                      <button 
-                        type="button" 
-                        className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`}
-                        onClick={handleOpenInstructorPopup}
-                        disabled={!department}
-                      >
+                      <input type="number" min="1" value={instructorCount} onChange={(e) => setInstructorCount(parseInt(e.target.value))} readOnly={selectedInstructors.length > 0}/>
+                      <button type="button" className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`} onClick={handleOpenInstructorPopup} disabled={!department}>
                         Select Instructor(s)
                       </button>
                     </div>
-                    
-                    {/* Display selected instructors */}
                     {selectedInstructors.length > 0 && (
                       <div className={styles.selectedAssistants}>
-                        {selectedInstructors.map(instructor => (
-                          <div key={instructor.id} className={styles.assistantChip}>
-                            {instructor.name}
-                          </div>
-                        ))}
+                        {selectedInstructors.map(instructor => (<div key={instructor.id} className={styles.assistantChip}>{instructor.name}</div>))}
                       </div>
                     )}
                   </div>
-                  
+                  {/* TA selection is kept for Edit mode */}
                   <div className={styles.formGroup}>
                     <label>Teaching Assistant(s)</label>
                     <div className={styles.taInputGroup}>
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={teachingAssistantNumber}
-                        onChange={(e) => setTeachingAssistantNumber(parseInt(e.target.value))}
-                        readOnly={selectedTAs.length > 0}
-                      />
-                      <button 
-                        type="button" 
-                        className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`}
-                        onClick={handleOpenTAPopup}
-                        disabled={!department}
-                      >
+                      <input type="number" min="1" value={teachingAssistantNumber} onChange={(e) => setTeachingAssistantNumber(parseInt(e.target.value))} readOnly={selectedTAs.length > 0}/>
+                      <button type="button" className={`${styles.selectTaBtn} ${!department ? styles.disabled : ''}`} onClick={handleOpenTAPopup} disabled={!department}>
                         Select Teaching Assistant(s)
                       </button>
                     </div>
-                    
-                    {/* Display selected teaching assistants */}
                     {selectedTAs.length > 0 && (
                       <div className={styles.selectedAssistants}>
-                        {selectedTAs.map(ta => (
-                          <div key={ta.id} className={styles.assistantChip}>
-                            {ta.name}
-                          </div>
-                        ))}
+                        {selectedTAs.map(ta => (<div key={ta.id} className={styles.assistantChip}>{ta.name}</div>))}
                       </div>
                     )}
                   </div>
                   <div className={styles.formButtonGroup}>
-                    <button 
-                      type="button" 
-                      className={styles.cancelBtn}
-                      onClick={handleCancelEdit}
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit" 
-                      className={styles.formSubmitBtn}
-                      disabled={isLoading}
-                    >
+                    <button type="button" className={styles.cancelBtn} onClick={handleCancelEdit}>Cancel</button>
+                    <button type="submit" className={styles.formSubmitBtn} disabled={isLoading}>
                       {isLoading ? 'Updating...' : 'Update Course'}
                     </button>
                   </div>
@@ -1091,7 +768,6 @@ const AdminCourseManagement = () => {
         </div>
       </div>
 
-      {/* Confirmation Popup for Delete */}
       {showConfirmation && (
         <ConfirmationPopup
           title="Confirm Course Deletion"
@@ -1111,10 +787,11 @@ const AdminCourseManagement = () => {
           selectedUsers={selectedInstructors}
           onCancel={handleCloseInstructorPopup}
           onConfirm={handleConfirmInstructorSelection}
-          department={department} // This passes the currently selected department to the popup
+          department={department}
         />
       )}
 
+      {/* TA Popup is kept for Edit mode */}
       {showTAPopup && (
         <SelectUserPopup
           title="Select Teaching Assistants"
@@ -1123,19 +800,14 @@ const AdminCourseManagement = () => {
           selectedUsers={selectedTAs}
           onCancel={handleCloseTAPopup}
           onConfirm={handleConfirmTASelection}
-          department={department} // This passes the currently selected department to the popup
+          department={department}
         />
       )}
 
-      {/* Error Popup */}
       {showError && (
-        <ErrorPopup
-          message={errorMessage}
-          onClose={() => setShowError(false)}
-        />
+        <ErrorPopup message={errorMessage} onClose={() => setShowError(false)} />
       )}
 
-      {/* Success Message */}
       {success && (
         <div className={styles.successMessage}>
           {success}

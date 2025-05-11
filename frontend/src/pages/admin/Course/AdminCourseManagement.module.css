@@ -549,3 +549,15 @@
 .dangerButton:hover {
   background-color: #c0392b;
 }
+
+/* In AdminCourseManagement.module.css */
+.readOnlyInput {
+  background-color: #f0f0f0; /* Lighter background */
+  color: #555; /* Dimmer text color */
+  cursor: not-allowed; /* Indicate non-interactive */
+}
+
+.readOnlyInput:focus {
+  outline: none;
+  border-color: #ddd; /* Keep border consistent or less prominent */
+}
