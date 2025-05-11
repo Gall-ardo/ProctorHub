@@ -6,7 +6,8 @@ const {
   User,
   Exam,
   Proctoring,
-  Notification
+  Notification,
+  Secretary
 } = require('../../models');
 
 async function listPending() {
@@ -98,7 +99,7 @@ async function approve(id) {
       subject:     'Leave Request Approved',
       message:     `Your leave from `
                  + `${leave.startDate.toISOString().slice(0,10)} to `
-                 + `${leave.endDate.toISOString().slice(0,10)} has been approved by '${name}'. `, 
+                 + `${leave.endDate.toISOString().slice(0,10)} has been approved.`, 
       date:        new Date(),
       isRead:      false
     });
@@ -132,7 +133,7 @@ async function reject(id, reason) {
       subject:     'Leave Request Rejected',
       message:     `Your leave from `
                  + `${leave.startDate.toISOString().slice(0,10)} to `
-                 + `${leave.endDate.toISOString().slice(0,10)} has been rejected by '${name}'. `,
+                 + `${leave.endDate.toISOString().slice(0,10)} has been rejected. `,
       date:        new Date(),
       isRead:      false
     });
