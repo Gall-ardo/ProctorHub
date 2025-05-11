@@ -72,4 +72,4 @@ npm start
 ```
 
 # Step 6: Entering the system
-Go the link http://localhost:3000/admin/user and create any type user. The password will come to your mail. You can enter the system with your mail and password.
+Go the link http://localhost:3000/admin/user and create any type user. The password will come to your mail. You can enter the system with your mail and password. The admin links is not authorized to provide ease of use to new installers.
