@@ -7,11 +7,14 @@ const {
   User,
   Exam,
   Proctoring,
-  Notification,
-  Secretary
+  Notification
 } = require('../../models');
-const examService = require('../Instructor/examService');
+const examService = require('./examService');
 
+/**
+ * Lists pending leave requests for TAs
+ * @returns {Promise<Array>} Array of leave requests with affected exams
+ */
 async function listPending() {
   // 1) fetch all waiting leave‐requests + TA→User
   const rows = await LeaveRequest.findAll({
@@ -41,7 +44,6 @@ async function listPending() {
         date: ex.date
       }));
 
-
     return {
       id:        r.id,
       startDate: r.startDate,
@@ -58,6 +60,10 @@ async function listPending() {
   return results;
 }
 
+/**
+ * Lists current approved leave requests
+ * @returns {Promise<Array>} Array of approved leave requests
+ */
 async function listCurrent() {
   const rows = await LeaveRequest.findAll({
     where: { status: 'approved' },
@@ -77,7 +83,19 @@ async function listCurrent() {
   }));
 }
 
-async function approve(id) {
+/**
+ * Approve a leave request and handle affected proctoring assignments
+ * @param {string} id - Leave request ID
+ * @param {string} instructorId - ID of the instructor approving the request
+ * @returns {Promise<Object>} The approved leave request
+ */
+async function approve(id, instructorId) {
+  // Get instructor name for notifications
+  const instructor = await User.findByPk(instructorId, {
+    attributes: ['name']
+  });
+  const instructorName = instructor ? instructor.name : 'Instructor';
+
   // 1) Mark the leave request approved
   const r = await LeaveRequest.findByPk(id);
   if (!r) throw new Error('LeaveRequest not found');
@@ -92,7 +110,7 @@ async function approve(id) {
     }]
   });
 
-  // 3) Send notification
+  // 3) Send notification to TA about approval
   if (leave?.TeachingAssistant?.taUser) {
     const { id: taId, name } = leave.TeachingAssistant.taUser;
     await Notification.create({
@@ -101,7 +119,7 @@ async function approve(id) {
       subject:     'Leave Request Approved',
       message:     `Your leave from `
                  + `${leave.startDate.toISOString().slice(0,10)} to `
-                 + `${leave.endDate.toISOString().slice(0,10)} has been approved by Secretary's Office.`, 
+                 + `${leave.endDate.toISOString().slice(0,10)} has been approved by '${instructorName}'. `, 
       date:        new Date(),
       isRead:      false
     });
@@ -113,7 +131,20 @@ async function approve(id) {
   return r;
 }
 
-async function reject(id, reason) {
+/**
+ * Reject a leave request
+ * @param {string} id - Leave request ID
+ * @param {string} reason - Rejection reason
+ * @param {string} instructorId - ID of the instructor rejecting the request
+ * @returns {Promise<Object>} The rejected leave request
+ */
+async function reject(id, reason, instructorId) {
+  // Get instructor name for notifications
+  const instructor = await User.findByPk(instructorId, {
+    attributes: ['name']
+  });
+  const instructorName = instructor ? instructor.name : 'Instructor';
+
   // 1) Mark the leave request rejected
   const r = await LeaveRequest.findByPk(id);
   if (!r) throw new Error('LeaveRequest not found');
@@ -138,7 +169,8 @@ async function reject(id, reason) {
       subject:     'Leave Request Rejected',
       message:     `Your leave from `
                  + `${leave.startDate.toISOString().slice(0,10)} to `
-                 + `${leave.endDate.toISOString().slice(0,10)} has been rejected. `,
+                 + `${leave.endDate.toISOString().slice(0,10)} has been rejected by '${instructorName}'. `
+                 + (reason ? `Reason: ${reason}` : ''), 
       date:        new Date(),
       isRead:      false
     });
@@ -189,7 +221,7 @@ async function handleAffectedProctoringAssignments(taId, startDate, endDate) {
           // Get the TA record to determine if they're in the same department as the exam
           const ta = await TeachingAssistant.findByPk(taId);
           
-          // Reduce the TA's workload (this endpoint will handle the appropriate calculations)
+          // Reduce the TA's workload
           await axios.post(
             `${process.env.API_URL || 'http://localhost:5001'}/api/instructor/update-ta-workload`,
             {
@@ -262,4 +294,4 @@ async function handleAffectedProctoringAssignments(taId, startDate, endDate) {
   }
 }
 
-module.exports = { listPending, listCurrent, approve, reject };
+module.exports = { listPending, listCurrent, approve, reject }; 

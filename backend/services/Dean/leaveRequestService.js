@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { Op } = require('sequelize');
+const axios = require('axios');
 const {
   LeaveRequest,
   TeachingAssistant,
@@ -8,6 +9,7 @@ const {
   Proctoring,
   Notification
 } = require('../../models');
+const examService = require('../Instructor/examService');
 
 async function listPending() {
   // 1) fetch all waiting leave‐requests + TA→User
@@ -98,10 +100,13 @@ async function approve(id) {
       subject:     'Leave Request Approved',
       message:     `Your leave from `
                  + `${leave.startDate.toISOString().slice(0,10)} to `
-                 + `${leave.endDate.toISOString().slice(0,10)} has been approved by '${name}'. `, 
+                 + `${leave.endDate.toISOString().slice(0,10)} has been approved by Dean's Office.`, 
       date:        new Date(),
       isRead:      false
     });
+    
+    // 4) Handle affected proctoring assignments
+    await handleAffectedProctoringAssignments(taId, leave.startDate, leave.endDate);
   }
 
   return r;
@@ -139,6 +144,121 @@ async function reject(id, reason) {
   }
 
   return r;
+}
+
+/**
+ * Handle proctoring assignments affected by an approved leave request
+ * @param {string} taId - The TA's ID
+ * @param {Date} startDate - Leave start date
+ * @param {Date} endDate - Leave end date
+ */
+async function handleAffectedProctoringAssignments(taId, startDate, endDate) {
+  try {
+    // 1) Find all proctoring assignments for this TA that overlap with the leave period
+    const affectedProctoringAssignments = await Proctoring.findAll({
+      where: { 
+        taId,
+        // Only consider PENDING or ACCEPTED proctorings (not REJECTED or already SWAPPED)
+        status: { [Op.in]: ['PENDING', 'ACCEPTED'] }
+      },
+      include: [{
+        model: Exam, 
+        as: 'exam',
+        where: {
+          date: { 
+            [Op.between]: [startDate, endDate] 
+          }
+        }
+      }]
+    });
+    
+    console.log(`Found ${affectedProctoringAssignments.length} affected proctoring assignments for TA ${taId}`);
+    
+    // 2) For each affected proctoring, mark as SWAPPED and find a replacement
+    for (const proctoring of affectedProctoringAssignments) {
+      const exam = proctoring.exam;
+      console.log(`Processing exam ${exam.id} (${exam.courseName}) on ${exam.date}`);
+      
+      // Mark the current proctoring as SWAPPED
+      await proctoring.update({ status: 'SWAPPED' });
+      
+      // If the proctoring was ACCEPTED, reduce the TA's workload
+      if (proctoring.status === 'ACCEPTED') {
+        try {
+          // Get the TA record to determine if they're in the same department as the exam
+          const ta = await TeachingAssistant.findByPk(taId);
+          
+          // Reduce the TA's workload (this endpoint will handle the appropriate calculations)
+          await axios.post(
+            `${process.env.API_URL || 'http://localhost:5001'}/api/instructor/update-ta-workload`,
+            {
+              taId: taId,
+              examId: exam.id,
+              action: 'SWAP', // This action tells the backend to reduce the workload
+              examDepartment: exam.department,
+              isOldProctorSameDepartment: ta ? ta.department === exam.department : false
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${process.env.SYSTEM_TOKEN}` // Use a system token for internal API calls
+              }
+            }
+          );
+          
+          console.log(`Updated workload for swapped proctor ${taId}`);
+        } catch (workloadError) {
+          console.error('Error updating proctor workload:', workloadError);
+          // Continue with other tasks even if workload update fails
+        }
+      }
+      
+      // Notify the TA that their proctoring assignment has been removed
+      await Notification.create({
+        id: uuidv4(),
+        recipientId: taId,
+        subject: 'Proctoring Assignment Removed',
+        message: `Due to your approved leave request, your proctoring assignment for ${exam.courseName} exam on ${new Date(exam.date).toISOString().slice(0,10)} has been removed.`,
+        date: new Date(),
+        isRead: false
+      });
+      
+      // Use the findReplacementProctor from examService to find and request a new proctor
+      try {
+        const replacementFound = await examService.findReplacementProctor(exam.id, taId);
+        
+        if (replacementFound) {
+          console.log(`Replacement found for exam ${exam.id}`);
+        } else {
+          console.log(`No suitable replacement found for exam ${exam.id}. Manual intervention required.`);
+          
+          // Notify the instructor that a manual replacement is needed
+          const instructors = await User.findAll({
+            include: [{
+              model: Exam,
+              where: { id: exam.id }
+            }],
+            attributes: ['id']
+          });
+          
+          for (const instructor of instructors) {
+            await Notification.create({
+              id: uuidv4(),
+              recipientId: instructor.id,
+              subject: 'TA Replacement Needed',
+              message: `A replacement TA is needed for ${exam.courseName} exam on ${new Date(exam.date).toISOString().slice(0,10)}. The assigned TA has an approved leave request for this date.`,
+              date: new Date(),
+              isRead: false
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`Error finding replacement proctor for exam ${exam.id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling affected proctoring assignments:', error);
+    throw error;
+  }
 }
 
 module.exports = { listPending, listCurrent, approve, reject };

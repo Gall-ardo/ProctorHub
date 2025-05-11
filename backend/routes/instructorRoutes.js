@@ -6,6 +6,7 @@ const examController = require('../controllers/Instructor/examController');
 const instructorController = require('../controllers/Instructor/instructorController');
 const taRequestController = require('../controllers/Instructor/InstructorTARequestController');
 const assignTAController = require('../controllers/Instructor/assignTAController');
+const leaveRequestController = require('../controllers/Instructor/leaveRequestController');
 const { Instructor } = require('../models');
 const printController = require('../controllers/instructor/printController');
 
@@ -289,4 +290,34 @@ router.get(
   authorizeRole(['instructor']),
   printController.printStudentsRandomly
 );
+
+// Leave request routes
+router.get(
+    '/leave-requests/pending',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    leaveRequestController.getPending
+);
+
+router.get(
+    '/leave-requests/current',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    leaveRequestController.getCurrent
+);
+
+router.post(
+    '/leave-requests/:id/approve',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    leaveRequestController.approve
+);
+
+router.post(
+    '/leave-requests/:id/reject',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    leaveRequestController.reject
+);
+
 module.exports = router;
