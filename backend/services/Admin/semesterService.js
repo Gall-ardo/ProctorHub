@@ -518,175 +518,84 @@ async findSemesterById(id) {
     }
   }
 
+// services/Admin/semesterService.js
 async enrollStudents(semesterId, studentsData) {
   const t = await sequelize.transaction();
-  
   try {
     // Validate semester exists
     const semester = await Semester.findByPk(semesterId, { transaction: t });
     if (!semester) {
       throw new Error(`Semester with ID ${semesterId} not found`);
     }
-    
+
     let successCount = 0;
     let failedCount = 0;
     const errors = [];
     const enrollments = [];
-    
-    // Process each student enrollment
+
     for (const studentData of studentsData) {
       try {
-        // Verify required fields
+        // 1) Required fields
         if (!studentData.studentId || !studentData.offeringId) {
           throw new Error("Student ID and Offering ID are required");
         }
-        
-        console.log(`Processing student enrollment: ${studentData.studentId} to ${studentData.offeringId}`);
-        
-        // Verify offering exists
-        const offering = await Offering.findByPk(studentData.offeringId, { transaction: t });
-        
-        if (!offering) {
-          throw new Error(`Offering ${studentData.offeringId} not found`);
-        }
-        
-        // Get the course from the offering
-        const course = await Course.findByPk(offering.courseId, { transaction: t });
-        if (!course) {
-          throw new Error(`Course ${offering.courseId} not found for offering ${studentData.offeringId}`);
-        }
-        
-        // Verify student exists - using the model directly
-        const student = await Student.findByPk(studentData.studentId, { transaction: t });
-        
+
+        // 2) Ensure student record exists (create if needed)
+        let student = await Student.findByPk(studentData.studentId, { transaction: t });
         if (!student) {
-          // Try to see if the User exists with this ID
-          const user = await User.findOne({
-            where: { id: studentData.studentId, userType: 'student' },
-            transaction: t
-          });
-          
+          const user = await User.findByPk(studentData.studentId, { transaction: t });
           if (user) {
-            // Create a Student record if the user exists but no Student record
-            console.log(`User ${studentData.studentId} exists but no Student record. Creating Student record.`);
-            await Student.create({
-              id: studentData.studentId,
-              name: user.name || `Student ${studentData.studentId}`,
-              email: user.email || `${studentData.studentId}@university.edu`,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            }, { transaction: t });
+            student = await Student.create({ id: user.id, name: user.name, email: user.email }, { transaction: t });
           } else {
-            // Create both User and Student records
-            await User.create({
-              id: studentData.studentId,
-              name: `Student ${studentData.studentId}`,
-              email: `${studentData.studentId}@university.edu`,
-              userType: 'student',
-              createdAt: new Date(),
-              updatedAt: new Date()
-            }, { transaction: t });
-            
-            await Student.create({
-              id: studentData.studentId,
-              name: `Student ${studentData.studentId}`,
-              email: `${studentData.studentId}@university.edu`,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            }, { transaction: t });
-            
-            console.log(`Created User and Student records for ${studentData.studentId}`);
+            await User.create({ id: studentData.studentId, name: `Student ${studentData.studentId}`, email: `${studentData.studentId}@university.edu`, userType: 'student' }, { transaction: t });
+            student = await Student.create({ id: studentData.studentId, name: `Student ${studentData.studentId}`, email: `${studentData.studentId}@university.edu` }, { transaction: t });
           }
         }
-        
-        // Check if the enrollment already exists in the CourseStudents table
-        const existingCourseEnrollment = await sequelize.query(
-          `SELECT * FROM "CourseStudents" WHERE "CourseId" = ? AND "StudentId" = ?`,
-          { 
-            replacements: [offering.courseId, studentData.studentId],
-            type: sequelize.QueryTypes.SELECT,
-            transaction: t
-          }
+
+        // 3) Enroll in CourseStudents
+        const [courseExists] = await sequelize.query(
+          `SELECT 1 FROM CourseStudents WHERE CourseId = ? AND StudentId = ? LIMIT 1`,
+          { replacements: [studentData.courseId || offering.courseId, student.id], type: sequelize.QueryTypes.SELECT, transaction: t }
         );
-        
-        if (!existingCourseEnrollment || existingCourseEnrollment.length === 0) {
-          // Add student to course
+        if (!courseExists) {
           await sequelize.query(
-            `INSERT INTO "CourseStudents" ("CourseId", "StudentId", "createdAt", "updatedAt") 
-             VALUES (?, ?, ?, ?)`,
-            {
-              replacements: [offering.courseId, studentData.studentId, new Date(), new Date()],
-              type: sequelize.QueryTypes.INSERT,
-              transaction: t
-            }
+            `INSERT INTO CourseStudents (CourseId, StudentId, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
+            { replacements: [studentData.courseId, student.id, new Date(), new Date()], type: sequelize.QueryTypes.INSERT, transaction: t }
           );
-          
-          console.log(`Enrolled student ${studentData.studentId} in course ${offering.courseId}`);
         }
-        
-        // Check if the enrollment already exists in the EnrolledStudents table
-        const existingOfferingEnrollment = await sequelize.query(
-          `SELECT * FROM "EnrolledStudents" WHERE "OfferingId" = ? AND "StudentId" = ?`,
-          { 
-            replacements: [studentData.offeringId, studentData.studentId],
-            type: sequelize.QueryTypes.SELECT,
-            transaction: t
-          }
+
+        // 4) Enroll in EnrolledStudents for the offering
+        const offering = await Offering.findByPk(studentData.offeringId, { transaction: t });
+        if (!offering) throw new Error(`Offering ${studentData.offeringId} not found`);
+
+        const [offExists] = await sequelize.query(
+          `SELECT 1 FROM EnrolledStudents WHERE OfferingId = ? AND StudentId = ? LIMIT 1`,
+          { replacements: [offering.id, student.id], type: sequelize.QueryTypes.SELECT, transaction: t }
         );
-        
-        if (!existingOfferingEnrollment || existingOfferingEnrollment.length === 0) {
-          // Add student to offering
+        if (!offExists) {
           await sequelize.query(
-            `INSERT INTO "EnrolledStudents" ("OfferingId", "StudentId", "createdAt", "updatedAt") 
-             VALUES (?, ?, ?, ?)`,
-            {
-              replacements: [studentData.offeringId, studentData.studentId, new Date(), new Date()],
-              type: sequelize.QueryTypes.INSERT,
-              transaction: t
-            }
+            `INSERT INTO EnrolledStudents (OfferingId, StudentId, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
+            { replacements: [offering.id, student.id, new Date(), new Date()], type: sequelize.QueryTypes.INSERT, transaction: t }
           );
-          
-          // Increment the student count in the offering
           await offering.increment('studentCount', { transaction: t });
-          
-          console.log(`Enrolled student ${studentData.studentId} in offering ${studentData.offeringId}`);
-        } else {
-          console.log(`Student ${studentData.studentId} is already enrolled in offering ${studentData.offeringId}`);
         }
-        
-        // Track enrollment for return value
-        enrollments.push({
-          studentId: studentData.studentId,
-          offeringId: studentData.offeringId,
-          courseId: offering.courseId
-        });
-        
+
+        // Track success
+        enrollments.push({ studentId: student.id, courseId: studentData.courseId, offeringId: offering.id });
         successCount++;
-      } catch (error) {
+      } catch (err) {
         failedCount++;
-        errors.push({
-          data: studentData,
-          error: error.message
-        });
-        console.error(`Failed to enroll student ${studentData.studentId} in offering:`, error.message);
+        errors.push({ data: studentData, error: err.message });
       }
     }
-    
+
     await t.commit();
-    
-    return {
-      success: successCount,
-      failed: failedCount,
-      errors,
-      enrollments
-    };
+    return { success: successCount, failed: failedCount, errors, enrollments };
   } catch (error) {
-    console.error("Transaction error in enrollStudents:", error);
     await t.rollback();
     throw error;
   }
 }
-
 
 
 async assignTeachingAssistants(semesterId, tasData) {

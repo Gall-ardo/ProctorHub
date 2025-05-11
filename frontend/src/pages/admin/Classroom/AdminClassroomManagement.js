@@ -157,32 +157,49 @@ const AdminClassroomManagement = () => {
 
   const handleDeleteConfirmation = async (event) => {
     event.preventDefault();
-    
-    const classroomToDelete = await findClassroom();
-    if (classroomToDelete) {
-      setFoundClassroom(classroomToDelete);
-      setConfirmationMessage(`Are you sure you want to delete classroom ${classroomToDelete.name} in building ${classroomToDelete.building}?`);
-      setConfirmationAction(() => handleDeleteClassroom);
+
+    const classroomData = await findClassroom(); // This is the classroom object fetched from the API
+    if (classroomData) {
+      // You can still set foundClassroom if it's used elsewhere for UI,
+      // but the delete logic will now use the explicitly passed classroomData.
+      setFoundClassroom(classroomData);
+
+      setConfirmationMessage(`Are you sure you want to delete classroom ${classroomData.name} (ID: ${classroomData.id}) in building ${classroomData.building}?`); // Added ID for clarity
+
+      // Create a function that, when called, will execute handleDeleteClassroom
+      // with the classroomData captured in its closure.
+      const action = () => handleDeleteClassroom(classroomData);
+      setConfirmationAction(() => action); // <--- MODIFIED: Store this specific action
+
       setShowConfirmation(true);
     }
   };
 
-  const handleDeleteClassroom = async () => {
+
+  const handleDeleteClassroom = async (classroomToDelete) => { // <--- MODIFIED: Added parameter
     setShowConfirmation(false);
     setLoading(true);
     setSuccess(null);
-    
+
+    // Add a guard check for the passed parameter
+    if (!classroomToDelete || !classroomToDelete.id) {
+      console.error("handleDeleteClassroom: classroomToDelete argument is invalid or missing ID.", classroomToDelete);
+      setErrorMessage("Failed to delete: Essential classroom information is missing.");
+      setShowError(true);
+      setLoading(false); // Reset loading state
+      return; // Prevent further execution
+    }
+
     try {
-      const response = await axios.delete(`${API_URL}/api/admin/classrooms/${foundClassroom.id}`);
-      
+      // Use the id from the passed classroomToDelete object
+      const response = await axios.delete(`${API_URL}/api/admin/classrooms/${classroomToDelete.id}`); // <--- MODIFIED
+
       if (response.data.success) {
         setSuccess('Classroom deleted successfully!');
-        resetForm();
+        resetForm(); // This will set the component's foundClassroom state to null, which is fine.
       }
     } catch (error) {
       console.error('Error deleting classroom:', error);
-      
-      // Improved error handling
       if (error.response) {
         setErrorMessage(error.response.data?.message || `Error ${error.response.status}: Failed to delete classroom`);
       } else if (error.request) {
@@ -190,12 +207,12 @@ const AdminClassroomManagement = () => {
       } else {
         setErrorMessage(`Error: ${error.message}`);
       }
-      
       setShowError(true);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleFindClassroomToEdit = async (event) => {
     event.preventDefault();
@@ -253,55 +270,91 @@ const AdminClassroomManagement = () => {
     setFoundClassroom(null);
   };
 
+
   const handleFileUpload = async () => {
     if (!selectedFile) {
       setErrorMessage('Please select a file first');
       setShowError(true);
       return;
     }
-    
+
     if (selectedFile.type !== 'text/csv') {
       setErrorMessage('Only CSV files are allowed');
       setShowError(true);
       return;
     }
-    
+
     setLoading(true);
     setSuccess(null);
-    
+    setShowError(false); // Reset error before new attempt
+    setErrorMessage('');
+
+    let uploadUrl = '';
+    let isDeleteOperation = false;
+
+    if (activeView === 'add') {
+      uploadUrl = `${API_URL}/api/admin/classrooms/upload`;
+    } else if (activeView === 'delete') {
+      uploadUrl = `${API_URL}/api/admin/classrooms/delete-upload`;
+      isDeleteOperation = true;
+    } else {
+      // This case should ideally not be reached if UI restricts file upload
+      // to 'add' and 'delete' views.
+      setErrorMessage('File upload is not configured for the current action.');
+      setShowError(true);
+      setLoading(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      
-      const response = await axios.post(
-        `${API_URL}/api/admin/classrooms/upload`,
-        formData
-      );
-      
+
+      const response = await axios.post(uploadUrl, formData);
+
       if (response.data.success) {
-       const stats = response.data.data;
-        setSuccess(
-          `Processed ${stats.total} classrooms: ${stats.successful} successful, ${stats.failed} failed.`
-        );
-        setSelectedFile(null);
+        const stats = response.data.data; // { successful, failed, total, errors }
+        let successMessage = '';
+
+        if (isDeleteOperation) {
+          successMessage = `Processed ${stats.total} classrooms for DELETE: ${stats.successful} successful, ${stats.failed} failed.`;
+          // Log errors to console for debugging, but don't append to UI message by default
+          if (stats.errors && stats.errors.length > 0 && stats.failed > 0) {
+            console.warn("Deletion - CSV Processing Errors:", stats.errors);
+            // If you want to add a brief summary of errors to the UI message for delete:
+            // successMessage += ` (See console for ${stats.failed} error details)`;
+          }
+        } else { // Add operation
+          successMessage = `Processed ${stats.total} classrooms for ADD: ${stats.successful} successful, ${stats.failed} failed.`;
+          // Log errors to console for debugging, but don't append to UI message
+          if (stats.errors && stats.errors.length > 0 && stats.failed > 0) {
+            console.warn("Addition - CSV Processing Errors:", stats.errors);
+          }
+        }
+        setSuccess(successMessage);
+        setSelectedFile(null); // Clear the selected file from state
+
+      } else {
+
+        setErrorMessage(response.data.message || 'File processing failed on the server.');
+        setShowError(true);
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      
-      // Improved error handling
       if (error.response) {
         setErrorMessage(error.response.data?.message || `Error ${error.response.status}: Failed to upload file`);
       } else if (error.request) {
+        // The request was made but no response was received
         setErrorMessage('Server not responding. Please check your connection.');
       } else {
         setErrorMessage(`Error: ${error.message}`);
       }
-      
       setShowError(true);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className={styles.classroomManagement}>
@@ -355,23 +408,35 @@ const AdminClassroomManagement = () => {
             <div className={styles.uploadDivider}>or</div>
             <label className={styles.selectFileBtn}>
               Select file
-              <input 
-                type="file" 
-                accept=".csv" 
-                hidden 
-                onChange={handleFileSelect}
+              <input
+                type="file"
+                accept=".csv"
+                hidden
+                // To ensure onChange fires even if the same file is selected again after clearing:
+                // you might need to reset the input's value.
+                // A common trick is to set event.target.value = null inside handleFileSelect
+                // if you are not using a key to re-render.
+                // However, since `setSelectedFile` is updated, React might handle this.
+                // If not, you'd do:
+                onChange={(e) => {
+                  handleFileSelect(e);
+                  // e.target.value = null; // Add this if re-selecting the same file doesn't work after an upload
+                }}
+                // Or, give the input a key that changes when you want to reset it
+                // key={selectedFile ? selectedFile.name : 'file-input'}
               />
             </label>
             {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
-            <button 
+            <button
               className={styles.uploadFileBtn}
               onClick={handleFileUpload}
-              disabled={loading}
+              disabled={loading || !selectedFile} // Also disable if no file selected
             >
               {loading ? 'Uploading...' : 'Upload File'}
             </button>
             <div className={styles.uploadNote}>
-              Note: CSV should contain columns for Building, ClassroomId, Capacity, and ExamCapacity.
+              {activeView === 'add' && 'Note: CSV for adding should contain columns: Building, ClassroomId, Capacity, and ExamCapacity.'}
+              {activeView === 'delete' && 'Note: CSV for deleting should contain columns: Building and ClassroomId.'}
             </div>
           </div>
           )}
@@ -566,9 +631,10 @@ const AdminClassroomManagement = () => {
           title="Confirm Action"
           message={confirmationMessage}
           onConfirm={() => {
-            if (confirmationAction) {
-              confirmationAction();
+            if (confirmationAction) { // confirmationAction is now: () => handleDeleteClassroom(classroomData)
+              confirmationAction();   // This executes the function with the captured classroomData
             } else {
+              // Fallback if confirmationAction is not set (should not happen if popup is shown correctly)
               setShowConfirmation(false);
             }
           }}

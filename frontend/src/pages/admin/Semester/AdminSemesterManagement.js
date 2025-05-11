@@ -611,30 +611,6 @@ const AdminSemesterManagement = () => {
                 </div>
               </div>
               
-              {/* Upload Progress Indicator */}
-              {uploadStage && (
-                <div className={styles.uploadProgress}>
-                  <div className={styles.progressTitle}>Upload Progress:</div>
-                  <div className={styles.progressSteps}>
-                    <div className={`${styles.progressStep} ${uploadStage === 'courses' || uploadStage === 'offerings' || uploadStage === 'students' || uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
-                      Courses
-                    </div>
-                    <div className={`${styles.progressStep} ${uploadStage === 'offerings' || uploadStage === 'students' || uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
-                      Offerings
-                    </div>
-                    <div className={`${styles.progressStep} ${uploadStage === 'students' || uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
-                      Students
-                    </div>
-                    <div className={`${styles.progressStep} ${uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
-                      TAs
-                    </div>
-                    <div className={`${styles.progressStep} ${uploadStage === 'complete' ? styles.active : ''}`}>
-                      Complete
-                    </div>
-                  </div>
-                </div>
-              )}
-              
               {/* Action Buttons - Consistently placed under the form for all modes */}
               <div className={styles.formActions}>
                 <button 
@@ -684,7 +660,7 @@ const AdminSemesterManagement = () => {
                   'students', 
                   studentsFile, 
                   'Student Enrollments',
-                  'CSV should contain: StudentId, Name, Email, CourseId, Section'
+                  'CSV should contain: StudentId, offeringId'
                 )}
 
               </div>

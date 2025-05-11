@@ -43,4 +43,10 @@ router.put('/:id', classroomController.updateClassroom);
 router.delete('/:id', classroomController.deleteClassroom);
 router.post('/upload', upload.single('file'), classroomController.uploadClassrooms);
 
+router.post('/delete-upload',
+  upload.single('file'),
+  classroomController.uploadDeleteClassrooms
+);
+
+
 module.exports = router;

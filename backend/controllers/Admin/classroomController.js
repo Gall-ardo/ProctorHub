@@ -129,6 +129,37 @@ class ClassroomController {
     }
   }
 
+  /**
+   * POST /admin/classrooms/delete-upload
+   * Body: multipart/form-data with field "file" = CSV
+   */
+  async uploadDeleteClassrooms(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded'
+        });
+      }
+
+      const result = await classroomService.processDeleteClassroomFile(req.file);
+
+      res.status(200).json({
+        success: true,
+        message: 'Bulk delete completed',
+        data: result
+      });
+    } catch (error) {
+      console.error("Error processing delete CSV:", error);
+      res.status(400).json({
+        success: false,
+        message: 'Error processing delete CSV',
+        error: error.message
+      });
+    }
+  }
+
+
   async findClassrooms(req, res) {
     try {
       const classrooms = await classroomService.findClassrooms(req.query);
