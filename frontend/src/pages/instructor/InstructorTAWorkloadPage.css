@@ -4,14 +4,14 @@
     min-height: 100vh;
     background-color: #f5f5f5;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding-top: 60px; /* Add padding to account for fixed navbar */
-}
-
-
-
-
-/* make all label+value lines a bit larger */
-.info-row {
+    padding-top: 0px; /* Add padding to account for fixed navbar */
+  }
+  
+  
+  
+  
+  /* make all label+value lines a bit larger */
+  .info-row {
     font-size: 1.05rem;   /* ~5% larger than default */
     line-height: 1.4;
   }
@@ -27,72 +27,72 @@
   .info-row span {
     font-size: 1.05rem;   /* value size */
   }
-
-
   
-/* Top navigation bar styles moved to InstructorNavBar.css */
   
-/* Main content area */
-.main-content {
+  
+  /* Top navigation bar styles moved to InstructorNavBar.css */
+  
+  /* Main content area */
+  .main-content {
     display: flex;
     flex: 1;
     padding: 20px;
     gap: 20px;
     overflow: hidden;
     background-color: #f5f5f5;
-}
+  }
   
-/* Panels (Left & Right) */
-.content-panel {
+  /* Panels (Left & Right) */
+  .content-panel {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.1); /* Figma style shadow */
     padding: 20px;
     flex: 1;
     overflow-y: auto;
-}
+  }
   
-.content-panel h2 {
+  .content-panel h2 {
     margin: 0 0 10px;
-}
+  }
   
-/* Cards Container */
-.cards-container {
+  /* Cards Container */
+  .cards-container {
     margin-top: 15px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-}
+  }
   
-/* Individual Card */
-.card {
+  /* Individual Card */
+  .card {
     background-color: #fafafa;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 10px;
-}
+  }
   
-.card h3 {
+  .card h3 {
     margin: 0 0 5px;
     color: #c62828;
-}
+  }
   
-.card p {
+  .card p {
     margin: 0 0 5px;
     color: #333;
-}
+  }
   
-/* Action buttons inside a card (Verify, Reject) */
-/* Position the buttons at the right side inside the card */
-.action-buttons {
+  /* Action buttons inside a card (Verify, Reject) */
+  /* Position the buttons at the right side inside the card */
+  .action-buttons {
     display: flex;
     justify-content: flex-end;  /* Align them to the right */
     align-items: center;        /* Vertically center them */
     gap: 10px;                  /* Spacing between buttons */
-}
-
-/* Style for all buttons (Verify, Reject, Info) */
-.action-buttons button {
+  }
+  
+  /* Style for all buttons (Verify, Reject, Info) */
+  .action-buttons button {
     background-color: #c62828;  /* Same red color for all */
     color: #fff;
     border: none;
@@ -101,24 +101,24 @@
     font-size: 1rem;            /* Slightly larger text */
     cursor: pointer;
     transition: opacity 0.3s ease;
-}
-
-.action-buttons button:hover {
-    opacity: 0.8;               /* Hover effect */
-}
+  }
   
-.action-buttons button:first-of-type {
+  .action-buttons button:hover {
+    opacity: 0.8;               /* Hover effect */
+  }
+  
+  .action-buttons button:first-of-type {
     background-color: #039a00; /* Green for verify */
     color: #fff;
-}
+  }
   
-.action-buttons button:last-of-type {
+  .action-buttons button:last-of-type {
     background-color: #d00e00; /* Red for reject */
     color: #fff;
-}
-
-/* Modal Backdrop */
-.modal-backdrop {
+  }
+  
+  /* Modal Backdrop */
+  .modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
@@ -129,10 +129,10 @@
     justify-content: center;
     align-items: center;
     z-index: 999;
-}
-
-/* Modal Content */
-.modal-content {
+  }
+  
+  /* Modal Content */
+  .modal-content {
     background-color: #fff;
     border-radius: 8px;
     padding: 20px;
@@ -140,9 +140,9 @@
     max-width: 90%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     position: relative;
-}
-
-.close-modal-button {
+  }
+  
+  .close-modal-button {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -150,9 +150,9 @@
     border: none;
     font-size: 1.2rem;
     cursor: pointer;
-}
-
-.rejection-textarea {
+  }
+  
+  .rejection-textarea {
     width: 100%;
     min-height: 150px;      /* increase from 80px */
     height: 150px;          /* fixed height if you prefer */
@@ -163,21 +163,21 @@
     font-size: 1rem;        /* larger text */
     resize: vertical;
   }
-
-.button-row {
+  
+  .button-row {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-}
-
-.button-row {
+  }
+  
+  .button-row {
     display: flex;
     justify-content: center;  /* center the buttons horizontally */
     gap: 10px;
-}
-
-/* Updated modal button styles */
-.button-row button {
+  }
+  
+  /* Updated modal button styles */
+  .button-row button {
     background-color: #000;  /* black background */
     color: #fff;             /* white text */
     border: none;
@@ -186,8 +186,8 @@
     font-size: 1.1rem;       /* slightly larger text */
     cursor: pointer;
     transition: opacity 0.3s ease;
-}
-
-.button-row button:hover {
+  }
+  
+  .button-row button:hover {
     opacity: 0.8;
-}
+  }
