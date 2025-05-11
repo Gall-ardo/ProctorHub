@@ -100,7 +100,7 @@ export default function InstructorTAWorkloadPage() {
   }
 
   return (
-    <div className="ta-workload-page">
+    <div className="instructor-ta-workload-page">
       <InstructorNavBar />
 
       <main className="main-content">

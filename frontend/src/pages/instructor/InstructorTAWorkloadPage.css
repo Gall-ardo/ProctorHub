@@ -1,10 +1,10 @@
-.ta-workload-page {
+.instructor-ta-workload-page {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     background-color: #f5f5f5;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding-top: 0px; /* Add padding to account for fixed navbar */
+    padding-top: 60px;
   }
   
   
