@@ -622,11 +622,17 @@ class ExamService {
                 .filter(ta => ta.hasProctoringConflict)
                 .map(ta => ta.id);
             
+            let tasWithTimeSlotConflict = [];
+            tasWithTimeSlotConflict = availableTAs
+                .filter(ta => ta.hasTimeSlotConflict)
+                .map(ta => ta.id);
+            
             // Always filter out TAs with offering conflicts and offering course exam conflicts
             availableTAs = availableTAs.filter(ta => 
                 !ta.hasOfferingConflict &&
                 !ta.hasOfferingCourseExamConflict &&
-                !ta.hasProctoringConflict
+                !ta.hasProctoringConflict &&
+                !ta.hasTimeSlotConflict
             );
             
             console.log(`Found ${availableTAs.length} TAs after filtering conflicts`);
@@ -960,10 +966,19 @@ class ExamService {
                         [`${tasWithOfferingConflict.length} TAs were excluded because they have offerings for this course`] : []),
                     ...(tasWithOfferingCourseExamConflict.length > 0 ? 
                         [`${tasWithOfferingCourseExamConflict.length} TAs were excluded because they have offerings for courses with exams on the same date`] : []),
+                    ...(tasWithTimeSlotConflict.length > 0 ? 
+                        [`${tasWithTimeSlotConflict.length} TAs were excluded because they have time slot conflicts with the exam`] : []),
                     // Add warning about consecutive day assignments (not excluded but lower priority)
                     ...(availableTAs.filter(ta => ta.hasConsecutiveDayAssignment).length > 0 ?
                         [`${availableTAs.filter(ta => ta.hasConsecutiveDayAssignment).length} TAs have proctoring assignments on consecutive days (day before or after) and received lower priority`] : [])
-                ]
+                ],
+                conflictInfo: {
+                    tasWithLeave: tasWithLeave,
+                    tasWithProctoringConflict: tasWithProctoringConflict,
+                    tasWithOfferingConflict: tasWithOfferingConflict,
+                    tasWithOfferingCourseExamConflict: tasWithOfferingCourseExamConflict,
+                    tasWithTimeSlotConflict: tasWithTimeSlotConflict
+                }
             };
         } catch (error) {
             await t.rollback();
@@ -1198,6 +1213,8 @@ class ExamService {
             const Proctoring = require('../../models/Proctoring');
             const Exam = require('../../models/Exam');
             const Offering = require('../../models/Offering');
+            const TimeSlot = require('../../models/TimeSlot');
+            const moment = require('moment');
             
             // Get all TAs with their user information and offerings
             const tas = await TeachingAssistant.findAll({
@@ -1210,7 +1227,14 @@ class ExamService {
                     {
                         model: Offering,
                         as: 'offerings',
-                        attributes: ['id', 'courseId']
+                        attributes: ['id', 'courseId'],
+                        include: [
+                            {
+                                model: TimeSlot,
+                                as: 'TimeSlot',
+                                attributes: ['id', 'day', 'startTime', 'endTime']
+                            }
+                        ]
                     }
                 ]
             });
@@ -1218,32 +1242,85 @@ class ExamService {
             // Find exams on the same date if examDate is provided
             let examsOnDate = [];
             let examDate_obj = null;
+            let examTimeStart = null;
+            let examTimeEnd = null;
+            let examDayOfWeek = null;
+            
             if (examDate) {
-                //console.log("abcd::", examDate);
-
-                // Normalize the examDate to YYYY-MM-DD format
                 let formattedDate;
+
+                // Handle different date formats
                 if (typeof examDate === 'string') {
-                    // If input is already a string, extract just the date part (works for both formats)
-                    formattedDate = examDate.split('T')[0];
-                    examDate_obj = new Date(examDate);
+                    // If it's a string, normalize it to ISO date format
+                    formattedDate = examDate.split('T')[0]; // Get just the date part
+                    examDate_obj = new Date(formattedDate);
                 } else {
                     // If it's a Date object
                     formattedDate = examDate.toISOString().split('T')[0];
                     examDate_obj = examDate;
                 }
-                //console.log("ggrvdfef", formattedDate);
+                
+                // Get the day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+                examDayOfWeek = examDate_obj.getDay();
+                
+                // Convert to day name
+                const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const examDayName = daysOfWeek[examDayOfWeek];
 
                 // Find all exams on the same date
                 examsOnDate = await Exam.findAll({
                     where: db.literal(`DATE(date) = '${formattedDate}'`), // Using SQL DATE function for consistent comparison
-                    attributes: ['id', 'courseName', 'date']
+                    attributes: ['id', 'courseName', 'date', 'duration']
                 });
-
+                
                 console.log(`Found ${examsOnDate.length} exams on date ${formattedDate}`);
                 examsOnDate.forEach(exam => {
-                    console.log(`- Exam ${exam.id} for course ${exam.courseName} on ${exam.date}`);
+                    // Calculate start time and end time from the date and duration
+                    const examDateTime = new Date(exam.date);
+                    
+                    // Format start time as HH:MM:SS
+                    const startTime = examDateTime.toTimeString().split(' ')[0];
+                    
+                    // Calculate end time by adding duration (in minutes)
+                    const endDateTime = new Date(examDateTime.getTime() + exam.duration * 60000);
+                    const endTime = endDateTime.toTimeString().split(' ')[0];
+                    
+                    // Add these calculated fields to the exam object
+                    exam.startTime = startTime;
+                    exam.endTime = endTime;
+                    
+                    console.log(`- Exam ${exam.id} for course ${exam.courseName} on ${exam.date}, time: ${startTime}-${endTime}`);
+                    
+                    // If this is the exam we're checking for, record its time
+                    if (courseId && exam.courseName === courseId) {
+                        examTimeStart = startTime;
+                        examTimeEnd = endTime;
+                        console.log(`  - This exam time: ${examTimeStart} - ${examTimeEnd}`);
+                    }
                 });
+            }
+            
+            // Check for TAs with leave requests on the exam date
+            let tasOnLeave = [];
+            if (checkLeaveRequests && examDate) {
+                tasOnLeave = await this.getTAsWithLeaveOnDate(examDate_obj);
+                console.log(`Found ${tasOnLeave.length} TAs with approved leave requests for ${examDate_obj}`);
+            }
+            
+            // Get all proctoring assignments for the exams on this date
+            let proctoringAssignments = [];
+            if (examsOnDate.length > 0) {
+                const examIds = examsOnDate.map(exam => exam.id);
+                
+                proctoringAssignments = await Proctoring.findAll({
+                    where: {
+                        examId: { [Op.in]: examIds },
+                        status: { [Op.in]: ['ACCEPTED', 'PENDING'] } // Only include accepted or pending assignments
+                    },
+                    attributes: ['taId', 'examId', 'status']
+                });
+                
+                console.log(`Found ${proctoringAssignments.length} proctoring assignments for exams on this date`);
             }
             
             // Transform the data to match the format expected by the frontend
@@ -1257,6 +1334,46 @@ class ExamService {
                 // Check if any of the TA's offering courses have exams on the same date
                 let hasOfferingCourseExamConflict = false;
                 let offeringCourseExamConflictReason = null;
+                
+                // Check if TA has a time slot conflict with the exam
+                let hasTimeSlotConflict = false;
+                let timeSlotConflictReason = null;
+                
+                if (examDate_obj && examTimeStart && examTimeEnd) {
+                    // For each offering, check its time slots
+                    if (ta.offerings && ta.offerings.length > 0) {
+                        // Convert exam day to index (0-6, where 0 is Sunday)
+                        const examDayNum = examDate_obj.getDay();
+                        // Convert to day name for comparison with TimeSlot.day
+                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const examDayName = dayNames[examDayNum];
+                        
+                        for (const offering of ta.offerings) {
+                            if (offering.TimeSlot && offering.TimeSlot.length > 0) {
+                                for (const timeSlot of offering.TimeSlot) {
+                                    // Check if the day matches
+                                    if (timeSlot.day === examDayName) {
+                                        // Convert times to comparable format (minutes since midnight)
+                                        const examStartMinutes = this.timeToMinutes(examTimeStart);
+                                        const examEndMinutes = this.timeToMinutes(examTimeEnd);
+                                        const slotStartMinutes = this.timeToMinutes(timeSlot.startTime);
+                                        const slotEndMinutes = this.timeToMinutes(timeSlot.endTime);
+                                        
+                                        // Check for overlap: 
+                                        // If slot starts before exam ends AND slot ends after exam starts
+                                        if (slotStartMinutes < examEndMinutes && slotEndMinutes > examStartMinutes) {
+                                            hasTimeSlotConflict = true;
+                                            timeSlotConflictReason = `TA has teaching time slot (${timeSlot.day} ${timeSlot.startTime}-${timeSlot.endTime}) that conflicts with exam time (${examTimeStart}-${examTimeEnd})`;
+                                            console.log(`Time slot conflict for TA ${ta.id}: ${timeSlotConflictReason}`);
+                                            break; // No need to check further time slots once we find a conflict
+                                        }
+                                    }
+                                }
+                                if (hasTimeSlotConflict) break; // Exit the offering loop if we found a conflict
+                            }
+                        }
+                    }
+                }
                 
                 if (examDate && offeringCourseIds.length > 0) {
                     // Find exams for the TA's offering courses that are on the same date
@@ -1278,6 +1395,41 @@ class ExamService {
                     }
                 }
                 
+                // Check if TA is already assigned to proctor an exam on this date
+                let hasProctoringConflict = false;
+                let proctoringConflictReason = null;
+                
+                const existingAssignments = proctoringAssignments.filter(assignment => assignment.taId === ta.id);
+                if (existingAssignments.length > 0) {
+                    hasProctoringConflict = true;
+                    const examIds = existingAssignments.map(a => a.examId).join(', ');
+                    proctoringConflictReason = `TA is already assigned to proctor ${existingAssignments.length} exam(s) on this date (Exam IDs: ${examIds})`;
+                }
+                
+                // Check if TA is on approved leave for this date
+                const onLeave = tasOnLeave.includes(ta.id);
+                
+                // Calculate end date for potential consecutive assignment check
+                let consecutiveCheckDate = null;
+                let hasConsecutiveDayAssignment = false;
+                let consecutiveDayReason = null;
+                
+                if (examDate_obj) {
+                    // Calculate day before and after the exam date
+                    const dayBefore = new Date(examDate_obj);
+                    dayBefore.setDate(dayBefore.getDate() - 1);
+                    
+                    const dayAfter = new Date(examDate_obj);
+                    dayAfter.setDate(dayAfter.getDate() + 1);
+                    
+                    // Format dates for SQL comparison
+                    const dayBeforeFormatted = dayBefore.toISOString().split('T')[0];
+                    const dayAfterFormatted = dayAfter.toISOString().split('T')[0];
+                    
+                    // This would be the ideal place to check for assignments on consecutive days,
+                    // but we'll implement this in a separate method to keep the code cleaner
+                }
+                
                 return {
                     id: ta.id,
                     name: ta.taUser ? ta.taUser.name : 'Unknown',
@@ -1288,20 +1440,22 @@ class ExamService {
                     totalWorkload: ta.totalWorkload || 0,
                     isMultidepartmentExam: ta.isMultidepartmentExam || false,
                     // Default statuses
-                    onLeave: false,
-                    leaveStatus: null,
-                    hasProctoringConflict: false,
-                    proctoringConflictReason: null,
+                    onLeave,
+                    leaveStatus: onLeave ? 'APPROVED' : null,
+                    hasProctoringConflict,
+                    proctoringConflictReason,
                     hasOfferingConflict: hasOfferingForCourse,
                     offeringConflictReason: hasOfferingForCourse ? `TA has an offering for course ${courseId}` : null,
                     hasOfferingCourseExamConflict,
                     offeringCourseExamConflictReason,
+                    hasTimeSlotConflict,
+                    timeSlotConflictReason,
                     isSameDepartment: ta.department === department || ta.isMultidepartmentExam === true,
                     // Add default values for consecutive assignment check
-                    hasConsecutiveDayAssignment: false,
-                    consecutiveDayReason: null,
+                    hasConsecutiveDayAssignment,
+                    consecutiveDayReason,
                     // Include the offering course IDs for reference
-                    offeringCourseIds: offeringCourseIds
+                    offeringCourseIds
                 }
             });
             
@@ -1482,11 +1636,28 @@ class ExamService {
                 });
             }
             
+            console.log(`Returning ${transformedTAs.length} TAs for exam ${courseId} on ${examDate}`);
             return transformedTAs;
+            
         } catch (error) {
-            console.error('Error in getAvailableTAsForExam service:', error);
-            throw new Error(`Failed to retrieve available TAs: ${error.message}`);
+            console.error(`Error in getAvailableTAsForExam: ${error.message}`);
+            throw error;
         }
+    }
+    
+    /**
+     * Convert time string (HH:MM:SS) to minutes since midnight
+     * @param {string} timeStr - Time in format HH:MM:SS
+     * @returns {number} - Minutes since midnight
+     */
+    timeToMinutes(timeStr) {
+        if (!timeStr) return 0;
+        
+        // Split time string into hours, minutes, seconds
+        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+        
+        // Convert to total minutes
+        return (hours * 60) + minutes;
     }
 
     /**
@@ -1644,6 +1815,53 @@ class ExamService {
         } catch (error) {
             await t.rollback();
             throw new Error(`Failed to create proctor swap request: ${error.message}`);
+        }
+    }
+
+    async findReplacementProctor(examId, rejectedTaId, transaction = null) {
+        try {
+            // ... existing code ...
+            
+            // Filter out TAs who have conflicts and the TA who just rejected
+            const eligibleTAs = availableTAs.filter(ta => 
+                ta.id !== rejectedTaId && 
+                !ta.onLeave && 
+                !ta.hasProctoringConflict && 
+                !ta.hasOfferingConflict && 
+                !ta.hasOfferingCourseExamConflict &&
+                !ta.hasTimeSlotConflict &&
+                (ta.department === department || ta.isMultidepartmentExam === true)
+            );
+            
+            // Ensure isSameDepartment is explicitly set for all TAs
+            const enhancedEligibleTAs = eligibleTAs.map(ta => ({
+                ...ta,
+                isSameDepartment: ta.department === department || ta.isMultidepartmentExam === true
+            }));
+            
+            // Log department match status for debugging
+            console.log('Replacement candidates with department match status:');
+            enhancedEligibleTAs.forEach(ta => {
+                console.log(`TA ${ta.id} (${ta.name}): department=${ta.department}, isMultidepartmentExam=${ta.isMultidepartmentExam}, isSameDepartment=${ta.isSameDepartment}`);
+            });
+            
+            if (enhancedEligibleTAs.length === 0) {
+                console.log('No eligible replacement TAs found');
+                return {
+                    replacementFound: false,
+                    replacementTA: null
+                };
+            }
+            
+            // Sort TAs by the same criteria used in assignProctors method
+            // 1. Department TAs first
+            const departmentMatchTAs = enhancedEligibleTAs.filter(ta => ta.isSameDepartment);
+            const otherTAs = enhancedEligibleTAs.filter(ta => !ta.isSameDepartment);
+            
+            // ... existing code ...
+            
+        } catch (error) {
+            // ... existing code ...
         }
     }
 }
