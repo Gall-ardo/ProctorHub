@@ -87,7 +87,7 @@ function ForgotPassword() {
               onClick={handleSendPassword}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+              {isSubmitting ? 'Sending...' : 'Send Reset Mail'}
             </button>
           </div>
         </div>
