@@ -108,6 +108,8 @@ export default function InstructorMainPage() {
           )}
         </section>
 
+      
+
         {/* Latest Swaps */}
         <section className="content-panel exams-container">
           <div className="exams-header">
@@ -125,11 +127,13 @@ export default function InstructorMainPage() {
               {latestSwaps.map((swap, i) => (
                 <div className="exam-card" key={i}>
                   <div className="exam-card-header">
-                    <h3>TA Swap Request</h3>
+                    <h3>{swap.type === 'INSTRUCTOR_INITIATED' ? 'Instructor Swap' : 'TA Swap Request'}</h3>
                   </div>
                   <p><strong>From:</strong> {swap.from}</p>
                   <p><strong>To:</strong> {swap.to}</p>
-                  <p><strong>Info:</strong> {swap.swapInfo}</p>
+                  <p><strong>Exam:</strong> {swap.examName}</p>
+                  <p><strong>Exam Date:</strong> {swap.examDate}</p>
+                  <p><strong>Swap Info:</strong> {swap.swapInfo}</p>
                   <p><strong>Date & Time:</strong> {swap.date} {swap.time}</p>
                   <div className="card-buttons">
                     <Link to="/instructor/exams" className="info-button">

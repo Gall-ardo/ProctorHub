@@ -106,3 +106,22 @@ a.add-exam-btn {
   text-decoration: none;
   display: inline-block;
 }
+
+/* Add to InstructorMainPage.css */
+.swap-type-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  margin-left: 5px;
+}
+
+.instructor-swap {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.ta-swap {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}

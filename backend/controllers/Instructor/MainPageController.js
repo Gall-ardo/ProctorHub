@@ -13,16 +13,17 @@ const {
   User
 } = require('../../models');
 
-const { getUpcomingExams } = require('../../services/Instructor/InstructorMainPageService');
+// controllers/InstructorMainPageController.js
+const { getUpcomingExams, getLatestSwaps } = require('../../services/Instructor/InstructorMainPageService');
 
 exports.getMainPageData = async (req, res) => {
   try {
     const instructorId = req.user.id;
 
     const upcomingExams = await getUpcomingExams(instructorId);
+    const latestSwaps = await getLatestSwaps(instructorId);
 
-    // Only upcoming exams for now
-    return res.json({ upcomingExams, latestSwaps: [] });
+    return res.json({ upcomingExams, latestSwaps });
 
   } catch (err) {
     console.error('❌ Error in getMainPageData:', err, err.original);

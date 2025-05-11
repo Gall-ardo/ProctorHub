@@ -1,4 +1,3 @@
-// src/components/SecretaryMainPage.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import SecretaryNavBar from './SecretaryNavBar';
@@ -6,22 +5,22 @@ import './SecretaryMainPage.css';
 
 export default function SecretaryMainPage() {
   const [upcomingExams, setUpcomingExams] = useState([]);
-  const [latestSwaps,   setLatestSwaps]   = useState([]);
-  const [selectedInfo,  setSelectedInfo]  = useState(null);
-  const [isModalOpen,   setIsModalOpen]   = useState(false);
-  const [loading,       setLoading]       = useState(true);
-  const [error,         setError]         = useState(null);
+  const [latestSwaps, setLatestSwaps] = useState([]);
+  const [selectedInfo, setSelectedInfo] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Base URL for all API calls
-  const API_URL = 'http://localhost:5001/api';
+  const API_URL = 'http://localhost:5001/api'; // Ensure this matches your backend URL
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     return {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${token}`,
+      },
     };
   };
 
@@ -32,18 +31,14 @@ export default function SecretaryMainPage() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-        console.log('Fetching Secretary dashboard with token:', token ? 'exists' : 'missing');
+        // Fetch dashboard data from the backend
+        const response = await axios.get(`${API_URL}/secretary/dashboard`, getAuthHeaders());
 
-        // Hit your single dashboard endpoint
-        const response = await axios.get(`${API_URL}/secretary/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        // Your controller does: res.json({ upcomingExams, latestSwaps })
         const { upcomingExams, latestSwaps } = response.data;
 
+        // Set the state for exams and swaps
         setUpcomingExams(upcomingExams || []);
-        setLatestSwaps(latestSwaps   || []);
+        setLatestSwaps(latestSwaps || []);
       } catch (err) {
         console.error('Error loading dashboard:', err);
         if (err.response?.data) {
@@ -56,9 +51,9 @@ export default function SecretaryMainPage() {
     };
 
     fetchDashboard();
-  }, []);
+  }, []); // Empty dependency array ensures it runs once when the component mounts
 
-  const openModal  = info => { setSelectedInfo(info); setIsModalOpen(true); };
+  const openModal = (info) => { setSelectedInfo(info); setIsModalOpen(true); };
   const closeModal = () => { setIsModalOpen(false); setSelectedInfo(null); };
 
   return (
@@ -148,13 +143,11 @@ export default function SecretaryMainPage() {
                 <h3>{selectedInfo.data.from} → {selectedInfo.data.to}</h3>
                 <p><strong>Swap Info:</strong> {selectedInfo.data.swapInfo}</p>
                 <p><strong>Date & Time:</strong> {selectedInfo.data.date} {selectedInfo.data.time}</p>
-                <p><strong>Duration:</strong> {selectedInfo.data.duration}</p>
-                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms.join(', ')}</p>
               </>
             )}
           </div>
         </div>
       )}
     </div>
-);
+  );
 }

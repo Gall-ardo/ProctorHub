@@ -1,10 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
+const { getMainPageData } = require('../controllers/Secretary/SecretaryMainPageController');
 const workloadController = require('../controllers/Secretary/workloadApproveController');
 const leaveRequestController = require('../controllers/Secretary/leaveRequestController');
 
-// Get all pending workload requests (for secretary)
+// Test route without authentication
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Secretary routes are working properly!' });
+});
+
+// Dashboard route for secretary
+router.get(
+  '/dashboard',
+  authenticateToken,
+  authorizeRole(['secretary']),
+  getMainPageData
+);
+
+// Workload routes
 router.get(
   '/workloads/pending',
   authenticateToken,
@@ -12,7 +26,6 @@ router.get(
   workloadController.listPending
 );
 
-// Approve a specific workload request
 router.post(
   '/workloads/:id/approve',
   authenticateToken,
@@ -20,7 +33,6 @@ router.post(
   workloadController.approve
 );
 
-// Reject a specific workload request (must include { reason })
 router.post(
   '/workloads/:id/reject',
   authenticateToken,
@@ -28,7 +40,6 @@ router.post(
   workloadController.reject
 );
 
-// Get summary totals for TAs
 router.get(
   '/workloads/totals',
   authenticateToken,
@@ -66,21 +77,21 @@ router.post(
 
 router.get(
   '/leave-requests/:id/file',
-    authenticateToken,
-    authorizeRole(['secretary']),
-    async (req, res) => {
-        const lr = await LeaveRequest.findByPk(req.params.id);
-        if (!lr) {
-            return res.status(404).json({ message: 'No attachment found.' });
-        }
-        const fullPath = path.resolve(__dirname, '../uploads', lr.filePath);
-        return res.download(fullPath, (err) => {
-            if (err) {
-                console.error('Error downloading file:', err);
-                return res.status(500).json({ message: 'Error downloading file.' });
-            }
-        });
+  authenticateToken,
+  authorizeRole(['secretary']),
+  async (req, res) => {
+    const lr = await LeaveRequest.findByPk(req.params.id);
+    if (!lr) {
+      return res.status(404).json({ message: 'No attachment found.' });
     }
+    const fullPath = path.resolve(__dirname, '../uploads', lr.filePath);
+    return res.download(fullPath, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        return res.status(500).json({ message: 'Error downloading file.' });
+      }
+    });
+  }
 );
 
 module.exports = router;
