@@ -83,7 +83,7 @@ export default function InstructorMainPage() {
               {upcomingExams.map((exam, i) => {
                 // Find the course to display proper course code
                 const course = courses.find(c => c.id === exam.course || c.courseName === exam.course);
-                const displayCode = course?.courseCode || exam.course;
+                const displayCode = course?.department +course?.courseCode || exam.course;
                 
                 return (
                   <div className="exam-card" key={i}>
@@ -127,7 +127,7 @@ export default function InstructorMainPage() {
               {latestSwaps.map((swap, i) => {
                 // Find the course to display proper course code
                 const course = courses.find(c => c.id === swap.examName || c.courseName === swap.examName);
-                const displayCode = course?.courseCode || swap.examName;
+                const displayCode = course?.department + course?.courseCode || swap.examName;
                 
                 return (
                   <div className="exam-card" key={i}>
