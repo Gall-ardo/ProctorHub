@@ -134,7 +134,7 @@ const TAProctoringPage = () => {
       if (pendingResponse.data.success) {
         const formatted = pendingResponse.data.data.map(item => ({
           id: item.id,
-          course: item.exam.Course?.courseCode || 'N/A',
+          course: item.exam.Course?.department + " " + item.exam.Course?.courseCode || 'N/A',
           type: item.exam.examType,
           date: formatDate(item.exam.date),
           time: formatTime(item.exam.date, item.exam.duration),

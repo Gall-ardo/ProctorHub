@@ -22,7 +22,7 @@ const taProctoringService = {
             include: [
               {
                 model: Course,
-                attributes: ['courseCode']
+                attributes: ['courseCode', 'department']
               },
               {
                 model: Classroom,
@@ -62,7 +62,7 @@ const taProctoringService = {
             include: [
               {
                 model: Course,
-                attributes: ['courseCode']
+                attributes: ['courseCode', 'department']
               },
               {
                 model: Classroom,
@@ -102,7 +102,7 @@ const taProctoringService = {
             include: [
               {
                 model: Course,
-                attributes: ['courseCode']
+                attributes: ['courseCode', 'department']
               },
               {
                 model: Classroom,

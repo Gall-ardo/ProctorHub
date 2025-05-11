@@ -33,7 +33,7 @@ class ExamService {
             const exam = await Exam.create({
                 id: examId,
                 courseName: examData.courseName,
-                courseId: examData.courseId,
+                courseId: examData.courseName,
                 instructorId: examData.instructorId,
                 date: examData.date,
                 duration: examData.duration,

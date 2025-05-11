@@ -13,7 +13,7 @@ const taWorkloadService = {
     try {
       const workloads = await Workload.findAll({
         where: { taId },
-        include: [{ model: Course, attributes: ['courseId'] }, {
+        include: [{ model: Course, attributes: ['courseId', 'department'] }, {
           model: User,
           as: 'instructor',
           attributes: ['name', 'email']
@@ -43,7 +43,7 @@ const taWorkloadService = {
           isApproved: false,
           rejectionReason: null // Null rejection reason means it's pending
         },
-        include: [{ model: Course, attributes: ['courseCode'] }, {
+        include: [{ model: Course, attributes: ['courseCode', 'department'] }, {
           model: User,
           as: 'instructor',
           attributes: ['email']
@@ -73,7 +73,7 @@ const taWorkloadService = {
           isApproved: true
         },
         order: [['date', 'ASC']], // Sort by upcoming dates
-        include: [{ model: Course, attributes: ['courseCode'] },
+        include: [{ model: Course, attributes: ['courseCode', 'department'] },
         {
           model: User,
           as: 'instructor',
@@ -102,7 +102,7 @@ const taWorkloadService = {
           {
             model: Course,
             as: 'taCourses', // This is the alias defined in the association for GivenCourseTAs
-            attributes: ['id', 'courseCode', 'courseName'],
+            attributes: ['id', 'courseCode', 'courseName', 'department'],
           }
         ]
       });
