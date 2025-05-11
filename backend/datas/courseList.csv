@@ -1,0 +1,48 @@
+CourseCode,Department,SemesterId,CourseName,Credit,IsGradCourse,Instructor,TeachingAssistant
+102,IE,2026SPRING,A Process Outlook for Industrial Engineering,3,False,Alessandro Bastoni,Henrikh Mkhitaryan
+272,IE,2026SPRING,Manufacturing Processes and Operations Analysis,4,False,Alessandro Bastoni,Henrikh Mkhitaryan
+202,IE,2026SPRING,Introduction to Modeling and Optimization,4,False,Alessandro Bastoni,Henrikh Mkhitaryan
+342,IE,2026SPRING,Engineering Economic Analysis,3,False,Alessandro Bastoni,Henrikh Mkhitaryan
+299,IE,2026SPRING,Summer Training I,0,False,Alessandro Bastoni,Henrikh Mkhitaryan
+303,IE,2026SPRING,Modeling and Methods in Optimization,3,False,Alessandro Bastoni,Henrikh Mkhitaryan
+325,IE,2026SPRING,Stochastic Models,3,False,Alessandro Bastoni,Henrikh Mkhitaryan
+375,IE,2026SPRING,Production Planning,3,False,Alessandro Bastoni,Henrikh Mkhitaryan
+324,IE,2026SPRING,Simulation,4,False,Alessandro Bastoni,Henrikh Mkhitaryan
+376,IE,2026SPRING,Production Information Systems,3,False,Alessandro Bastoni,Henrikh Mkhitaryan
+496,IE,2026SPRING,Seminar in Production Systems,0,False,Alessandro Bastoni,Henrikh Mkhitaryan
+399,IE,2026SPRING,Summer Training II,0,False,Alessandro Bastoni,Henrikh Mkhitaryan
+500,IE,2026SPRING,Mathematics of Operations Research,3,True,Alessandro Bastoni,Henrikh Mkhitaryan
+505,IE,2026SPRING,Mathematical Programming,3,True,Alessandro Bastoni,Henrikh Mkhitaryan
+523,IE,2026SPRING,Probabilistic Analysis,3,True,Alessandro Bastoni,Henrikh Mkhitaryan
+599,IE,2026SPRING,Master's Thesis,0,True,Alessandro Bastoni,Henrikh Mkhitaryan
+521,IE,2026SPRING,Stochastic Processes,3,True,Alessandro Bastoni,Henrikh Mkhitaryan
+699,IE,2026SPRING,Ph.D. Dissertation,0,True,Alessandro Bastoni,Henrikh Mkhitaryan
+101,CS,2026SPRING,Algorithms and Programming I,4,False,Yann Sommer,Yann Bisseck
+102,CS,2026SPRING,Algorithms and Programming II,4,False,Yann Sommer,Yann Bisseck
+201,CS,2026SPRING,Fundamental Structures of Computer Science I,3,False,Yann Sommer,Yann Bisseck
+202,CS,2026SPRING,Fundamental Structures of Computer Science II,3,False,Yann Sommer,Yann Bisseck
+223,CS,2026SPRING,Digital Design,4,False,Yann Sommer,Yann Bisseck
+224,CS,2026SPRING,Computer Organization,4,False,Yann Sommer,Yann Bisseck
+299,CS,2026SPRING,Summer Training I,0,False,Yann Sommer,Yann Bisseck
+315,CS,2026SPRING,Programming Languages,3,False,Yann Sommer,Yann Bisseck
+319,CS,2026SPRING,Object-Oriented Software Engineering,4,False,Yann Sommer,Yann Bisseck
+342,CS,2026SPRING,Operating Systems,4,False,Yann Sommer,Yann Bisseck
+353,CS,2026SPRING,Database Systems,3,False,Yann Sommer,Yann Bisseck
+473,CS,2026SPRING,Algorithms I,3,False,Yann Sommer,Yann Bisseck
+399,CS,2026SPRING,Summer Training II,0,False,Yann Sommer,Yann Bisseck
+476,CS,2026SPRING,Automata Theory and Formal Languages,3,False,Yann Sommer,Yann Bisseck
+491,CS,2026SPRING,Senior Design Project I,3,False,Yann Sommer,Yann Bisseck
+492,CS,2026SPRING,Senior Design Project II,3,False,Yann Sommer,Yann Bisseck
+474,CS,2026SPRING,Algorithms II,3,False,Yann Sommer,Yann Bisseck
+411,CS,2026SPRING,Software Architecture Design,3,True,Yann Sommer,Yann Bisseck
+423,CS,2026SPRING,Computer Architecture,3,True,Yann Sommer,Yann Bisseck
+437,CS,2026SPRING,Software Design Patterns,3,True,Yann Sommer,Yann Bisseck
+443,CS,2026SPRING,Cloud Computing,3,True,Yann Sommer,Yann Bisseck
+461,CS,2026SPRING,Artificial Intelligence,3,True,Yann Sommer,Yann Bisseck
+464,CS,2026SPRING,Introduction to Machine Learning,3,True,Yann Sommer,Yann Bisseck
+485,CS,2026SPRING,Deep Generative Networks,3,True,Yann Sommer,Yann Bisseck
+484,CS,2026SPRING,Introduction to Computer Vision,3,True,Yann Sommer,Yann Bisseck
+590,CS,2026SPRING,Research Seminar I,0,True,Yann Sommer,Yann Bisseck
+599,CS,2026SPRING,Master's Thesis,0,True,Yann Sommer,Yann Bisseck
+690,CS,2026SPRING,Research Seminar II,0,True,Yann Sommer,Yann Bisseck
+699,CS,2026SPRING,Ph.D. Dissertation,0,True,Yann Sommer,Yann Bisseck

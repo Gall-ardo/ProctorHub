@@ -1,0 +1,19 @@
+id,name,email,userType,department,isPHD,isPartTime,isTaAssigner
+3001,Yann Sommer,ysommer@bilkent.edu.tr,instructor,CS,,,true
+3002,Yann Bisseck,ybisseck@bilkent.edu.tr,ta,CS,false,true,
+3003,Francesco Acerbi,facerbi@bilkent.edu.tr,ta,EEE,true,false,
+3004,Alessandro Bastoni,abastoni@bilkent.edu.tr,instructor,IE,,,false
+3005,Denzel Dumfries,ddumfries@bilkent.edu.tr,ta,CS,false,true,
+3006,Nicolo Barella,nbarella@bilkent.edu.tr,ta,CS,false,false,
+3007,Hakan Calhanoglu,hcalhanoglu@bilkent.edu.tr,ta,IE,true,false,
+3008,Henrikh Mkhitaryan,hmkhitaryan@bilkent.edu.tr,ta,IE,true,true,
+3009,Federico Dimarco,fdimarco@bilkent.edu.tr,ta,EEE,false,false,
+3010,Lautaro Martinez,lmartinez@bilkent.edu.tr,ta,CS,false,false,
+3011,Marcus Thuram,mthuram@bilkent.edu.tr,ta,EEE,false,true,
+
+4001,Benjamin Pavard,bpavard@bilkent.edu.tr,admin,,,, 
+4003,Juan Cuadrado,jcuadrado@bilkent.edu.tr,dean,,,, 
+4004,Davy Klaassen,dklaassen@bilkent.edu.tr,secretary,IE,,,
+4006,Kristjan Asllani,kasllani@bilkent.edu.tr,admin,,,,
+4007,Alexis Sanchez,asanchez@bilkent.edu.tr,dean,,,,
+4008,B. Sensi,bsensi@bilkent.edu.tr,secretary,CS,,,

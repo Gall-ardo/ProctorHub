@@ -1,0 +1,48 @@
+CourseCode,Department,CourseName,Credit,IsGradCourse,Instructor
+102,IE,A Process Outlook for Industrial Engineering,3,False,Alessandro Bastoni
+272,IE,Manufacturing Processes and Operations Analysis,4,False,Alessandro Bastoni
+202,IE,Introduction to Modeling and Optimization,4,False,Alessandro Bastoni
+342,IE,Engineering Economic Analysis,3,False,Alessandro Bastoni
+299,IE,Summer Training I,0,False,Alessandro Bastoni
+303,IE,Modeling and Methods in Optimization,3,False,Alessandro Bastoni
+325,IE,Stochastic Models,3,False,Alessandro Bastoni
+375,IE,Production Planning,3,False,Alessandro Bastoni
+324,IE,Simulation,4,False,Alessandro Bastoni
+376,IE,Production Information Systems,3,False,Alessandro Bastoni
+496,IE,Seminar in Production Systems,0,False,Alessandro Bastoni
+399,IE,Summer Training II,0,False,Alessandro Bastoni
+500,IE,Mathematics of Operations Research,3,True,Alessandro Bastoni
+505,IE,Mathematical Programming,3,True,Alessandro Bastoni
+523,IE,Probabilistic Analysis,3,True,Alessandro Bastoni
+599,IE,Master's Thesis,0,True,Alessandro Bastoni
+521,IE,Stochastic Processes,3,True,Alessandro Bastoni
+699,IE,Ph.D. Dissertation,0,True,Alessandro Bastoni
+101,CS,Algorithms and Programming I,4,False,Yann Sommer
+102,CS,Algorithms and Programming II,4,False,Yann Sommer
+201,CS,Fundamental Structures of Computer Science I,3,False,Yann Sommer
+202,CS,Fundamental Structures of Computer Science II,3,False,Yann Sommer
+223,CS,Digital Design,4,False,Yann Sommer
+224,CS,Computer Organization,4,False,Yann Sommer
+299,CS,Summer Training I,0,False,Yann Sommer
+315,CS,Programming Languages,3,False,Yann Sommer
+319,CS,Object-Oriented Software Engineering,4,False,Yann Sommer
+342,CS,Operating Systems,4,False,Yann Sommer
+353,CS,Database Systems,3,False,Yann Sommer
+473,CS,Algorithms I,3,False,Yann Sommer
+399,CS,Summer Training II,0,False,Yann Sommer
+476,CS,Automata Theory and Formal Languages,3,False,Yann Sommer
+491,CS,Senior Design Project I,3,False,Yann Sommer
+492,CS,Senior Design Project II,3,False,Yann Sommer
+474,CS,Algorithms II,3,False,Yann Sommer
+411,CS,Software Architecture Design,3,True,Yann Sommer
+423,CS,Computer Architecture,3,True,Yann Sommer
+437,CS,Software Design Patterns,3,True,Yann Sommer
+443,CS,Cloud Computing,3,True,Yann Sommer
+461,CS,Artificial Intelligence,3,True,Yann Sommer
+464,CS,Introduction to Machine Learning,3,True,Yann Sommer
+485,CS,Deep Generative Networks,3,True,Yann Sommer
+484,CS,Introduction to Computer Vision,3,True,Yann Sommer
+590,CS,Research Seminar I,0,True,Yann Sommer
+599,CS,Master's Thesis,0,True,Yann Sommer
+690,CS,Research Seminar II,0,True,Yann Sommer
+699,CS,Ph.D. Dissertation,0,True,Yann Sommer
