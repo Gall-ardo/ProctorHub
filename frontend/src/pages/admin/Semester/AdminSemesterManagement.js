@@ -707,19 +707,19 @@ const AdminSemesterManagement = () => {
           />
         )}
 
-        {/* Error Popup */}
+        {/* Error Message */}
         {showError && (
-          <ErrorPopup
-            message={errorMessage}
-            onClose={() => setShowError(false)}
-          />
+          <div className={styles.successMessage}>
+            {errorMessage}
+            <button onClick={() => setShowError(false)} className={styles.closeBtn}>×</button>
+          </div>
         )}
 
-        {/* Banner Success Notification */}
+        {/* Success Message */}
         {success && (
-          <div className={styles.bannerNotification}>
-            <div>{success}</div>
-            <button className={styles.closeNotificationBtn} onClick={() => setSuccess(null)}>×</button>
+          <div className={styles.successMessage}>
+            {success}
+            <button onClick={() => setSuccess(null)} className={styles.closeBtn}>×</button>
           </div>
         )}
       </div>
