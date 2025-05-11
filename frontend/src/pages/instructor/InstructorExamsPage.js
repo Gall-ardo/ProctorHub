@@ -768,6 +768,24 @@ const handlePrintStudentsRandomly = async (examId) => {
   const handleSubmitExam = async (e) => {
     e.preventDefault();
     try {
+      // Check if selected classrooms have enough capacity for the course
+      if (formData.classrooms.length > 0 && formData.courseName) {
+        const selectedCourse = courses.find(course => course.id === formData.courseName);
+        if (selectedCourse && selectedCourse.studentCount) {
+          // Calculate total capacity from selected classrooms
+          const totalCapacity = formData.classrooms.reduce((total, classroomId) => {
+            const classroom = classrooms.find(c => c.id === classroomId);
+            return total + (classroom ? (classroom.examSeatingCapacity || classroom.capacity || 0) : 0);
+          }, 0);
+          
+          // If course student count exceeds classroom capacity, show warning and stop form submission
+          if (selectedCourse.studentCount > totalCapacity) {
+            alert(`Error: The course has ${selectedCourse.studentCount} students, but the selected classrooms only have a total capacity of ${totalCapacity}. Please select additional classrooms to accommodate all students.`);
+            return; // Stop form submission
+          }
+        }
+      }
+      
       const headers = getAuthHeader();
       // Calculate duration in minutes from start and end time
       const startParts = formData.startTime.split(':').map(part => parseInt(part, 10));
