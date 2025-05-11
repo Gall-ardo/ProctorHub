@@ -39,6 +39,7 @@ const SelectUserPopup = ({
   
 
   const fetchUsers = async () => {
+    
     if (!department) {
       setUsers([]);
       return;
@@ -64,7 +65,7 @@ const SelectUserPopup = ({
         }
       }
   
-      const response = await axios.get(`${API_URL}/api/admin/users`, { params });
+      const response = await axios.get(`${API_URL}/api/admin/fetch/users`, { params }); // Changed /users to /fetch/users
   
       let userData = [];
       if (Array.isArray(response.data)) {
