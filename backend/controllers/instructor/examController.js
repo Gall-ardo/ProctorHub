@@ -552,6 +552,48 @@ class ExamController {
             });
         }
     }
+
+    /**
+     * Update TA workload metrics when swapped from proctoring
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async updateTAWorkload(req, res) {
+        try {
+            const { taId, examId, action, examDepartment, isOldProctorSameDepartment } = req.body;
+
+            // Validate required parameters
+            if (!taId || !examId || !action) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required parameters: taId, examId, and action are required'
+                });
+            }
+
+            // Only proceed if the action is SWAP (could be extended for other actions)
+            if (action !== 'SWAP') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid action. Only SWAP is supported'
+                });
+            }
+
+            // Update the TA workload metrics
+            const result = await examService.updateTAWorkload(taId, examId, examDepartment, isOldProctorSameDepartment);
+
+            return res.status(200).json({
+                success: true,
+                message: 'TA workload updated successfully',
+                data: result
+            });
+        } catch (error) {
+            console.error('Error updating TA workload:', error);
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to update TA workload'
+            });
+        }
+    }
 }
 
 module.exports = new ExamController();

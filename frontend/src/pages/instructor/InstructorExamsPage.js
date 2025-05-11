@@ -959,6 +959,12 @@ const handlePrintStudentsRandomly = async (examId) => {
 
       console.log(`Requesting to swap proctor ${oldProctorId} with ${newProctorId}`);
 
+      // Get the old proctor's data for workload updates
+      const oldProctor = selectedExam.proctors.find(p => p.id === oldProctorId);
+      if (!oldProctor) {
+        throw new Error('Selected proctor not found');
+      }
+
       // Use the request-swap-proctor endpoint instead of immediate swap
       const response = await axios.post(
         `${API_URL}/instructor/exams/${selectedExam.id}/request-swap-proctor`, 
@@ -968,8 +974,31 @@ const handlePrintStudentsRandomly = async (examId) => {
         }, 
         { headers }
       );
-
+      console.log("responseeee", response);
       if (response.data.success) {
+        // Only update workload if the proctor had ACCEPTED status (not PENDING)
+        if (oldProctor.status === 'ACCEPTED') {
+          try {
+            await axios.post(
+              `${API_URL}/instructor/update-ta-workload`, 
+              {
+                taId: oldProctorId,
+                examId: selectedExam.id,
+                action: 'SWAP', // This action tells the backend to reduce the workload
+                examDepartment: selectedExam.department,
+                isOldProctorSameDepartment: oldProctor.department === selectedExam.department
+              }, 
+              { headers }
+            );
+            console.log(`Updated workload for swapped proctor ${oldProctor.name} (status was ACCEPTED)`);
+          } catch (workloadError) {
+            console.error('Error updating proctor workload:', workloadError);
+            // Continue with UI updates even if workload update fails
+          }
+        } else {
+          console.log(`No workload update for ${oldProctor.name} (status was ${oldProctor.status}, not ACCEPTED)`);
+        }
+
         // First update the local state to immediately show the change
         // Find the proctor to be swapped and update its status
         const updatedProctors = selectedExam.proctors.map(proctor => {

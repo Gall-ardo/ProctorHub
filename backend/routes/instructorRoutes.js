@@ -196,6 +196,14 @@ router.post(
     examController.requestSwapProctor
 );
 
+// Update TA workload when swapped
+router.post(
+    '/update-ta-workload',
+    authenticateToken,
+    authorizeRole(['instructor']),
+    examController.updateTAWorkload
+);
+
 // Get all classrooms
 router.get(
     '/classrooms',

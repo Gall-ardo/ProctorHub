@@ -1,10 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { Op } = require('sequelize');
 const sequelize = require('../../config/db');
-const Instructor = require('../../models/Instructor');
-const User = require('../../models/User');
-const Exam = require('../../models/Exam');
-const Course = require('../../models/Course');
+const { Exam, Instructor, Course, Proctoring, User, TeachingAssistant } = require('../../models');
 const Notification = require('../../models/Notification');
 
 
@@ -1606,6 +1603,71 @@ class ExamService {
         } catch (error) {
             await t.rollback();
             throw new Error(`Failed to create proctor swap request: ${error.message}`);
+        }
+    }
+
+    /**
+     * Update TA workload metrics when swapped from proctoring
+     * @param {string} taId - The teaching assistant's ID
+     * @param {string} examId - The exam ID
+     * @param {string} examDepartment - The department of the exam
+     * @param {boolean} isOldProctorSameDepartment - Whether the old proctor is from the same department as the exam
+     * @returns {Promise<Object>} Result of the update operation
+     */
+    async updateTAWorkload(taId, examId, examDepartment, isOldProctorSameDepartment) {
+        const t = await sequelize.transaction();
+        
+        try {
+            // Step 1: Get the TA record
+            const ta = await TeachingAssistant.findByPk(taId, { transaction: t });
+            if (!ta) {
+                throw new Error(`Teaching Assistant with ID ${taId} not found`);
+            }
+            
+            // Step 2: Get the exam record to determine workload hours
+            const exam = await Exam.findByPk(examId, { transaction: t });
+            if (!exam) {
+                throw new Error(`Exam with ID ${examId} not found`);
+            }
+            
+            // Calculate the workload hours based on exam duration
+            const workloadHours = Math.ceil(exam.duration / 60); // Convert minutes to hours, round up
+            
+            // Step 3: Update the TA's workload metrics
+            // Decrease total workload
+            const newTotalWorkload = Math.max(0, (ta.totalWorkload || 0) - workloadHours);
+            
+            // Determine which proctoring counter to decrease
+            let updates = { totalWorkload: newTotalWorkload };
+            
+            if (isOldProctorSameDepartment) {
+                // If proctor is from same department as the exam, decrease departmental proctoring
+                const newInDeptProctoring = Math.max(0, (ta.totalProctoringInDepartment || 0) - workloadHours);
+                updates.totalProctoringInDepartment = newInDeptProctoring;
+            } else {
+                // If proctor is from different department, decrease non-departmental proctoring
+                const newNonDeptProctoring = Math.max(0, (ta.totalNonDepartmentProctoring || 0) - workloadHours);
+                updates.totalNonDepartmentProctoring = newNonDeptProctoring;
+            }
+            
+            // Step 4: Save the updated TA record
+            await ta.update(updates, { transaction: t });
+            
+            // Log the update
+            console.log(`Updated TA ${taId} workload metrics: `, updates);
+            
+            // Step 5: Commit the transaction
+            await t.commit();
+            
+            return {
+                taId,
+                examId,
+                updatedWorkload: updates
+            };
+        } catch (error) {
+            // Rollback the transaction if there's an error
+            await t.rollback();
+            throw new Error(`Failed to update TA workload: ${error.message}`);
         }
     }
 }
