@@ -96,8 +96,8 @@ function InstructorAssignPage() {
     }, [API_URL]);
 
     const handleAddPreference = async () => {
-        if (!selectedTA || !selectedCourse || !selectedPriority || !preferenceReason.trim()) {
-            alert("Please complete all fields to add a preference.");
+        if (!selectedTA || !selectedCourse || !selectedPriority) {
+            alert("Please select a TA, course, and priority level.");
             return;
         }
 
@@ -107,7 +107,7 @@ function InstructorAssignPage() {
                 taId: selectedTA.id,
                 courseId: selectedCourse.id,
                 priority: selectedPriority,
-                reason: preferenceReason
+                reason: preferenceReason.trim() || " "
             };
 
             const response = await axios.post(
@@ -193,12 +193,14 @@ function InstructorAssignPage() {
         setPreferredTAs(submittedPreferences);
     };
 
-    // Simple filter by name without specialization
+    // Filter TAs by name and by selected course's department
     const filteredTAs = searchTerm.trim() === ''
-        ? availableTAs
+        ? availableTAs.filter(ta => selectedCourse ? ta.department === selectedCourse.department : true)
         : availableTAs.filter(ta => {
             const name = ta.name || '';
-            return name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesDepartment = selectedCourse ? ta.department === selectedCourse.department : true;
+            return matchesSearch && matchesDepartment;
         });
 
     const filteredPreferences = preferredTAs.filter(pref => {
@@ -335,6 +337,7 @@ function InstructorAssignPage() {
                                 <div key={course.id} className="course-card">
                                     <div className="course-info">
                                         <h3>{course.department + (course.code || course.courseCode)}: {course.name || course.courseName}</h3>
+
                                         <p className="ta-count">
                                             TAs Requested: {coursePreferences.length}
                                         </p>
@@ -399,7 +402,7 @@ function InstructorAssignPage() {
 
                             {/* TA Search and Selection */}
                             <div className="form-group">
-                                <label>Search and Select TA:</label>
+                                <label>Search and Select Department TA:</label>
                                 <input
                                     type="text"
                                     placeholder="Search by name..."
@@ -463,13 +466,12 @@ function InstructorAssignPage() {
 
                             {/* Reason Text Area */}
                             <div className="form-group">
-                                <label>Reason for Preference:</label>
+                                <label>Reason for Preference (Optional):</label>
                                 <textarea
                                     value={preferenceReason}
                                     onChange={(e) => setPreferenceReason(e.target.value)}
-                                    placeholder="Explain why you would like this TA for your course..."
+                                    placeholder="Optionally explain why you would like this TA for your course..."
                                     rows={4}
-                                    required
                                 ></textarea>
                             </div>
 
@@ -483,7 +485,7 @@ function InstructorAssignPage() {
                                 <button
                                     className="add-btn"
                                     onClick={handleAddPreference}
-                                    disabled={!selectedTA || !selectedCourse || !preferenceReason.trim()}
+                                    disabled={!selectedTA || !selectedCourse}
                                 >
                                     Add Preference
                                 </button>
