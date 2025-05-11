@@ -460,7 +460,7 @@ const AdminStudentManagement = () => {
 
             {activeView === 'delete' && (
               <>
-                <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
+                <h2 className={styles.formTitle}>Enter ID find Student</h2>
                 <form onSubmit={handleFormSubmit}>
                   <div className={styles.formGroup}>
                     <label>ID</label>
@@ -469,15 +469,6 @@ const AdminStudentManagement = () => {
                       placeholder="Enter ID" 
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Mail</label>
-                    <input 
-                      type="email" 
-                      placeholder="Enter mail" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <button 
@@ -522,7 +513,7 @@ const AdminStudentManagement = () => {
 
             {activeView === 'edit' && (
               <>
-                <h2 className={styles.formTitle}>Enter ID or mail to find Student</h2>
+                <h2 className={styles.formTitle}>Enter ID to find Student</h2>
                 <form onSubmit={handleFormSubmit}>
                   <div className={styles.formGroup}>
                     <label>ID</label>
@@ -531,15 +522,6 @@ const AdminStudentManagement = () => {
                       placeholder="Enter ID" 
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Mail</label>
-                    <input 
-                      type="email" 
-                      placeholder="Enter mail" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <button 
