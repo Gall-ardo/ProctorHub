@@ -73,7 +73,7 @@ export default function SecretaryMainPage() {
               {upcomingExams.map((exam, i) => (
                 <div className="card" key={i}>
                   <div className="card-info">
-                    <h3>{exam.course}</h3>
+                    <h3>{exam.course.match(/[A-Za-z]+\d{3}/i) ? exam.course.match(/[A-Za-z]+\d{3}/i)[0] : exam.course}</h3>
                     <p>{exam.date}</p>
                     <p>{exam.time}</p>
                   </div>
