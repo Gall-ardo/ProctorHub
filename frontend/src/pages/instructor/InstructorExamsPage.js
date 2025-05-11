@@ -769,18 +769,23 @@ const handlePrintStudentsRandomly = async (examId) => {
     e.preventDefault();
     try {
       // Check if selected classrooms have enough capacity for the course
-      if (formData.classrooms.length > 0 && formData.courseName) {
+      if (formData.courseName) {
         const selectedCourse = courses.find(course => course.id === formData.courseName);
         if (selectedCourse && selectedCourse.studentCount) {
-          // Calculate total capacity from selected classrooms
-          const totalCapacity = formData.classrooms.reduce((total, classroomId) => {
+          // Calculate total capacity from selected classrooms (0 if no classrooms)
+          const totalCapacity = formData.classrooms.length === 0 ? 0 : formData.classrooms.reduce((total, classroomId) => {
             const classroom = classrooms.find(c => c.id === classroomId);
             return total + (classroom ? (classroom.examSeatingCapacity || classroom.capacity || 0) : 0);
           }, 0);
           
-          // If course student count exceeds classroom capacity, show warning and stop form submission
+          // If course student count exceeds classroom capacity (or no classrooms), show warning and stop submission
           if (selectedCourse.studentCount > totalCapacity) {
-            alert(`Error: The course has ${selectedCourse.studentCount} students, but the selected classrooms only have a total capacity of ${totalCapacity}. Please select additional classrooms to accommodate all students.`);
+            // Custom message for no classrooms case
+            const errorMsg = formData.classrooms.length === 0 
+              ? `Error: The course has ${selectedCourse.studentCount} students, but no classrooms are selected. Please select classrooms with enough capacity.`
+              : `Error: The course has ${selectedCourse.studentCount} students, but the selected classrooms only have a total capacity of ${totalCapacity}. Please select additional classrooms to accommodate all students.`;
+            
+            alert(errorMsg);
             return; // Stop form submission
           }
         }
