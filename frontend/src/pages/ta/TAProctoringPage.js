@@ -35,47 +35,10 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, message, isError = fal
   );
 };
 
-/*const SuccessDialog = ({ isOpen, onClose, message }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="ta-proctoring-page-dialog-overlay">
-      <div className="ta-proctoring-page-dialog-container">
-        <div className="ta-proctoring-page-dialog-icon" style={{ backgroundColor: "#4CAF50" }}>
-          <span>✓</span>
-        </div>
-        <div className="ta-proctoring-page-dialog-content">
-          <div className="ta-proctoring-page-dialog-title">Success</div>
-          <div className="ta-proctoring-page-dialog-message">{message}</div>
-          <div className="ta-proctoring-page-dialog-actions">
-            <button 
-              className="ta-proctoring-page-dialog-button okay" 
-              onClick={onClose}
-              style={{
-                backgroundColor: "#2196F3", 
-                color: "white", 
-                border: "none", 
-                padding: "8px 16px", 
-                borderRadius: "4px", 
-                cursor: "pointer", 
-                fontWeight: "500"
-              }}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-        <button className="ta-proctoring-page-dialog-close" onClick={onClose}>×</button>
-      </div>
-    </div>
-  );
-};*/
-
 const TAProctoringPage = () => {
   const [isMultidepartment, setIsMultidepartment] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  //const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [currentAction, setCurrentAction] = useState(null);
@@ -134,7 +97,7 @@ const TAProctoringPage = () => {
       if (pendingResponse.data.success) {
         const formatted = pendingResponse.data.data.map(item => ({
           id: item.id,
-          course: item.exam.Course?.department + " " + item.exam.Course?.courseCode || 'N/A',
+          course: item.exam.Course?.courseCode || 'N/A',
           type: item.exam.examType,
           date: formatDate(item.exam.date),
           time: formatTime(item.exam.date, item.exam.duration),
@@ -316,10 +279,6 @@ const TAProctoringPage = () => {
   const closeErrorDialog = () => {
     setErrorDialogOpen(false);
   };
-  
-  /*const closeSuccessDialog = () => {
-    setSuccessDialogOpen(false);
-  };*/
 
   const renderWaitingProctoringList = () => {
     if (loading) return <div className="ta-proctoring-page-loading">Loading...</div>;
@@ -329,7 +288,7 @@ const TAProctoringPage = () => {
       return (
         <div key={p.id} className="ta-proctoring-page-proctoring-item">
           <div className="ta-proctoring-page-proctoring-details">
-            <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
+            <div className="ta-proctoring-page-course-info">{p.department} {p.course} {p.type}</div>
             <div className="ta-proctoring-page-proctoring-meta">
               <div>{p.date} {p.time}</div>
               <div>Classrooms: {p.classrooms}</div>
@@ -385,7 +344,7 @@ const TAProctoringPage = () => {
       return (
         <div key={p.id} className="ta-proctoring-page-proctoring-item">
           <div className="ta-proctoring-page-proctoring-details">
-            <div className="ta-proctoring-page-course-info">{p.course} {p.type}</div>
+            <div className="ta-proctoring-page-course-info"> {p.department} {p.course} {p.type}</div>
             <div className="ta-proctoring-page-proctoring-meta">
               <div>{p.date} {p.time}</div>
               <div>Classrooms: {p.classrooms}</div>
@@ -555,8 +514,6 @@ const TAProctoringPage = () => {
         message={errorMessage}
         isError={true}
       />
-      
-      
     </div>
   );
 };
