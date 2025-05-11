@@ -11,7 +11,7 @@ const TAMainPage = () => {
   const [myScheduleEvents, setMyScheduleEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  
   // Set up axios with authentication
   const API_URL = 'http://localhost:5001/api';
   
@@ -24,21 +24,29 @@ const TAMainPage = () => {
       }
     };
   };
-
+  
   const fetchScheduleData = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
       if (!token) throw new Error('No authentication token found');
-
+      
       const response = await axios.get(`${API_URL}/ta/schedule/combined`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      
       if (response.data.success) {
-        setMyScheduleEvents(response.data.data);
+        // Process the data to mark exam and offering events
+        const processedEvents = response.data.data.map(event => ({
+          ...event,
+          isExam: event.hasOwnProperty('isExam') ? event.isExam : !!event.examId, // Set isExam based on property or examId
+          isOffering: event.hasOwnProperty('isOffering') ? event.isOffering : !!event.offeringId // Set isOffering based on property or offeringId
+        }));
+        
+        setMyScheduleEvents(processedEvents);
         setError(null);
       } else {
         setError(response.data.message || 'Failed to fetch schedule');
@@ -50,12 +58,12 @@ const TAMainPage = () => {
       setLoading(false);
     }
   };
-
+  
   // Handle date change in the weekly schedule
   const handleDateChange = (newDate) => {
     setCurrentDate(newDate);
   };
-
+  
   // Initialize on component mount
   useEffect(() => {
     fetchScheduleData();
@@ -68,11 +76,10 @@ const TAMainPage = () => {
     // Clean up on unmount
     return () => clearInterval(intervalId);
   }, []);
-
+  
   return (
     <div className="ta-main-page-main-page">
       <TANavBar />
-      
       <main className="ta-main-page-main-content">
         {loading ? (
           <div className="ta-main-page-loading">Loading schedule...</div>
@@ -83,14 +90,14 @@ const TAMainPage = () => {
           </div>
         ) : (
           <>
-            <WeeklySchedule 
+            <WeeklySchedule
               events={myScheduleEvents}
               currentDate={currentDate}
               onDateChange={handleDateChange}
             />
             <div className="ta-main-page-side-panel">
               {/* Using our updated ProctorSwapForum component with real API data */}
-              <ProctorSwapForum 
+              <ProctorSwapForum
                 scheduleEvents={myScheduleEvents.filter(event => event.isExam)}
               />
             </div>

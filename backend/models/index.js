@@ -140,7 +140,7 @@ Report.belongsTo(TimeSlot, { foreignKey: "timeSlotId" });
 TimeSlot.hasMany(Report, { foreignKey: "timeSlotId" });
 
 // Offering ↔ TimeSlot
-Offering.hasMany(TimeSlot, { foreignKey: "offeringId" });
+Offering.hasMany(TimeSlot, { foreignKey: "offeringId" , as: "TimeSlot" });
 TimeSlot.belongsTo(Offering, { foreignKey: "offeringId" });
 
 Offering.belongsTo(Course, { foreignKey: "courseId" });
@@ -187,4 +187,6 @@ module.exports = {
     Notification,
     Student,
     Secretary,
+    Semester,
+    TimeSlot,
   };

@@ -125,6 +125,19 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     return `${hour}:00`;
   };
 
+  // Get the appropriate CSS class for an event based on its type
+  const getEventClass = (event) => {
+    let baseClass = 'ta-main-page-weekly-schedule-schedule-event';
+    
+    if (event.isExam) {
+      return `${baseClass} red`; // Red for exams
+    } else if (event.isOffering) {
+      return `${baseClass} green`; // Green for course offerings
+    } else {
+      return `${baseClass} ${event.color || 'blue'}`;
+    }
+  };
+
   // Functions for week navigation
   const goToPreviousWeek = () => {
     const prevWeek = new Date(activeDate);
@@ -173,9 +186,6 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
     <div className="ta-main-page-weekly-schedule-weekly-schedule-container">
       <div className="ta-main-page-weekly-schedule-weekly-schedule-header">
         <h2>Weekly Schedule</h2>
-        <div className="ta-main-page-weekly-schedule-week-range">
-          {formatWeekRange()}
-        </div>
         <div className="ta-main-page-weekly-schedule-week-navigation">
           <button onClick={goToPreviousWeek}>Previous Week</button>
           <button onClick={goToCurrentWeek}>Current Week</button>
@@ -231,7 +241,7 @@ const WeeklySchedule = ({ events = [], currentDate = new Date(), onDateChange })
                     .map(event => (
                       <div
                         key={`event-${event.id}`}
-                        className={`ta-main-page-weekly-schedule-schedule-event ${event.color || 'blue'}`}
+                        className={getEventClass(event)}
                         style={{
                           position: 'absolute',
                           top: `${getEventTopPosition(event)}px`,

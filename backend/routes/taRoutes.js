@@ -8,6 +8,8 @@ const upload = require('../middleware/upload');
 const swapRequestController = require('../controllers/ta/taSwapController');
 const taProctoringController = require('../controllers/ta/taProctoringController');
 const taProctoringScheduleController = require('../controllers/ta/taProctoringScheduleController');
+const taOfferingScheduleController = require('../controllers/ta/taOfferingScheduleController');
+const taCombinedScheduleController = require('../controllers/ta/taCombinedScheduleController');
 
 // Test route without authentication
 router.get('/test', (req, res) => {
@@ -56,7 +58,10 @@ router.get('/proctorings/stats', taProctoringController.getProctoringStats);
 router.put('/profile/multidepartment', taProctoringController.updateMultidepartmentPreference);
 
 
-router.get('/proctoring-schedule', taProctoringScheduleController.getProctoringSchedule);
-router.get('/schedule/combined', taProctoringScheduleController.getCombinedSchedule);
-
+// Get TA's proctoring schedule
+router.get('/proctoring', taProctoringScheduleController.getProctoringSchedule);
+// Get TA's offering schedule
+router.get('/offerings', taOfferingScheduleController.getOfferingSchedule);
+// Get TA's combined schedule (both proctoring and offerings)
+router.get('/schedule/combined', taCombinedScheduleController.getCombinedSchedule);
 module.exports = router;

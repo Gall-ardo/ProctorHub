@@ -75,7 +75,7 @@ const offeringService = {
         include: [
           { model: Course },
           { model: Semester },
-          { model: TimeSlot }
+          { model: TimeSlot, as: 'TimeSlot' }
         ]
       });
       
@@ -118,7 +118,7 @@ const offeringService = {
         include: [
           { model: Course },
           { model: Semester },
-          { model: TimeSlot }
+          { model: TimeSlot, as: 'TimeSlot' }
         ],
         order: [
           ['sectionNumber', 'ASC']
@@ -143,7 +143,7 @@ const offeringService = {
         include: [
           { model: Course },
           { model: Semester },
-          { model: TimeSlot }
+          { model: TimeSlot, as: 'TimeSlot' }
         ]
       });
       
@@ -170,7 +170,7 @@ const offeringService = {
         include: [
           { model: Course },
           { model: Semester },
-          { model: TimeSlot }
+          { model: TimeSlot, as: 'TimeSlot' }
         ]
       });
       
@@ -256,7 +256,7 @@ const offeringService = {
         include: [
           { model: Course },
           { model: Semester },
-          { model: TimeSlot }
+          { model: TimeSlot, as: 'TimeSlot' }
         ]
       });
       
