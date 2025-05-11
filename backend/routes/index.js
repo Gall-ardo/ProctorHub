@@ -15,6 +15,7 @@ router.use('/instructor', instructorRoutes);
 router.use('/dean', deanRoutes);
 router.use('/notifications', notifyRoutes); // Use notification routes
 router.use('/chair', departmentChairRoutes); // Use department chair routes
+router.use('/secretary', require('./secretaryRoutes')); // Use secretary routes
 // Add more route categories here as needed
 
 module.exports = router;

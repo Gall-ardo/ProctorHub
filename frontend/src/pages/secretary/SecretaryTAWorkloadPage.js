@@ -1,154 +1,219 @@
+// src/components/secretaryTAWorkloadPage.jsx
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import './SecretaryTAWorkloadPage.css';
-import './SecretaryMainPage.css';
+import axios from 'axios';
 import SecretaryNavBar from './SecretaryNavBar';
+import './SecretaryTAWorkloadPage.css';
 
-function SecretaryTAWorkloadPage() {
-    const [enteredWorkloads, setEnteredWorkloads] = useState([]);
-    const [totalWorkloads, setTotalWorkloads] = useState([]);
+export default function SecretaryTAWorkloadPage() {
+  const [pending, setPending] = useState([]);
+  const [totals,  setTotals]  = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
 
-    // Pop-up (modal) states
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedAction, setSelectedAction] = useState(null); // 'verify' or 'reject'
-    const [selectedWorkloadId, setSelectedWorkloadId] = useState(null);
-    const [rejectionReason, setRejectionReason] = useState('');
+  // Modal state
+  const [isModalOpen,       setIsModalOpen]       = useState(false);
+  const [actionType,        setActionType]        = useState('');
+  const [selectedId,        setSelectedId]        = useState(null);
+  const [rejectionReason,   setRejectionReason]   = useState('');
 
-    useEffect(() => {
-        // Fetch TA Entered Workloads
-        fetch('http://localhost:5001/api/ta-workload/entered')
-            .then((res) => res.json())
-            .then((data) => setEnteredWorkloads(data))
-            .catch((err) => console.error('Error fetching entered workloads:', err));
+  const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5001') + '/api';
 
-        // Fetch TA Total Workloads
-        fetch('http://localhost:5001/api/ta-workload/total')
-            .then((res) => res.json())
-            .then((data) => setTotalWorkloads(data))
-            .catch((err) => console.error('Error fetching total workloads:', err));
-    }, []);
+  function getAuthHeader() {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    return { Authorization: `Bearer ${token}` };
+  }
 
-    // Clicking "Verify"
-    const handleVerify = (workloadId) => {
-        setSelectedAction('verify');
-        setSelectedWorkloadId(workloadId);
-        setIsModalOpen(true);
-    };
+  const fetchWorkloadData = async () => {
+    try {
+      setLoading(true);
+      const headers = getAuthHeader();
+      const [pendingResp, totalsResp] = await Promise.all([
+        axios.get(`${API_URL}/secretary/workloads/pending`, { headers }),
+        axios.get(`${API_URL}/secretary/workloads/totals`,  { headers })
+      ]);
 
-    // Clicking "Reject"
-    const handleReject = (workloadId) => {
-        setSelectedAction('reject');
-        setSelectedWorkloadId(workloadId);
-        setIsModalOpen(true);
-    };
+      console.log('Pending workloads:', pendingResp.data.data);
+      console.log('Workload totals:',  totalsResp.data.data);
 
-    // Close modal
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setSelectedWorkloadId(null);
-        setSelectedAction(null);
-        setRejectionReason('');
-    };
+      setPending(pendingResp.data.data);
+      setTotals(totalsResp.data.data);
+    } catch (err) {
+      console.error('Error loading workloads:', err);
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Confirm button in modal
-    const handleConfirm = () => {
-        if (selectedAction === 'verify') {
-            console.log('Verifying workload:', selectedWorkloadId);
-            // Later: add real backend call
-        } else if (selectedAction === 'reject') {
-            // Check rejection reason
-            if (!rejectionReason.trim()) {
-                alert('Please provide a reason for rejecting this request.');
-                return;
-            }
-            console.log('Rejecting workload:', selectedWorkloadId, 'Reason:', rejectionReason);
-            // Later: add real backend call
+  useEffect(() => {
+    fetchWorkloadData();
+  }, []);
+
+  const openModal = (type, id) => {
+    setActionType(type);
+    setSelectedId(id);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedId(null);
+    setActionType('');
+    setRejectionReason('');
+  };
+
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      const headers = getAuthHeader();
+
+      if (actionType === 'approve') {
+        await axios.post(`${API_URL}/secretary/workloads/${selectedId}/approve`, {}, { headers });
+      } else {
+        if (!rejectionReason.trim()) {
+          alert('Please provide a rejection reason.');
+          return;
         }
-        // close modal
-        closeModal();
-    };
+        await axios.post(
+          `${API_URL}/secretary/workloads/${selectedId}/reject`,
+          { reason: rejectionReason },
+          { headers }
+        );
+      }
 
-    return (
-        <div className="ta-workload-page">
-            {/* Top Navbar */}
-            <SecretaryNavBar />
+      await fetchWorkloadData();
+    } catch (err) {
+      console.error('Action failed:', err);
+      alert(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+      closeModal();
+    }
+  };
 
-            {/* Main Content */}
-            <main className="main-content">
-                {/* Left Panel: TA Entered Workloads */}
-                <div className="content-panel entered-workloads-section">
-                    <h2>TA Entered Workloads</h2>
-                    <div className="cards-container">
-                        {enteredWorkloads.map((item) => (
-                            <div className="card" key={item.id}>
-                                <h3>
-                                    {item.taName} - {item.hours} Hours
-                                </h3>
-                                <p>{item.date}</p>
-                                <div className="action-buttons">
-                                    <button onClick={() => handleVerify(item.id)}>Verify</button>
-                                    <button onClick={() => handleReject(item.id)}>Reject</button>
-                                </div>
-                            </div>
-                        ))}
+  if (loading && !pending.length && !totals.length) {
+    return <div className="loading">Loading workloads…</div>;
+  }
+  if (error) {
+    return <div className="error">{error}</div>;
+  }
+
+  return (
+    <div className="ta-workload-page">
+      <SecretaryNavBar />
+
+      <main className="main-content">
+        <section className="content-panel entered-workloads-section">
+          <h2>Pending Workloads</h2>
+          {pending.length === 0 ? (
+            <p>No pending requests.</p>
+          ) : (
+            <div className="cards-container">
+              {pending.map(w => {
+                // safe fallback for whichever shape your backend actually sent:
+                const taName =
+                  w.teachingAssistant?.ta?.name ||
+                  w.teachingAssistant?.name ||
+                  'Unknown TA';
+
+                return (
+                <div className="card" key={w.id}>
+                  <div className="card-info">
+                    <div className="info-row">
+                      <span className="ta-name">
+                        <h3>{taName} – {w.duration} Hours</h3>
+                      </span>
                     </div>
-                </div>
-
-                {/* Right Panel: TA Total Workloads */}
-                <div className="content-panel total-workloads-section">
-                    <h2>TA Total Workloads</h2>
-                    <div className="cards-container">
-                        {totalWorkloads.map((item) => (
-                            <div className="card" key={item.id}>
-                                <h3>
-                                    {item.taName} – {item.approvedHours} Hours Approved, {item.waitingHours} Hours Waiting
-                                </h3>
-                                <p>Last Update: {item.lastUpdate}</p>
-                            </div>
-                        ))}
+                    <div className="info-row">
+                      <strong>Date:</strong> {new Date(w.date).toLocaleDateString()}
                     </div>
-                </div>
-            </main>
-
-            {/* ===== MODAL for Verify/Reject ===== */}
-            {isModalOpen && (
-                <div className="modal-backdrop">
-                    <div className="modal-content">
-                        {/* Close / X button */}
-                        <button className="close-modal-button" onClick={closeModal}>×</button>
-
-                        {selectedAction === 'verify' ? (
-                            <>
-                                <h3>Are you sure you want to verify this workload?</h3>
-                                <div className="button-row">
-                                    <button onClick={closeModal}>No</button>
-                                    <button onClick={handleConfirm}>Yes</button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <h3>Are you sure you want to reject this workload?</h3>
-                                <label>Please provide a reason for rejection:</label>
-                                <textarea
-                                    className="rejection-textarea"
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                    placeholder="Reason for rejecting"
-                                />
-                                <div className="button-row">
-                                    <button onClick={closeModal}>Cancel</button>
-                                    {/* "Reject" is disabled if reason is empty */}
-                                    <button onClick={handleConfirm} disabled={!rejectionReason.trim()}>
-                                        Yes
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                    <div className="info-row">
+                      <strong>Task:</strong> {w.taskType || 'Not specified'}
                     </div>
+                    {w.course && (
+                      <div className="info-row">
+                        <strong>Course:</strong> {w.course}
+                      </div>
+                    )}
+                  </div>
+                  <div className="action-buttons">
+                    <button onClick={() => openModal('approve', w.id)}>Approve</button>
+                    <button onClick={() => openModal('reject', w.id)}>Reject</button>
+                  </div>
                 </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="content-panel total-workloads-section">
+          <h2>Workload Summary</h2>
+          {totals.length === 0 ? (
+            <p>No summary data.</p>
+          ) : (
+            <div className="cards-container">
+              {totals.map(t => (
+                <div className="card" key={t.id}>
+                  <h3>{t.taName}</h3>
+                  <p>
+                    Approved: {t.approvedHours} Hours, Waiting: {t.waitingHours} Hours
+                  </p>
+                  <p>
+                    Last Update:{' '}
+                    {new Date(t.lastUpdate).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+
+      {isModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <button
+              className="close-modal-button"
+              onClick={closeModal}
+            >
+              ×
+            </button>
+
+            {actionType === 'approve' ? (
+              <>
+                <h3 style={{ marginBottom: '1rem' }}>Confirm Verification</h3>
+                <p>Are you sure you want to approve this workload request?</p>
+                <div className="button-row">
+                  <button onClick={handleConfirm}>Yes</button>
+                  <button onClick={closeModal}>No</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ marginBottom: '1rem' }}>Reject Workload</h3>
+                <p>Please provide a reason for rejection:</p>
+                <textarea
+                  className="rejection-textarea"
+                  value={rejectionReason}
+                  onChange={e => setRejectionReason(e.target.value)}
+                  placeholder="Reason for rejecting"
+                />
+                <div className="button-row">
+                <button
+                    onClick={handleConfirm}
+                    disabled={!rejectionReason.trim()}
+                  >
+                    Submit
+                  </button>
+                  <button onClick={closeModal}>Cancel</button>
+                </div>
+              </>
             )}
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }
-
-export default SecretaryTAWorkloadPage;

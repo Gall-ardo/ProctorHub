@@ -186,4 +186,5 @@ module.exports = {
     Proctoring,
     Notification,
     Student,
+    Secretary,
   };
