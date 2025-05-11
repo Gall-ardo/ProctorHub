@@ -1424,19 +1424,24 @@ const handlePrintStudentsRandomly = async (examId) => {
 
                   <div className="form-row checkbox-row">
                     <label className="checkbox-container">
-                      <input
-                          type="checkbox"
-                          name="prioritizeCourseAssistants"
-                          checked={formData.prioritizeCourseAssistants}
-                          onChange={handleInputChange}
-                      />
-                      <span className="checkmark"></span>
-                      Prioritize TAs of selected course
-                    </label>
-                    <p className="hint-text">
-                      TAs will be prioritized in this order: 1) Department TAs (highest priority - always selected first regardless of workload), 2) Full-time TAs for weekday exams or Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
-                      For graduate courses, PhD TAs will also be prioritized. TAs with approved leave requests on the exam date cannot be assigned.
-                    </p>
+    <input
+      type="checkbox"
+      name="prioritizeCourseAssistants"
+      checked={formData.prioritizeCourseAssistants}
+      onChange={handleInputChange}
+    />
+    <span className="checkbox-label">Prioritize TAs of selected course</span>
+  </label>
+  <div></div>
+
+  <div className="hint-text">
+    TAs will be prioritized in this order:<br />
+    1) Department<br />
+    2) Full-time and Part-time<br />
+    3) Course TAs (if checkbox selected)<br />
+    For graduate courses, PhD TAs will also be prioritized.<br />
+    TAs with approved leave requests on the exam date cannot be assigned.
+  </div>
                   </div>
 
                   <div className="form-row">
@@ -1445,14 +1450,14 @@ const handlePrintStudentsRandomly = async (examId) => {
                         Select Manual Proctors ({selectedTAs.length})
                       </button>
                       <p className="hint-text">
-                        You can manually select specific TAs as proctors
+                        You can manually select the TAs.
                       </p>
                     </div>
                   </div>
 
                   <div className="button-row">
-                    <button type="submit" className="primary-btn">ADD</button>
-                    <button type="button" className="close-btn" onClick={closeAllModals}>CANCEL</button>
+                    <button type="submit" className="add-primary-btn">ADD</button>
+                    <button type="button" className="close-btn" onClick={closeAllModals}>X</button>
                   </div>
                 </form>
               </div>
@@ -1594,44 +1599,11 @@ const handlePrintStudentsRandomly = async (examId) => {
         {isSelectProctorsOpen && (
             <div className="modal-overlay select-proctors-overlay">
               <div className="select-proctors-modal">
-                <div className="modal-header">
+                <div className="instructor-assign-modal-header">
                   <h3>Select Proctor(s)</h3>
                   <button className="close-modal-btn" onClick={closeSelectProctors}>×</button>
                 </div>
-                
-                <div className="assignment-options">
-                  <div className="form-row checkbox-row">
-                    <label className="checkbox-container">
-                      <input
-                          type="checkbox"
-                          name="prioritizeCourseAssistants"
-                          checked={formData.prioritizeCourseAssistants}
-                          onChange={handleInputChange}
-                      />
-                      <span className="checkmark"></span>
-                      Prioritize TAs of selected course
-                    </label>
-                    <p className="hint-text">
-                      TAs will be prioritized in this order: 1) Department TAs (highest priority - always selected first regardless of workload), 2) Full-time TAs for weekday exams or Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
-                      For graduate courses, PhD TAs will also be prioritized. TAs with approved leave requests on the exam date cannot be assigned.
-                    </p>
-                  </div>
-                  
-                  <div className="form-row">
-                    <label>Number of Automatic Proctors:</label>
-                    <input
-                        type="number"
-                        name="proctorNum"
-                        value={formData.proctorNum}
-                        onChange={handleInputChange}
-                        required
-                        min="0"
-                    />
-                    <p className="hint-text">
-                      This is the number of TAs that will be automatically assigned based on workload when the exam is created.
-                    </p>
-                  </div>
-                </div>
+
                 
                 <div className="search-container">
                   <input

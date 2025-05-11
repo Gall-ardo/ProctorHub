@@ -359,7 +359,11 @@
 /* Proctor Selection Row */
 .proctor-selection-row {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+
 }
 
 .select-proctor-btn {
@@ -382,6 +386,16 @@
 .primary-btn {
   background-color: var(--primary-color);
   color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 30px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.add-primary-btn {
+  background-color: var(--primary-color);
   border: none;
   border-radius: 4px;
   padding: 10px 30px;
@@ -417,7 +431,7 @@
   position: relative;
 }
 
-.modal-header {
+.instructor-assign-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
