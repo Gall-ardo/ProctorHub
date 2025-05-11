@@ -1261,9 +1261,6 @@ const handlePrintStudentsRandomly = async (examId) => {
                       </p>
                       <div className="card-buttons">
                         <button onClick={() => handleOpenSwapTAs(exam)}>Swap TA</button>
-                        <button onClick={() => handleOpenSwapHistory(exam)}>
-                          View Swap History
-                        </button>
                         <button onClick={() => handleOpenChangeExam(exam)}>
                           Change Exam Information
                         </button>

@@ -124,24 +124,30 @@ export default function InstructorMainPage() {
             <div className="empty">No swap requests found</div>
           ) : (
             <div className="cards-container">
-              {latestSwaps.map((swap, i) => (
-                <div className="exam-card" key={i}>
-                  <div className="exam-card-header">
-                    <h3>{swap.type === 'INSTRUCTOR_INITIATED' ? 'Instructor Swap' : 'TA Swap Request'}</h3>
+              {latestSwaps.map((swap, i) => {
+                // Find the course to display proper course code
+                const course = courses.find(c => c.id === swap.examName || c.courseName === swap.examName);
+                const displayCode = course?.courseCode || swap.examName;
+                
+                return (
+                  <div className="exam-card" key={i}>
+                    <div className="exam-card-header">
+                      <h3>{swap.type === 'INSTRUCTOR_INITIATED' ? 'Instructor Swap' : 'TA Swap Request'}</h3>
+                    </div>
+                    <p><strong>From:</strong> {swap.from}</p>
+                    <p><strong>To:</strong> {swap.to}</p>
+                    <p><strong>Exam:</strong> {displayCode}</p>
+                    <p><strong>Exam Date:</strong> {swap.examDate}</p>
+                    <p><strong>Swap Info:</strong> {swap.swapInfo}</p>
+                    <p><strong>Date & Time:</strong> {swap.date} {swap.time}</p>
+                    <div className="card-buttons">
+                      <Link to="/instructor/exams" className="info-button">
+                        View Details
+                      </Link>
+                    </div>
                   </div>
-                  <p><strong>From:</strong> {swap.from}</p>
-                  <p><strong>To:</strong> {swap.to}</p>
-                  <p><strong>Exam:</strong> {swap.examName}</p>
-                  <p><strong>Exam Date:</strong> {swap.examDate}</p>
-                  <p><strong>Swap Info:</strong> {swap.swapInfo}</p>
-                  <p><strong>Date & Time:</strong> {swap.date} {swap.time}</p>
-                  <div className="card-buttons">
-                    <Link to="/instructor/exams" className="info-button">
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
