@@ -417,3 +417,41 @@
     font-size: 0.8rem;
   }
 }
+
+.uploadInstructions {
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.uploadInstructions ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.uploadNote {
+  color: #666;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.uploadExample {
+  margin-top: 10px;
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #0077cc;
+}
+
+.exampleLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #0077cc;
+}
+
+.uploadExample pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+  overflow-x: auto;
+}

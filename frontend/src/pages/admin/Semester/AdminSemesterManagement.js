@@ -684,7 +684,25 @@ const AdminSemesterManagement = () => {
                   'assistants', 
                   assistantsFile, 
                   'Teaching Assistants',
-                  'CSV should contain: TAId, CourseId, Section, Workload'
+                  <div className={styles.uploadInstructions}>
+                    <p>CSV should contain these columns:</p>
+                    <ul>
+                      <li><strong>taId</strong>: Teaching Assistant ID (required)</li>
+                      <li><strong>offeringId</strong>: Course Offering ID (required)</li>
+                    </ul>
+                    <p className={styles.uploadNote}>
+                      <strong>Note:</strong> The offeringId should be in the format: <code>DEPT101YYYYTERM_001</code> 
+                      <br/>For example: <code>CS1012028SUMMER_001</code> (for section 1)
+                    </p>
+                    <div className={styles.uploadExample}>
+                      <span className={styles.exampleLabel}>Example CSV:</span>
+                      <pre>
+                                        taId,offeringId
+                                        TA001,CS1012028SUMMER_001
+                                        TA002,CS1022028SUMMER_001
+                      </pre>
+                    </div>
+                  </div>
                 )}
               </div>
               

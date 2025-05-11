@@ -4,6 +4,7 @@ const Course = require("../../models/Course");
 const Offering = require("../../models/Offering");
 const TimeSlot = require("../../models/TimeSlot");
 const Instructor = require("../../models/Instructor");
+const TeachingAssistant = require("../../models/TeachingAssistant");
 const User = require("../../models/User");
 const Student = require("../../models/Student");
 const { Op } = require("sequelize");
@@ -439,20 +440,51 @@ class SemesterService {
           
           // If instructor is provided for this offering, associate them
           if (offeringData.instructorId) {
-            const instructor = await Instructor.findByPk(offeringData.instructorId, { transaction: t });
-            if (instructor) {
-              await offering.addInstructor(instructor, { transaction: t });
-              console.log(`Associated instructor ${offeringData.instructorId} with offering ${offeringId}`);
+            try {
+              const instructor = await Instructor.findByPk(offeringData.instructorId, { transaction: t });
+              if (instructor) {
+                // Use direct query approach instead of relying on the association method
+                await sequelize.query(
+                  `INSERT INTO "InstructorOfferings" ("InstructorId", "OfferingId", "createdAt", "updatedAt") 
+                  VALUES (?, ?, ?, ?)`,
+                  {
+                    replacements: [offeringData.instructorId, offeringId, new Date(), new Date()],
+                    type: sequelize.QueryTypes.INSERT,
+                    transaction: t
+                  }
+                );
+                console.log(`Associated instructor ${offeringData.instructorId} with offering ${offeringId}`);
+              }
+            } catch (instructorError) {
+              console.error(`Error associating instructor with offering ${offeringId}:`, instructorError);
+              // Continue processing - don't fail the whole offering just because instructor association failed
             }
           } else {
             // If no specific instructor for offering, inherit from course
-            const course = courseMap.get(offeringData.courseId);
-            
-            if (course && course.instructors && course.instructors.length > 0) {
-              for (const instructor of course.instructors) {
-                await offering.addInstructor(instructor, { transaction: t });
-                console.log(`Inherited instructor ${instructor.id} from course to offering ${offeringId}`);
+            try {
+              const course = await Course.findByPk(offeringData.courseId, {
+                include: [{ model: Instructor, as: 'instructors' }],
+                transaction: t
+              });
+              
+              if (course && course.instructors && course.instructors.length > 0) {
+                for (const instructor of course.instructors) {
+                  // Use direct query approach
+                  await sequelize.query(
+                    `INSERT INTO "InstructorOfferings" ("InstructorId", "OfferingId", "createdAt", "updatedAt") 
+                    VALUES (?, ?, ?, ?)`,
+                    {
+                      replacements: [instructor.id, offeringId, new Date(), new Date()],
+                      type: sequelize.QueryTypes.INSERT,
+                      transaction: t
+                    }
+                  );
+                  console.log(`Inherited instructor ${instructor.id} from course to offering ${offeringId}`);
+                }
               }
+            } catch (instructorError) {
+              console.error(`Error inheriting instructors for offering ${offeringId}:`, instructorError);
+              // Continue processing - don't fail the whole offering just because instructor association failed
             }
           }
           
@@ -571,102 +603,135 @@ class SemesterService {
     }
   }
 
-  async assignTeachingAssistants(semesterId, tasData) {
-    const t = await sequelize.transaction();
-    
-    try {
-      // Validate semester exists
-      const semester = await Semester.findByPk(semesterId, { transaction: t });
-      if (!semester) {
-        throw new Error(`Semester with ID ${semesterId} not found`);
-      }
-      
-      let successCount = 0;
-      let failedCount = 0;
-      const errors = [];
-      
-      // Process each TA assignment
-      for (const taData of tasData) {
-        try {
-          // Verify required fields
-          if (!taData.taId || !taData.courseId) {
-            throw new Error("TA ID and Course ID are required");
-          }
-          
-          // Default section to 1 if not specified
-          const sectionNumber = taData.section ? parseInt(taData.section, 10) : 1;
-          const formattedSectionNumber = String(sectionNumber).padStart(3, '0');
-          
-          // Generate the offering ID
-          const offeringId = `${taData.courseId}_${formattedSectionNumber}`;
-          
-          // Verify offering exists
-          const offering = await Offering.findByPk(offeringId, { transaction: t });
-          if (!offering) {
-            throw new Error(`Offering ${offeringId} not found`);
-          }
-          
-          // Verify TA exists
-          const ta = await User.findOne({ 
-            where: { 
-              id: taData.taId, 
-              userType: 'ta' 
-            }, 
-            transaction: t 
-          });
-          
-          if (!ta) {
-            throw new Error(`TA with ID ${taData.taId} not found`);
-          }
-          
-          // Find TA record
-          const teachingAssistant = await Instructor.findByPk(taData.taId, { transaction: t });
-          
-          if (!teachingAssistant) {
-            throw new Error(`TA record for user ${taData.taId} not found`);
-          }
-          
-          // Assign TA to offering
-          await offering.addStudentTA(teachingAssistant, { 
-            through: { 
-              workload: taData.workload ? parseInt(taData.workload, 10) : 10 
-            },
-            transaction: t 
-          });
-          
-          // Also assign to course (if needed by your application)
-          const course = await Course.findByPk(taData.courseId, { transaction: t });
-          if (!course) {
-            throw new Error(`Course ${taData.courseId} not found`);
-          }
-          
-          await course.addTA(teachingAssistant, { transaction: t });
-          
-          successCount++;
-          console.log(`Assigned TA ${taData.taId} to offering ${offeringId}`);
-        } catch (error) {
-          failedCount++;
-          errors.push({
-            data: taData,
-            error: error.message
-          });
-          console.error(`Failed to assign TA ${taData.taId} to course:`, error.message);
-        }
-      }
-      
-      await t.commit();
-      
-      return {
-        success: successCount,
-        failed: failedCount,
-        errors
-      };
-    } catch (error) {
-      console.error("Transaction error in assignTeachingAssistants:", error);
-      await t.rollback();
-      throw error;
+
+
+async assignTeachingAssistants(semesterId, tasData) {
+  const t = await sequelize.transaction();
+  
+  try {
+    // Validate semester exists
+    const semester = await Semester.findByPk(semesterId, { transaction: t });
+    if (!semester) {
+      throw new Error(`Semester with ID ${semesterId} not found`);
     }
+    
+    let successCount = 0;
+    let failedCount = 0;
+    const errors = [];
+    const assignments = [];
+    
+    // Process each TA assignment
+    for (const taData of tasData) {
+      try {
+        // Verify required fields
+        if (!taData.taId || !taData.offeringId) {
+          throw new Error("TA ID and Offering ID are required");
+        }
+        
+        console.log(`Processing TA assignment: ${taData.taId} to ${taData.offeringId}`);
+        
+        // Verify offering exists
+        const offering = await Offering.findByPk(taData.offeringId, { transaction: t });
+        
+        if (!offering) {
+          throw new Error(`Offering ${taData.offeringId} not found`);
+        }
+        
+        // Verify TA exists - using the model directly
+        const ta = await TeachingAssistant.findByPk(taData.taId, { transaction: t });
+        
+        if (!ta) {
+          // Try to see if the User exists with this ID
+          const user = await User.findOne({
+            where: { id: taData.taId, userType: 'ta' },
+            transaction: t
+          });
+          
+          if (user) {
+            // Create a TA record if the user exists but no TA record
+            console.log(`User ${taData.taId} exists but no TA record. Creating TA record.`);
+            const newTa = await TeachingAssistant.create({
+              id: taData.taId,
+              department: "Unknown",  // Default value
+              totalWorkload: 0,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }, { transaction: t });
+            
+            // Now use this newly created TA record
+            await offering.addStudentTA(newTa, { transaction: t });
+            console.log(`Created TA record and added TA ${taData.taId} to offering ${taData.offeringId}`);
+          } else {
+            throw new Error(`Teaching Assistant with ID ${taData.taId} not found. Please ensure the TA exists in the system.`);
+          }
+        } else {
+          // Add TA to offering using the through table
+          // Try direct approach with the through table
+          try {
+            // Check if the assignment already exists using raw SQL to avoid potential ORM issues
+            const [existingAssignments] = await sequelize.query(
+              `SELECT * FROM "TakenOfferingTAs" WHERE "TeachingAssistantId" = ? AND "OfferingId" = ?`,
+              { 
+                replacements: [taData.taId, taData.offeringId],
+                type: sequelize.QueryTypes.SELECT,
+                transaction: t
+              }
+            );
+            
+            if (existingAssignments && existingAssignments.length > 0) {
+              console.log(`Assignment already exists for TA ${taData.taId} to offering ${taData.offeringId}`);
+            } else {
+              // Insert directly into the through table
+              await sequelize.query(
+                `INSERT INTO "TakenOfferingTAs" ("TeachingAssistantId", "OfferingId", "createdAt", "updatedAt") 
+                 VALUES (?, ?, ?, ?)`,
+                {
+                  replacements: [taData.taId, taData.offeringId, new Date(), new Date()],
+                  type: sequelize.QueryTypes.INSERT,
+                  transaction: t
+                }
+              );
+              
+              console.log(`Added TA ${taData.taId} to offering ${taData.offeringId}`);
+            }
+          } catch (error) {
+            // Fallback to using Sequelize method if the direct approach fails
+            await offering.addStudentTA(ta, { transaction: t });
+            console.log(`Added TA ${taData.taId} to offering ${taData.offeringId} using Sequelize method`);
+          }
+        }
+        
+        // Track assignment for return value
+        assignments.push({
+          taId: taData.taId,
+          offeringId: taData.offeringId
+        });
+        
+        successCount++;
+      } catch (error) {
+        failedCount++;
+        errors.push({
+          data: taData,
+          error: error.message
+        });
+        console.error(`Failed to assign TA ${taData.taId} to offering:`, error.message);
+      }
+    }
+    
+    await t.commit();
+    
+    return {
+      success: successCount,
+      failed: failedCount,
+      errors,
+      assignments
+    };
+  } catch (error) {
+    console.error("Transaction error in assignTeachingAssistants:", error);
+    await t.rollback();
+    throw error;
   }
+}
 
   async deleteSemester(id) {
     const t = await sequelize.transaction();
