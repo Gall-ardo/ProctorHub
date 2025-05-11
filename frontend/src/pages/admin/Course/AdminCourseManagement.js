@@ -524,6 +524,8 @@
               </div>
             </div>
 
+          {(activeView === 'add' || activeView === 'delete') && (
+
             <div 
               className={styles.fileUploadArea}
               onDragOver={handleDragOver}
@@ -557,6 +559,7 @@
                 Optional columns: CourseName, Credit, IsGradCourse, StudentCount.
               </div>
             </div>
+          )}
           </div>
 
           {/* Right Panel - Form Section */}

@@ -696,6 +696,7 @@ const getTimeslotsByOfferingId = async (offeringId) => {
             </div>
           </div>
 
+          {(activeView === 'add' || activeView === 'delete') && (
           <div 
             className={styles.fileUploadArea}
             onDragOver={handleDragOver}
@@ -727,6 +728,7 @@ const getTimeslotsByOfferingId = async (offeringId) => {
               Note: CSV file should contain columns for: courseId, sectionNumber, semesterId, and optional timeslots data (day, startTime, endTime)
             </div>
           </div>
+          )}
         </div>
 
         {/* Right Panel - Form Section */}

@@ -342,6 +342,7 @@ const AdminClassroomManagement = () => {
             </div>
           </div>
 
+          {(activeView === 'add' || activeView === 'delete') && (
           <div 
             className={styles.fileUploadArea}
             onDragOver={handleDragOver}
@@ -373,6 +374,7 @@ const AdminClassroomManagement = () => {
               Note: CSV should contain columns for Building, ClassroomId, Capacity, and ExamCapacity.
             </div>
           </div>
+          )}
         </div>
 
         {/* Right Panel - Form Section */}

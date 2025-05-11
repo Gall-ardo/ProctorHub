@@ -325,39 +325,42 @@ const AdminStudentManagement = () => {
             </div>
           </div>
 
-          <div 
-            className={styles.fileUploadArea}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <div className={styles.uploadIcon}>
-              <img src="/upload-icon.png" alt="Upload" />
-            </div>
-            <div className={styles.uploadText}>Drag and Drop here</div>
-            <div className={styles.uploadDivider}>or</div>
-            <label className={styles.selectFileBtn}>
-              Select file
-              <input 
-                type="file" 
-                hidden 
-                accept=".csv"
-                onChange={handleFileSelect}
-              />
-            </label>
-            {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
-            <button 
-              className={styles.uploadFileBtn}
-              onClick={handleFileUpload}
-              disabled={isLoading}
+          {(activeView === 'add' || activeView === 'delete') && (
+            <div 
+              className={styles.fileUploadArea}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
             >
-              Upload File
-            </button>
-            <div className={styles.fileFormat}>
-              <small>Accepted format: CSV</small>
-              <small>Required columns: studentId, nameSurname, email, department</small>
-              <small>Optional columns: courses (comma-separated)</small>
+              <div className={styles.uploadIcon}>
+                <img src="/upload-icon.png" alt="Upload" />
+              </div>
+              <div className={styles.uploadText}>Drag and Drop here</div>
+              <div className={styles.uploadDivider}>or</div>
+              <label className={styles.selectFileBtn}>
+                Select file
+                <input 
+                  type="file" 
+                  hidden 
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                />
+              </label>
+              {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
+              <button 
+                className={styles.uploadFileBtn}
+                onClick={handleFileUpload}
+                disabled={isLoading}
+              >
+                Upload File
+              </button>
+              <div className={styles.fileFormat}>
+                <small>Accepted format: CSV</small>
+                <small>Required columns: studentId, nameSurname, email, department</small>
+                <small>Optional columns: courses (comma-separated)</small>
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
 
         {/* Right Panel - Form Section */}
