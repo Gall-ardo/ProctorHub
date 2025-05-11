@@ -628,6 +628,13 @@ class ExamService {
             
             console.log(`Found ${availableTAs.length} TAs after filtering conflicts`);
             
+            // Filter out TAs that don't match the department AND haven't opted for multi-department exams
+            availableTAs = availableTAs.filter(ta =>
+                ta.department === department || ta.isMultidepartmentExam === true
+            );
+            
+            console.log(`Found ${availableTAs.length} TAs after filtering by department compatibility`);
+            
             if (checkLeaveRequests) {
                 tasWithLeave = availableTAs
                     .filter(ta => ta.onLeave)
@@ -1256,6 +1263,7 @@ class ExamService {
                     isPHD: ta.isPHD || false,
                     isPartTime: ta.isPartTime || false,
                     totalWorkload: ta.totalWorkload || 0,
+                    isMultidepartmentExam: ta.isMultidepartmentExam || false,
                     // Default statuses
                     onLeave: false,
                     leaveStatus: null,
@@ -1265,7 +1273,7 @@ class ExamService {
                     offeringConflictReason: hasOfferingForCourse ? `TA has an offering for course ${courseId}` : null,
                     hasOfferingCourseExamConflict,
                     offeringCourseExamConflictReason,
-                    isSameDepartment: ta.department === department,
+                    isSameDepartment: ta.department === department || ta.isMultidepartmentExam === true,
                     // Add default values for consecutive assignment check
                     hasConsecutiveDayAssignment: false,
                     consecutiveDayReason: null,
@@ -1279,7 +1287,7 @@ class ExamService {
                 // We'll keep all TAs but mark department match status
                 transformedTAs = transformedTAs.map(ta => ({
                     ...ta,
-                    isSameDepartment: ta.department === department
+                    isSameDepartment: ta.department === department || ta.isMultidepartmentExam === true
                 }));
             }
             
@@ -1720,7 +1728,8 @@ class ExamService {
                 !ta.onLeave && 
                 !ta.hasProctoringConflict && 
                 !ta.hasOfferingConflict && 
-                !ta.hasOfferingCourseExamConflict
+                !ta.hasOfferingCourseExamConflict &&
+                (ta.department === department || ta.isMultidepartmentExam === true)
             );
             
             if (eligibleTAs.length === 0) {
