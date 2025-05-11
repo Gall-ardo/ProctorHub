@@ -138,7 +138,7 @@ router.get(
 );
 
 router.get(
-    '/ta-requests',
+    '/my-ta-requests',
     authenticateToken,
     authorizeRole(['instructor']),
     taRequestController.getInstructorTARequests
