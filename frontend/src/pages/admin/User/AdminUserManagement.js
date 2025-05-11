@@ -688,7 +688,7 @@ const AdminUserManagement = () => {
 
             {activeView === 'delete' && (
               <>
-                <h2 className={styles.formTitle}>Enter ID or email to find User</h2>
+                <h2 className={styles.formTitle}>Enter ID to find User</h2>
                 <form onSubmit={handleSearchUser}>
                   <div className={styles.formGroup}>
                     <label>ID</label>
@@ -697,15 +697,6 @@ const AdminUserManagement = () => {
                       placeholder="Enter ID" 
                       value={userId}
                       onChange={(e) => setUserId(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Email</label>
-                    <input 
-                      type="email" 
-                      placeholder="Enter email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <button 
@@ -755,7 +746,7 @@ const AdminUserManagement = () => {
                 {!editMode ? (
                   // Search form - similar to delete view
                   <>
-                    <h2 className={styles.formTitle}>Enter ID or email to find User</h2>
+                    <h2 className={styles.formTitle}>Enter ID to find User</h2>
                     <form onSubmit={handleSearchUser}>
                       <div className={styles.formGroup}>
                         <label>ID</label>
@@ -765,16 +756,7 @@ const AdminUserManagement = () => {
                           value={userId}
                           onChange={(e) => setUserId(e.target.value)}
                         />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Email</label>
-                        <input 
-                          type="email" 
-                          placeholder="Enter email" 
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </div>
+                      </div> 
                       <button 
                         type="submit" 
                         className={styles.formSubmitBtn}
