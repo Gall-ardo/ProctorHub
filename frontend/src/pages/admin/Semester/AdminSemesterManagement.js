@@ -143,8 +143,8 @@ const AdminSemesterManagement = () => {
         throw new Error('No semester ID available');
       }
       
-      // Step 1: Process courses first (if available)
-      if (coursesFile) {
+      // Step 1: Process courses first (if available) - only in Add mode or if file is provided in Edit mode
+      if (coursesFile && (activeAction === 'add' || (activeAction === 'edit' && coursesFile))) {
         const coursesResult = await uploadFile(sid, 'courses', coursesFile);
         setUploadResults(prev => [...prev, `Courses: ${coursesResult.coursesCreated} created, ${coursesResult.coursesFailed} failed`]);
         
@@ -154,21 +154,21 @@ const AdminSemesterManagement = () => {
         }
       }
       
-      // Step 2: Process offerings after courses
+      // Step 2: Process offerings after courses - only in Add mode or if file is provided in Edit mode
       setUploadStage('offerings');
-      if (offeringsFile) {
+      if (offeringsFile && (activeAction === 'add' || (activeAction === 'edit' && offeringsFile))) {
         const offeringsResult = await uploadFile(sid, 'offerings', offeringsFile);
         setUploadResults(prev => [...prev, `Offerings: ${offeringsResult.offeringsCreated} created, ${offeringsResult.offeringsFailed} failed`]);
       }
       
-      // Step 3: Process students
+      // Step 3: Process students - only in Add mode or if file is provided in Edit mode
       setUploadStage('students');
-      if (studentsFile) {
+      if (studentsFile && (activeAction === 'add' || (activeAction === 'edit' && studentsFile))) {
         const studentsResult = await uploadFile(sid, 'students', studentsFile);
         setUploadResults(prev => [...prev, `Students: ${studentsResult.enrollmentsCreated} enrolled, ${studentsResult.enrollmentsFailed} failed`]);
       }
       
-      // Step 4: Process TAs
+      // Step 4: Process TAs - for both Add and Edit modes
       setUploadStage('tas');
       if (assistantsFile) {
         const tasResult = await uploadFile(sid, 'assistants', assistantsFile);
@@ -194,18 +194,25 @@ const AdminSemesterManagement = () => {
 
     try {
       let endpoint;
+      let params = '';
+      
+      // Add mode=edit parameter ONLY for TA uploads when in edit mode
+      if (activeAction === 'edit' && fileType === 'assistants') {
+        params = '?mode=edit';
+      }
+      
       switch(fileType) {
         case 'offerings':
-          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/offerings/upload`;
+          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/offerings/upload${params}`;
           break;
         case 'students':
-          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/students/upload`;
+          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/students/upload${params}`;
           break;
         case 'assistants':
-          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/tas/upload`;
+          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/tas/upload${params}`;
           break;
         case 'courses':
-          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/courses/upload`;
+          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/courses/upload${params}`;
           break;
         default:
           throw new Error(`Unknown file type: ${fileType}`);
@@ -506,7 +513,7 @@ const AdminSemesterManagement = () => {
     }
   };
 
-// Render upload section
+  // Render upload section
   const renderUploadBox = (fileType, file, title, note) => {
     return (
       <div className={styles.uploadBox}>
@@ -535,6 +542,18 @@ const AdminSemesterManagement = () => {
         </div>
       </div>
     );
+  };
+
+  // Determine which upload boxes to show based on the active action
+  const shouldShowUploadBox = (fileType) => {
+    if (activeAction === 'add') {
+      // Show courses, offerings, and TAs for Add mode
+      return fileType === 'courses' || fileType === 'offerings' || fileType === 'assistants';
+    } else if (activeAction === 'edit') {
+      // Show only TAs for Edit mode
+      return fileType === 'assistants';
+    }
+    return false;
   };
 
   return (
@@ -624,12 +643,12 @@ const AdminSemesterManagement = () => {
             </div>
           </div>
 
-          {/* Right Column - Upload Areas in 2x2 grid - Only shown for Add or Edit mode */}
+          {/* Right Column - Upload Areas - Only shown for Add or Edit mode */}
           {activeAction !== 'delete' && (
             <div className={styles.rightColumn}>
               <h2 className={styles.uploadSectionTitle}>Upload Files</h2>
               
-              {/* Display warning if offerings file is selected but no courses file */}
+              {/* Display warning if offerings file is selected but no courses file in Add mode */}
               {offeringsFile && !coursesFile && activeAction === 'add' && (
                 <div className={styles.warningBox}>
                   <b>Warning:</b> It's recommended to upload course catalog first before offerings.
@@ -637,33 +656,40 @@ const AdminSemesterManagement = () => {
                 </div>
               )}
               
+              {/* Changed from grid to stack layout */}
               <div className={styles.uploadGrid}>
-                {renderUploadBox(
+                {/* Only show Course Catalog in Add mode */}
+                {shouldShowUploadBox('courses') && renderUploadBox(
                   'courses', 
                   coursesFile, 
                   'Course Catalog',
                   'CSV should contain: CourseCode, Department, CourseName, Credit, IsGradCourse, Instructor (Required: CourseCode & Department)'
                 )}
-                {renderUploadBox(
+                
+                {/* Only show Course Offerings in Add mode */}
+                {shouldShowUploadBox('offerings') && renderUploadBox(
                   'offerings', 
                   offeringsFile, 
                   'Course Offerings',
                   'CSV should contain: courseId, sectionNumber, day, startTime, endTime (Required: courseId & sectionNumber)'
                 )}
-                {renderUploadBox(
+                
+                {/* Always show Teaching Assistants for both Add and Edit modes */}
+                {shouldShowUploadBox('assistants') && renderUploadBox(
                   'assistants', 
                   assistantsFile, 
                   'Teaching Assistants',
-                  'CSV should contain: TAId, OffferingId'
+                  'CSV should contain: TAId, OfferingId'
                 )}
-                {renderUploadBox(
-                  'students', 
-                  studentsFile, 
-                  'Student Enrollments',
-                  'CSV should contain: StudentId, offeringId'
-                )}
-
               </div>
+              
+              {/* Show a specific message for Edit mode explaining that only TA uploads are supported */}
+              {activeAction === 'edit' && selectedSemesterId && (
+                <div className={styles.infoBox}>
+                  <b>Note:</b> In edit mode, you can only update Teaching Assistant assignments. 
+                  The system will remove all existing TA assignments for this semester before adding the new ones.
+                </div>
+              )}
             </div>
           )}
         </div>

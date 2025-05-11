@@ -472,3 +472,38 @@
   font-size: 0.8rem;
   overflow-x: auto;
 }
+
+.uploadGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.uploadBox {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.uploadArea {
+  width: 100%;
+  min-height: 140px;
+}
+
+.rightColumn {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.infoBox {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #e8f4ff;
+  border-left: 4px solid #3498db;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  width: 100%;
+}

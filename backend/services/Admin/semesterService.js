@@ -835,6 +835,80 @@ async deleteSemester(id) {
     throw error;
   }
 }
+
+async resetTeachingAssistantsForSemester(semesterId) {
+  const t = await sequelize.transaction();
+  
+  try {
+    // Validate semester exists
+    const semester = await Semester.findByPk(semesterId, { transaction: t });
+    if (!semester) {
+      throw new Error(`Semester with ID ${semesterId} not found`);
+    }
+    
+    // Find all offerings for this semester
+    const offerings = await Offering.findAll({
+      where: { semesterId: semesterId },
+      transaction: t
+    });
+    
+    const offeringIds = offerings.map(offering => offering.id);
+    
+    if (offeringIds.length === 0) {
+      // No offerings found for this semester
+      await t.commit();
+      return { deletedCount: 0 };
+    }
+    
+    // Safety check for offeringIds to make sure it's not empty
+    if (!offeringIds || offeringIds.length === 0) {
+      console.log(`No offerings found for semester ${semesterId}, skipping TA reset`);
+      await t.commit();
+      return { deletedCount: 0 };
+    }
+
+    let deleteCount = 0;
+    
+    // For each offering, delete its TA assignments individually to avoid SQL IN clause length issues
+    for (const offeringId of offeringIds) {
+      try {
+        const result = await sequelize.query(
+          `DELETE FROM TakenOfferingTAs WHERE OfferingId = ?`,
+          {
+            replacements: [offeringId],
+            type: sequelize.QueryTypes.DELETE,
+            transaction: t
+          }
+        );
+        
+        // Safely access result - different database drivers may return results differently
+        if (result && Array.isArray(result) && result.length > 0) {
+          deleteCount += (typeof result[0] === 'number') ? result[0] : 0;
+        }
+      } catch (err) {
+        console.error(`Error deleting TAs for offering ${offeringId}:`, err);
+        // Continue with other offerings even if one fails
+      }
+    }
+    
+    console.log(`Deleted ${deleteCount} TA assignments for semester ${semesterId}`);
+    
+    await t.commit();
+    return { deletedCount: deleteCount };
+  } catch (error) {
+    console.error(`Error resetting TAs for semester ${semesterId}:`, error);
+    try {
+      // Only rollback if transaction is still active
+      if (t && !t.finished) {
+        await t.rollback();
+      }
+    } catch (rollbackErr) {
+      console.error('Error during rollback:', rollbackErr);
+    }
+    throw error;
+  }
+}
+
 }
 
 module.exports = new SemesterService();

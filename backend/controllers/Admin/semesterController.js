@@ -229,133 +229,6 @@ class SemesterController {
   }
 }
 
-
-// Fixed uploadTeachingAssistants method for semesterController.js
-async uploadTeachingAssistants(req, res) {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded"
-      });
-    }
-
-    if (!req.params.id) {
-      return res.status(400).json({
-        success: false,
-        message: "Semester ID is required"
-      });
-    }
-
-    console.log(`Processing uploaded TAs file for semester ${req.params.id}: ${req.file.originalname}`);
-    
-    const results = [];
-    const filePath = req.file.path;
-
-    // Debug log to see the actual CSV content
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    console.log("CSV Content:", fileContent);
-
-    fs.createReadStream(filePath)
-      .pipe(csv())
-      .on("data", (data) => {
-        // Debug log to see what data we're getting
-        console.log("CSV Row:", data);
-        
-        // Transform column names to match expected format if needed
-        const transformedData = {};
-        
-        // Map CSV columns to TA assignment fields - case insensitive
-        Object.keys(data).forEach(key => {
-          // Convert column headers to expected property names
-          const lowerKey = key.toLowerCase().trim();
-          
-          if (lowerKey === 'id' || lowerKey === 'taid' || lowerKey === 'ta_id' || lowerKey === 'ta' || lowerKey === 'taid') {
-            transformedData.taId = data[key];
-          } else if (lowerKey === 'offering' || lowerKey === 'offeringid' || lowerKey === 'offering_id' || lowerKey === 'offeringid') {
-            transformedData.offeringId = data[key];
-          }
-        });
-        
-        // Special case: If we have data but no mapped fields, try to use the original keys
-        if (Object.keys(transformedData).length === 0) {
-          Object.keys(data).forEach(key => {
-            // Try all possible variations of the key
-            if (key.toLowerCase().includes('ta') || key.toLowerCase().includes('id') && Object.keys(transformedData).length < 1) {
-              transformedData.taId = data[key];
-            } else if (key.toLowerCase().includes('offer') || key.toLowerCase().includes('course')) {
-              transformedData.offeringId = data[key];
-            }
-          });
-        }
-        
-        // Handle case where the CSV might only have two columns
-        if (Object.keys(data).length === 2 && Object.keys(transformedData).length === 0) {
-          const keys = Object.keys(data);
-          transformedData.taId = data[keys[0]];
-          transformedData.offeringId = data[keys[1]];
-        }
-        
-        // Only add non-empty records
-        if (transformedData.taId && transformedData.offeringId) {
-          results.push(transformedData);
-          console.log(`Mapped TA Assignment: ${transformedData.taId} -> ${transformedData.offeringId}`);
-        } else {
-          console.warn("Skipping invalid TA row:", data);
-        }
-      })
-      .on("end", async () => {
-        try {
-          // Remove the temporary file
-          fs.unlinkSync(filePath);
-          
-          console.log(`Parsed ${results.length} TA assignments from CSV`);
-
-          if (results.length === 0) {
-            return res.status(400).json({
-              success: false,
-              message: "No valid TA assignments found in the CSV file. Please check the column headers (should be taId,offeringId)"
-            });
-          }
-
-          // Process and create TA assignments
-          const uploadResult = await semesterService.assignTeachingAssistants(req.params.id, results);
-          
-          res.status(201).json({ 
-            success: true,
-            message: `${uploadResult.success} TA assignments created successfully, ${uploadResult.failed} failed.`,
-            assignmentsCreated: uploadResult.success,
-            assignmentsFailed: uploadResult.failed,
-            totalRecords: results.length,
-            errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
-          });
-        } catch (error) {
-          console.error("Error processing TA assignments:", error);
-          res.status(500).json({
-            success: false,
-            message: "Failed to process TA assignments",
-            error: error.message
-          });
-        }
-      })
-      .on("error", (error) => {
-        console.error("Error parsing CSV:", error);
-        res.status(400).json({
-          success: false,
-          message: "Failed to parse CSV file",
-          error: error.message
-        });
-      });
-  } catch (error) {
-    console.error("Error uploading TA assignments:", error);
-    res.status(400).json({ 
-      success: false,
-      message: "Failed to upload TA assignments", 
-      error: error.message 
-    });
-  }
-}
-
   async uploadCourses(req, res) {
     try {
       if (!req.file) {
@@ -944,6 +817,144 @@ async processStudentsCsv(file, semesterId) {
         });
     });
   }
+
+async uploadTeachingAssistants(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    if (!req.params.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Semester ID is required"
+      });
+    }
+    
+    // Check if we're in edit mode and should reset TAs
+    const isEditMode = req.query.mode === 'edit';
+    
+    if (isEditMode) {
+      try {
+        console.log(`Edit mode detected. Resetting TA assignments for semester ${req.params.id}`);
+        const resetResult = await semesterService.resetTeachingAssistantsForSemester(req.params.id);
+        console.log(`Reset completed: ${resetResult.deletedCount} TA assignments deleted`);
+      } catch (resetError) {
+        console.error(`Error resetting TAs:`, resetError);
+        // Continue with upload even if reset fails - we'll just be adding to existing assignments
+        console.log('Continuing with upload even though reset failed');
+      }
+    }
+
+    // Continue with the rest of the function to process the CSV file
+    console.log(`Processing uploaded TAs file for semester ${req.params.id}: ${req.file.originalname}`);
+    
+    const results = [];
+    const filePath = req.file.path;
+
+    // Debug log to see the actual CSV content
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    console.log("CSV Content:", fileContent);
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => {
+        // CSV row processing (existing logic)
+        const transformedData = {};
+        
+        // Map CSV columns to TA assignment fields - case insensitive
+        Object.keys(data).forEach(key => {
+          // Convert column headers to expected property names
+          const lowerKey = key.toLowerCase().trim();
+          
+          if (lowerKey === 'id' || lowerKey === 'taid' || lowerKey === 'ta_id' || lowerKey === 'ta' || lowerKey === 'taid') {
+            transformedData.taId = data[key];
+          } else if (lowerKey === 'offering' || lowerKey === 'offeringid' || lowerKey === 'offering_id' || lowerKey === 'offeringid') {
+            transformedData.offeringId = data[key];
+          }
+        });
+        
+        // Special case handling (existing logic)
+        if (Object.keys(transformedData).length === 0) {
+          Object.keys(data).forEach(key => {
+            if (key.toLowerCase().includes('ta') || key.toLowerCase().includes('id') && Object.keys(transformedData).length < 1) {
+              transformedData.taId = data[key];
+            } else if (key.toLowerCase().includes('offer') || key.toLowerCase().includes('course')) {
+              transformedData.offeringId = data[key];
+            }
+          });
+        }
+        
+        // Two column fallback (existing logic)
+        if (Object.keys(data).length === 2 && Object.keys(transformedData).length === 0) {
+          const keys = Object.keys(data);
+          transformedData.taId = data[keys[0]];
+          transformedData.offeringId = data[keys[1]];
+        }
+        
+        // Only add non-empty records
+        if (transformedData.taId && transformedData.offeringId) {
+          results.push(transformedData);
+          console.log(`Mapped TA Assignment: ${transformedData.taId} -> ${transformedData.offeringId}`);
+        } else {
+          console.warn("Skipping invalid TA row:", data);
+        }
+      })
+      .on("end", async () => {
+        try {
+          // Remove the temporary file
+          fs.unlinkSync(filePath);
+          
+          console.log(`Parsed ${results.length} TA assignments from CSV`);
+
+          if (results.length === 0) {
+            return res.status(400).json({
+              success: false,
+              message: "No valid TA assignments found in the CSV file. Please check the column headers (should be taId,offeringId)"
+            });
+          }
+
+          // Process and create TA assignments
+          const uploadResult = await semesterService.assignTeachingAssistants(req.params.id, results);
+          
+          res.status(201).json({ 
+            success: true,
+            message: `${uploadResult.success} TA assignments created successfully, ${uploadResult.failed} failed.`,
+            assignmentsCreated: uploadResult.success,
+            assignmentsFailed: uploadResult.failed,
+            totalRecords: results.length,
+            errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
+          });
+        } catch (error) {
+          console.error("Error processing TA assignments:", error);
+          res.status(500).json({
+            success: false,
+            message: "Failed to process TA assignments",
+            error: error.message
+          });
+        }
+      })
+      .on("error", (error) => {
+        console.error("Error parsing CSV:", error);
+        res.status(400).json({
+          success: false,
+          message: "Failed to parse CSV file",
+          error: error.message
+        });
+      });
+  } catch (error) {
+    console.error("Error uploading TA assignments:", error);
+    res.status(400).json({ 
+      success: false,
+      message: "Failed to upload TA assignments", 
+      error: error.message 
+    });
+  }
+}
+  
 }
 
 module.exports = new SemesterController();
