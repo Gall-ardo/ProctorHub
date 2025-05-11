@@ -91,7 +91,7 @@ export default function InstructorMainPage() {
                       <h3>{displayCode}</h3>
                     </div>
                     <p><strong>Date:</strong> {exam.date}</p>
-                    <p><strong>Time:</strong> {exam.time}</p>
+                    <p><strong>Duration:</strong> {exam.time}</p>
                     {exam.classrooms && exam.classrooms.length > 0 && (
                       <p><strong>Classroom(s):</strong>{" "}
                         {exam.classrooms ? exam.classrooms.join(", ") : "None"}</p>

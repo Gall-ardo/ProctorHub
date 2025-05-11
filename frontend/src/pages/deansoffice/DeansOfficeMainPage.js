@@ -48,7 +48,7 @@ function DeanHomePage() {
     <div className="dean-home-page">
       {/* Navbar */}
       <DeansOfficeNavBar />
-
+      {/* Main content */}
       {/* Main content */}
       <div className="main-content">
         {/* Upcoming Exams Section */}
@@ -56,29 +56,28 @@ function DeanHomePage() {
           <h2>Upcoming Exams</h2>
           <div className="cards-container">
             {exams.map((exam) => (
-              <div className="card" key={exam.course}>
-                <div className="card-info">
-                  <h3>{exam.course}</h3> {/* Use exam.course instead of exam.courseName */}
-                  <p>{exam.date} at {exam.time}</p>
-                  <p>Duration: {exam.duration} min</p>
-                  {exam.classrooms && <p>Classrooms: {exam.classrooms.join(', ')}</p>}
+                <div className="card" key={exam.course}>
+                  <div className="card-info">
+                    <h3>{exam.course.match(/[A-Z]+\d{3}/i)[0]}</h3> {/* Extract course code with exactly 3 digits */}
+                    <p>{exam.date} at {exam.time}</p>
+                    <p>Duration: {exam.duration} min</p>
+                    {exam.classrooms && <p>Classrooms: {exam.classrooms.join(', ')}</p>}
+                  </div>
                 </div>
-              </div>
             ))}
           </div>
         </section>
-
         {/* Swap Requests Section (Proctor and TA swaps) */}
         <section className="content-panel swap-requests">
           <h2>Swap Requests</h2>
           <div className="swap-columns">
             <div className="swap-column">
-              <h3>Proctor Swaps</h3>
+              <h3>Instructor Swaps</h3>
               <div className="cards-container">
                 {swaps.proctorSwaps.map((swap) => (
                   <div className="card" key={swap.exam.id}>
                     <div className="card-info">
-                      <h3>{swap.exam.courseName}</h3> {/* Ensure you're using the right property */}
+                      <h3>{swap.exam.courseName.match(/[A-Z]+\d{3}/i)[0]}</h3> {/* Ensure you're using the right property */}
                       {/* Use optional chaining to prevent errors if `taUser` is not available */}
                       <p>{swap.teachingAssistant?.taUser?.name} swapped with {swap.targetTa?.taUser?.name}</p>
                       <p>{swap.exam.date}</p>
@@ -94,7 +93,7 @@ function DeanHomePage() {
                 {swaps.taSwaps.map((swap) => (
                   <div className="card" key={swap.id}>
                     <div className="card-info">
-                      <h3>{swap.exam.courseName}</h3> {/* Ensure you're using the right property */}
+                      <h3>{swap.exam.courseName.match(/[A-Z]+\d{3}/i)[0]}</h3> {/* Ensure you're using the right property */}
                       {/* Use optional chaining to prevent errors if `taUser` is not available */}
                       <p>{swap.requester?.taUser?.name} → {swap.targetTa?.taUser?.name}</p>
                       <p>{swap.exam.date}</p>

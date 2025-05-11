@@ -326,7 +326,6 @@ const handlePrintStudentsRandomly = async (examId) => {
         } else {
           setError('Failed to fetch exams');
         }
-
         // Fetch dean's courses
         await fetchCourses();
       } catch (err) {
@@ -1118,6 +1117,7 @@ const handlePrintStudentsRandomly = async (examId) => {
       } else {
         console.error('Failed to fetch classrooms');
       }
+      console.log("responseeee", response);
     } catch (err) {
       console.error('Error fetching classrooms:', err);
     }
@@ -1210,7 +1210,6 @@ const handlePrintStudentsRandomly = async (examId) => {
                   const course = courses.find(c => c.id === exam.courseName);
                   // use courseCode if available, otherwise fall back to whatever's in exam.courseName
                   const displayCode = course?.courseCode || exam.courseName;
-              
                   return (
                     <div className="exam-card" key={exam.id}>
                       <div className="exam-card-header">
@@ -1245,11 +1244,7 @@ const handlePrintStudentsRandomly = async (examId) => {
                           : "None"}
                       </p>
                       <p>
-                        <strong>Classroom(s):</strong>{" "}
-                        {exam.classrooms ? exam.classrooms.join(", ") : "None"}
-                      </p>
-                      <p>
-                        <strong>Time:</strong> {exam.startTime} - {exam.endTime}
+                        <strong>Duration(in minutes):</strong> {exam.duration}
                       </p>
                       <p>
                         <strong>Date:</strong>{" "}
@@ -1261,9 +1256,6 @@ const handlePrintStudentsRandomly = async (examId) => {
                                 year: "numeric",
                               })
                             : "No date")}
-                      </p>
-                      <p>
-                        <strong>Swap Count:</strong> {exam.swapCount || 0}
                       </p>
                       <p>
                         <strong>Exam Type:</strong> {exam.examType}
