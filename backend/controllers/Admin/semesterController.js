@@ -105,99 +105,130 @@ class SemesterController {
   }
 
   async uploadStudents(req, res) {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: "No file uploaded"
-        });
-      }
-
-      if (!req.params.id) {
-        return res.status(400).json({
-          success: false,
-          message: "Semester ID is required"
-        });
-      }
-
-      console.log(`Processing uploaded students file for semester ${req.params.id}: ${req.file.originalname}`);
-      
-      const results = [];
-      const filePath = req.file.path;
-
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on("data", (data) => {
-          // Transform column names to match expected format if needed
-          const transformedData = {};
-          
-          // Map CSV columns to student enrollment fields
-          Object.keys(data).forEach(key => {
-            // Convert column headers to expected property names
-            const lowerKey = key.toLowerCase().trim();
-            
-            if (lowerKey === 'id' || lowerKey === 'studentid' || lowerKey === 'student_id') {
-              transformedData.studentId = data[key];
-            } else if (lowerKey === 'name' || lowerKey === 'fullname' || lowerKey === 'student_name') {
-              transformedData.name = data[key];
-            } else if (lowerKey === 'email') {
-              transformedData.email = data[key];
-            } else if (lowerKey === 'courseid' || lowerKey === 'course_id') {
-              transformedData.courseId = data[key];
-            } else if (lowerKey === 'section') {
-              transformedData.section = data[key];
-            }
-          });
-          
-          // Only add non-empty records
-          if (Object.keys(transformedData).length > 0 && transformedData.studentId && transformedData.courseId) {
-            results.push(transformedData);
-          }
-        })
-        .on("end", async () => {
-          try {
-            // Remove the temporary file
-            fs.unlinkSync(filePath);
-            
-            console.log(`Parsed ${results.length} student enrollments from CSV`);
-
-            // Process and create student enrollments
-            const uploadResult = await semesterService.enrollStudents(req.params.id, results);
-            
-            res.status(201).json({ 
-              success: true,
-              message: `${uploadResult.success} student enrollments created successfully, ${uploadResult.failed} failed.`,
-              enrollmentsCreated: uploadResult.success,
-              enrollmentsFailed: uploadResult.failed,
-              totalRecords: results.length,
-              errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
-            });
-          } catch (error) {
-            console.error("Error processing student enrollments:", error);
-            res.status(500).json({
-              success: false,
-              message: "Failed to process student enrollments",
-              error: error.message
-            });
-          }
-        })
-        .on("error", (error) => {
-          console.error("Error parsing CSV:", error);
-          res.status(400).json({
-            success: false,
-            message: "Failed to parse CSV file",
-            error: error.message
-          });
-        });
-    } catch (error) {
-      console.error("Error uploading student enrollments:", error);
-      res.status(400).json({ 
+  try {
+    if (!req.file) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to upload student enrollments", 
-        error: error.message 
+        message: "No file uploaded"
       });
     }
+
+    if (!req.params.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Semester ID is required"
+      });
+    }
+
+    console.log(`Processing uploaded students file for semester ${req.params.id}: ${req.file.originalname}`);
+    
+    const results = [];
+    const filePath = req.file.path;
+
+    // Debug log to see the actual CSV content
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    console.log("CSV Content:", fileContent);
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => {
+        // Debug log to see what data we're getting
+        console.log("CSV Row:", data);
+        
+        // Transform column names to match expected format if needed
+        const transformedData = {};
+        
+        // Map CSV columns to student enrollment fields - case insensitive
+        Object.keys(data).forEach(key => {
+          // Convert column headers to expected property names
+          const lowerKey = key.toLowerCase().trim();
+          
+          if (lowerKey === 'id' || lowerKey === 'studentid' || lowerKey === 'student_id') {
+            transformedData.studentId = data[key];
+          } else if (lowerKey === 'offering' || lowerKey === 'offeringid' || lowerKey === 'offering_id') {
+            transformedData.offeringId = data[key];
+          }
+        });
+        
+        // Special case: If we have data but no mapped fields, try to use the original keys
+        if (Object.keys(transformedData).length === 0) {
+          Object.keys(data).forEach(key => {
+            // Try all possible variations of the key
+            if (key.toLowerCase().includes('student') || key.toLowerCase().includes('id') && Object.keys(transformedData).length < 1) {
+              transformedData.studentId = data[key];
+            } else if (key.toLowerCase().includes('offer') || key.toLowerCase().includes('course')) {
+              transformedData.offeringId = data[key];
+            }
+          });
+        }
+        
+        // Handle case where the CSV might only have two columns
+        if (Object.keys(data).length === 2 && Object.keys(transformedData).length === 0) {
+          const keys = Object.keys(data);
+          transformedData.studentId = data[keys[0]];
+          transformedData.offeringId = data[keys[1]];
+        }
+        
+        // Only add non-empty records
+        if (transformedData.studentId && transformedData.offeringId) {
+          results.push(transformedData);
+          console.log(`Mapped Student Enrollment: ${transformedData.studentId} -> ${transformedData.offeringId}`);
+        } else {
+          console.warn("Skipping invalid student row:", data);
+        }
+      })
+      .on("end", async () => {
+        try {
+          // Remove the temporary file
+          fs.unlinkSync(filePath);
+          
+          console.log(`Parsed ${results.length} student enrollments from CSV`);
+
+          if (results.length === 0) {
+            return res.status(400).json({
+              success: false,
+              message: "No valid student enrollments found in the CSV file. Please check the column headers (should be studentId,offeringId)"
+            });
+          }
+
+          // Process and create student enrollments
+          const uploadResult = await semesterService.enrollStudents(req.params.id, results);
+          
+          res.status(201).json({ 
+            success: true,
+            message: `${uploadResult.success} student enrollments created successfully, ${uploadResult.failed} failed.`,
+            enrollmentsCreated: uploadResult.success,
+            enrollmentsFailed: uploadResult.failed,
+            totalRecords: results.length,
+            errors: uploadResult.errors.length > 0 ? uploadResult.errors : undefined
+          });
+        } catch (error) {
+          console.error("Error processing student enrollments:", error);
+          res.status(500).json({
+            success: false,
+            message: "Failed to process student enrollments",
+            error: error.message
+          });
+        }
+      })
+      .on("error", (error) => {
+        console.error("Error parsing CSV:", error);
+        res.status(400).json({
+          success: false,
+          message: "Failed to parse CSV file",
+          error: error.message
+        });
+      });
+  } catch (error) {
+    console.error("Error uploading student enrollments:", error);
+    res.status(400).json({ 
+      success: false,
+      message: "Failed to upload student enrollments", 
+      error: error.message 
+    });
   }
+}
+
 
 // Fixed uploadTeachingAssistants method for semesterController.js
 async uploadTeachingAssistants(req, res) {
@@ -788,64 +819,74 @@ async uploadTeachingAssistants(req, res) {
     });
   }
 
-  // Helper function to process students CSV
-  async processStudentsCsv(file, semesterId) {
-    return new Promise((resolve, reject) => {
-      const results = [];
-      const filePath = file.path;
-      
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on("data", (data) => {
-          const transformedData = {};
+// Helper function to process students CSV
+async processStudentsCsv(file, semesterId) {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    const filePath = file.path;
+    
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => {
+        const transformedData = {};
+        
+        // Map CSV columns to student enrollment fields
+        Object.keys(data).forEach(key => {
+          // Convert column headers to expected property names
+          const lowerKey = key.toLowerCase().trim();
           
-          // Map CSV columns to student enrollment fields
-          Object.keys(data).forEach(key => {
-            // Convert column headers to expected property names
-            const lowerKey = key.toLowerCase().trim();
-            
-            if (lowerKey === 'id' || lowerKey === 'studentid' || lowerKey === 'student_id') {
-              transformedData.studentId = data[key];
-            } else if (lowerKey === 'name' || lowerKey === 'fullname' || lowerKey === 'student_name') {
-              transformedData.name = data[key];
-            } else if (lowerKey === 'email') {
-              transformedData.email = data[key];
-            } else if (lowerKey === 'courseid' || lowerKey === 'course_id' || lowerKey === 'course') {
-              transformedData.courseId = data[key];
-            } else if (lowerKey === 'section') {
-              transformedData.section = data[key];
-            }
-          });
-          
-          // Only add non-empty records
-          if (Object.keys(transformedData).length > 0 && transformedData.studentId && transformedData.courseId) {
-            results.push(transformedData);
+          if (lowerKey === 'id' || lowerKey === 'studentid' || lowerKey === 'student_id') {
+            transformedData.studentId = data[key];
+          } else if (lowerKey === 'offering' || lowerKey === 'offeringid' || lowerKey === 'offering_id') {
+            transformedData.offeringId = data[key];
           }
-        })
-        .on("end", async () => {
-          try {
-            // Remove the temporary file
-            fs.unlinkSync(filePath);
-            console.log(`Parsed ${results.length} student enrollments from CSV`);
-            
-            // Process and create student enrollments
-            const uploadResult = await semesterService.enrollStudents(semesterId, results);
-            resolve({
-              success: uploadResult.success,
-              failed: uploadResult.failed,
-              errors: uploadResult.errors
-            });
-          } catch (error) {
-            console.error("Error processing student enrollments CSV:", error);
-            reject(error);
-          }
-        })
-        .on("error", (error) => {
-          console.error("Error parsing students CSV:", error);
-          reject(error);
         });
-    });
-  }
+        
+        // Handle case where the CSV might only have two columns
+        if (Object.keys(data).length === 2 && Object.keys(transformedData).length === 0) {
+          const keys = Object.keys(data);
+          transformedData.studentId = data[keys[0]];
+          transformedData.offeringId = data[keys[1]];
+        }
+        
+        // Only add non-empty records
+        if (transformedData.studentId && transformedData.offeringId) {
+          results.push(transformedData);
+        }
+      })
+      .on("end", async () => {
+        try {
+          // Remove the temporary file
+          fs.unlinkSync(filePath);
+          console.log(`Parsed ${results.length} student enrollments from CSV`);
+          
+          if (results.length === 0) {
+            resolve({
+              success: 0,
+              failed: 0,
+              message: "No valid student enrollments found in CSV"
+            });
+            return;
+          }
+          
+          // Process and create student enrollments
+          const uploadResult = await semesterService.enrollStudents(semesterId, results);
+          resolve({
+            success: uploadResult.success,
+            failed: uploadResult.failed,
+            errors: uploadResult.errors
+          });
+        } catch (error) {
+          console.error("Error processing student enrollments CSV:", error);
+          reject(error);
+        }
+      })
+      .on("error", (error) => {
+        console.error("Error parsing students CSV:", error);
+        reject(error);
+      });
+  });
+}
 
   // Helper function to process TAs CSV
   async processTAsCsv(file, semesterId) {

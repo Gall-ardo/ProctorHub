@@ -62,55 +62,54 @@ class SemesterService {
     }
   }
 
-  async findSemesterById(id) {
-    try {
-      const semester = await Semester.findByPk(id, {
-        include: [
-          {
-            model: Offering,
-            as: 'offerings',
-            include: [
-              {
-                model: Course,
-                as: 'course'
-              },
-              {
-                model: TimeSlot,
-                as: 'TimeSlot'
-              },
-              {
-                model: Instructor,
-                as: 'offerings',
-                through: { attributes: [] }
-              }
-            ]
-          },
-          {
-            model: Course,
-            include: [
-              {
-                model: Instructor,
-                as: 'instructors',
-                through: { attributes: [] },
-                include: [
-                  {
-                    model: User,
-                    as: 'instructorUser',
-                    attributes: ['id', 'name', 'email']
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      });
-      
-      return semester;
-    } catch (error) {
-      console.error(`Error finding semester by ID ${id}:`, error);
-      throw error;
-    }
+async findSemesterById(id) {
+  try {
+    const semester = await Semester.findByPk(id, {
+      include: [
+        {
+          model: Offering,
+          as: 'Offerings',  // Changed from 'offerings' to 'Offerings'
+          include: [
+            {
+              model: Course,  // No alias needed or use as: 'Course'
+            },
+            {
+              model: TimeSlot,
+              as: 'TimeSlot'
+            },
+            {
+              model: Instructor,
+              as: 'offerings',
+              through: { attributes: [] }
+            }
+          ]
+        },
+        {
+          model: Course,
+          include: [
+            {
+              model: Instructor,
+              as: 'instructors',
+              through: { attributes: [] },
+              include: [
+                {
+                  model: User,
+                  as: 'instructorUser',
+                  attributes: ['id', 'name', 'email']
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+    
+    return semester;
+  } catch (error) {
+    console.error(`Error finding semester by ID ${id}:`, error);
+    throw error;
   }
+}
 
   async findAllSemesters(query) {
     try {
@@ -519,89 +518,174 @@ class SemesterService {
     }
   }
 
-  async enrollStudents(semesterId, studentsData) {
-    const t = await sequelize.transaction();
+async enrollStudents(semesterId, studentsData) {
+  const t = await sequelize.transaction();
+  
+  try {
+    // Validate semester exists
+    const semester = await Semester.findByPk(semesterId, { transaction: t });
+    if (!semester) {
+      throw new Error(`Semester with ID ${semesterId} not found`);
+    }
     
-    try {
-      // Validate semester exists
-      const semester = await Semester.findByPk(semesterId, { transaction: t });
-      if (!semester) {
-        throw new Error(`Semester with ID ${semesterId} not found`);
-      }
-      
-      let successCount = 0;
-      let failedCount = 0;
-      const errors = [];
-      
-      // Process each student enrollment
-      for (const studentData of studentsData) {
-        try {
-          // Verify required fields
-          if (!studentData.studentId || !studentData.courseId) {
-            throw new Error("Student ID and Course ID are required");
-          }
+    let successCount = 0;
+    let failedCount = 0;
+    const errors = [];
+    const enrollments = [];
+    
+    // Process each student enrollment
+    for (const studentData of studentsData) {
+      try {
+        // Verify required fields
+        if (!studentData.studentId || !studentData.offeringId) {
+          throw new Error("Student ID and Offering ID are required");
+        }
+        
+        console.log(`Processing student enrollment: ${studentData.studentId} to ${studentData.offeringId}`);
+        
+        // Verify offering exists
+        const offering = await Offering.findByPk(studentData.offeringId, { transaction: t });
+        
+        if (!offering) {
+          throw new Error(`Offering ${studentData.offeringId} not found`);
+        }
+        
+        // Get the course from the offering
+        const course = await Course.findByPk(offering.courseId, { transaction: t });
+        if (!course) {
+          throw new Error(`Course ${offering.courseId} not found for offering ${studentData.offeringId}`);
+        }
+        
+        // Verify student exists - using the model directly
+        const student = await Student.findByPk(studentData.studentId, { transaction: t });
+        
+        if (!student) {
+          // Try to see if the User exists with this ID
+          const user = await User.findOne({
+            where: { id: studentData.studentId, userType: 'student' },
+            transaction: t
+          });
           
-          // Determine section number (default to 1 if not provided)
-          const sectionNumber = studentData.section ? parseInt(studentData.section, 10) : 1;
-          const formattedSectionNumber = String(sectionNumber).padStart(3, '0');
-          
-          // Generate the offering ID based on courseId and sectionNumber
-          const offeringId = `${studentData.courseId}_${formattedSectionNumber}`;
-          
-          // Verify offering exists
-          const offering = await Offering.findByPk(offeringId, { transaction: t });
-          if (!offering) {
-            throw new Error(`Offering ${offeringId} not found`);
-          }
-          
-          // Find or create student record
-          let student = await Student.findByPk(studentData.studentId, { transaction: t });
-          
-          if (!student) {
-            // Create a new student if not found
-            student = await Student.create({
+          if (user) {
+            // Create a Student record if the user exists but no Student record
+            console.log(`User ${studentData.studentId} exists but no Student record. Creating Student record.`);
+            await Student.create({
               id: studentData.studentId,
-              name: studentData.name || `Student ${studentData.studentId}`,
-              email: studentData.email || `${studentData.studentId}@university.edu`
+              name: user.name || `Student ${studentData.studentId}`,
+              email: user.email || `${studentData.studentId}@university.edu`,
+              createdAt: new Date(),
+              updatedAt: new Date()
             }, { transaction: t });
+          } else {
+            // Create both User and Student records
+            await User.create({
+              id: studentData.studentId,
+              name: `Student ${studentData.studentId}`,
+              email: `${studentData.studentId}@university.edu`,
+              userType: 'student',
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }, { transaction: t });
+            
+            await Student.create({
+              id: studentData.studentId,
+              name: `Student ${studentData.studentId}`,
+              email: `${studentData.studentId}@university.edu`,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }, { transaction: t });
+            
+            console.log(`Created User and Student records for ${studentData.studentId}`);
           }
-          
-          // Enroll student in the course
-          const course = await Course.findByPk(studentData.courseId, { transaction: t });
-          if (!course) {
-            throw new Error(`Course ${studentData.courseId} not found`);
+        }
+        
+        // Check if the enrollment already exists in the CourseStudents table
+        const existingCourseEnrollment = await sequelize.query(
+          `SELECT * FROM "CourseStudents" WHERE "CourseId" = ? AND "StudentId" = ?`,
+          { 
+            replacements: [offering.courseId, studentData.studentId],
+            type: sequelize.QueryTypes.SELECT,
+            transaction: t
           }
+        );
+        
+        if (!existingCourseEnrollment || existingCourseEnrollment.length === 0) {
+          // Add student to course
+          await sequelize.query(
+            `INSERT INTO "CourseStudents" ("CourseId", "StudentId", "createdAt", "updatedAt") 
+             VALUES (?, ?, ?, ?)`,
+            {
+              replacements: [offering.courseId, studentData.studentId, new Date(), new Date()],
+              type: sequelize.QueryTypes.INSERT,
+              transaction: t
+            }
+          );
           
-          // Add the student to the course
-          await course.addStudent(student, { transaction: t });
+          console.log(`Enrolled student ${studentData.studentId} in course ${offering.courseId}`);
+        }
+        
+        // Check if the enrollment already exists in the EnrolledStudents table
+        const existingOfferingEnrollment = await sequelize.query(
+          `SELECT * FROM "EnrolledStudents" WHERE "OfferingId" = ? AND "StudentId" = ?`,
+          { 
+            replacements: [studentData.offeringId, studentData.studentId],
+            type: sequelize.QueryTypes.SELECT,
+            transaction: t
+          }
+        );
+        
+        if (!existingOfferingEnrollment || existingOfferingEnrollment.length === 0) {
+          // Add student to offering
+          await sequelize.query(
+            `INSERT INTO "EnrolledStudents" ("OfferingId", "StudentId", "createdAt", "updatedAt") 
+             VALUES (?, ?, ?, ?)`,
+            {
+              replacements: [studentData.offeringId, studentData.studentId, new Date(), new Date()],
+              type: sequelize.QueryTypes.INSERT,
+              transaction: t
+            }
+          );
           
-          // Increment student count in the offering
+          // Increment the student count in the offering
           await offering.increment('studentCount', { transaction: t });
           
-          successCount++;
-        } catch (error) {
-          failedCount++;
-          errors.push({
-            data: studentData,
-            error: error.message
-          });
-          console.error(`Failed to enroll student ${studentData.studentId} in course:`, error.message);
+          console.log(`Enrolled student ${studentData.studentId} in offering ${studentData.offeringId}`);
+        } else {
+          console.log(`Student ${studentData.studentId} is already enrolled in offering ${studentData.offeringId}`);
         }
+        
+        // Track enrollment for return value
+        enrollments.push({
+          studentId: studentData.studentId,
+          offeringId: studentData.offeringId,
+          courseId: offering.courseId
+        });
+        
+        successCount++;
+      } catch (error) {
+        failedCount++;
+        errors.push({
+          data: studentData,
+          error: error.message
+        });
+        console.error(`Failed to enroll student ${studentData.studentId} in offering:`, error.message);
       }
-      
-      await t.commit();
-      
-      return {
-        success: successCount,
-        failed: failedCount,
-        errors
-      };
-    } catch (error) {
-      console.error("Transaction error in enrollStudents:", error);
-      await t.rollback();
-      throw error;
     }
+    
+    await t.commit();
+    
+    return {
+      success: successCount,
+      failed: failedCount,
+      errors,
+      enrollments
+    };
+  } catch (error) {
+    console.error("Transaction error in enrollStudents:", error);
+    await t.rollback();
+    throw error;
   }
+}
 
 
 
@@ -733,115 +817,115 @@ async assignTeachingAssistants(semesterId, tasData) {
   }
 }
 
-  async deleteSemester(id) {
-    const t = await sequelize.transaction();
+async deleteSemester(id) {
+  const t = await sequelize.transaction();
+  
+  try {
+    // Find semester
+    const semester = await Semester.findByPk(id, { 
+      include: [
+        {
+          model: Offering,
+          as: 'Offerings',
+          include: [
+            { model: TimeSlot, as: 'TimeSlot' }
+          ]
+        },
+        {
+          model: Course
+        }
+      ],
+      transaction: t 
+    });
     
-    try {
-      // Find semester
-      const semester = await Semester.findByPk(id, { 
-        include: [
-          {
-            model: Offering,
-            as: 'offerings',
-            include: [
-              { model: TimeSlot, as: 'TimeSlot' }
-            ]
-          },
-          {
-            model: Course
-          }
-        ],
-        transaction: t 
-      });
-      
-      if (!semester) {
-        await t.rollback();
-        return false;
-      }
-      
-      // First, delete all timeslots associated with offerings
-      if (semester.offerings && semester.offerings.length > 0) {
-        for (const offering of semester.offerings) {
-          if (offering.TimeSlot && offering.TimeSlot.length > 0) {
-            for (const timeSlot of offering.TimeSlot) {
-              await timeSlot.destroy({ transaction: t });
-            }
-          }
-          
-          // Remove instructor associations
-          await sequelize.query(
-            `DELETE FROM "InstructorOfferings" WHERE "offeringId" = ?`,
-            {
-              replacements: [offering.id],
-              type: sequelize.QueryTypes.DELETE,
-              transaction: t
-            }
-          );
-          
-          // Remove TA associations
-          await sequelize.query(
-            `DELETE FROM "TakenOfferingTAs" WHERE "OfferingId" = ?`,
-            {
-              replacements: [offering.id],
-              type: sequelize.QueryTypes.DELETE,
-              transaction: t
-            }
-          );
-          
-          // Delete the offering
-          await offering.destroy({ transaction: t });
-        }
-      }
-      
-      // Next, delete all courses and their associations
-      if (semester.Courses && semester.Courses.length > 0) {
-        for (const course of semester.Courses) {
-          // Remove instructor associations
-          await sequelize.query(
-            `DELETE FROM "InstructorCourses" WHERE "CourseId" = ?`,
-            {
-              replacements: [course.id],
-              type: sequelize.QueryTypes.DELETE,
-              transaction: t
-            }
-          );
-          
-          // Remove student enrollments
-          await sequelize.query(
-            `DELETE FROM "CourseStudents" WHERE "CourseId" = ?`,
-            {
-              replacements: [course.id],
-              type: sequelize.QueryTypes.DELETE,
-              transaction: t
-            }
-          );
-          
-          // Remove TA associations
-          await sequelize.query(
-            `DELETE FROM "GivenCourseTAs" WHERE "CourseId" = ?`,
-            {
-              replacements: [course.id],
-              type: sequelize.QueryTypes.DELETE,
-              transaction: t
-            }
-          );
-          
-          // Delete course
-          await course.destroy({ transaction: t });
-        }
-      }
-      
-      // Finally, delete the semester
-      await semester.destroy({ transaction: t });
-      
-      await t.commit();
-      return true;
-    } catch (error) {
-      console.error(`Transaction error in deleteSemester for ID ${id}:`, error);
+    if (!semester) {
       await t.rollback();
-      throw error;
+      return false;
     }
+    
+    // First, delete all timeslots associated with offerings
+    if (semester.Offerings && semester.Offerings.length > 0) {
+      for (const offering of semester.Offerings) {
+        if (offering.TimeSlot && offering.TimeSlot.length > 0) {
+          for (const timeSlot of offering.TimeSlot) {
+            await timeSlot.destroy({ transaction: t });
+          }
+        }
+        
+        // Remove instructor associations - using proper MySQL syntax with backticks
+        await sequelize.query(
+          "DELETE FROM `InstructorOfferings` WHERE `OfferingId` = ?",
+          {
+            replacements: [offering.id],
+            type: sequelize.QueryTypes.DELETE,
+            transaction: t
+          }
+        );
+        
+        // Remove TA associations - using proper MySQL syntax with backticks
+        await sequelize.query(
+          "DELETE FROM `TakenOfferingTAs` WHERE `OfferingId` = ?",
+          {
+            replacements: [offering.id],
+            type: sequelize.QueryTypes.DELETE,
+            transaction: t
+          }
+        );
+        
+        // Delete the offering
+        await offering.destroy({ transaction: t });
+      }
+    }
+    
+    // Next, delete all courses and their associations
+    if (semester.Courses && semester.Courses.length > 0) {
+      for (const course of semester.Courses) {
+        // Remove instructor associations - using proper MySQL syntax with backticks
+        await sequelize.query(
+          "DELETE FROM `InstructorCourses` WHERE `CourseId` = ?",
+          {
+            replacements: [course.id],
+            type: sequelize.QueryTypes.DELETE,
+            transaction: t
+          }
+        );
+        
+        // Remove student enrollments - using proper MySQL syntax with backticks
+        await sequelize.query(
+          "DELETE FROM `CourseStudents` WHERE `CourseId` = ?",
+          {
+            replacements: [course.id],
+            type: sequelize.QueryTypes.DELETE,
+            transaction: t
+          }
+        );
+        
+        // Remove TA associations - using proper MySQL syntax with backticks
+        await sequelize.query(
+          "DELETE FROM `GivenCourseTAs` WHERE `CourseId` = ?",
+          {
+            replacements: [course.id],
+            type: sequelize.QueryTypes.DELETE,
+            transaction: t
+          }
+        );
+        
+        // Delete course
+        await course.destroy({ transaction: t });
+      }
+    }
+    
+    // Finally, delete the semester
+    await semester.destroy({ transaction: t });
+    
+    await t.commit();
+    return true;
+  } catch (error) {
+    console.error(`Transaction error in deleteSemester for ID ${id}:`, error);
+    await t.rollback();
+    throw error;
   }
+}
 }
 
 module.exports = new SemesterService();

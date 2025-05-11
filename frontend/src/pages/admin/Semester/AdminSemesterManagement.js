@@ -675,47 +675,18 @@ const AdminSemesterManagement = () => {
                   'CSV should contain: courseId, sectionNumber, day, startTime, endTime (Required: courseId & sectionNumber)'
                 )}
                 {renderUploadBox(
+                  'assistants', 
+                  assistantsFile, 
+                  'Teaching Assistants',
+                  'CSV should contain: TAId, OffferingId'
+                )}
+                {renderUploadBox(
                   'students', 
                   studentsFile, 
                   'Student Enrollments',
                   'CSV should contain: StudentId, Name, Email, CourseId, Section'
                 )}
-                {renderUploadBox(
-                  'assistants', 
-                  assistantsFile, 
-                  'Teaching Assistants',
-                  <div className={styles.uploadInstructions}>
-                    <p>CSV should contain these columns:</p>
-                    <ul>
-                      <li><strong>taId</strong>: Teaching Assistant ID (required)</li>
-                      <li><strong>offeringId</strong>: Course Offering ID (required)</li>
-                    </ul>
-                    <p className={styles.uploadNote}>
-                      <strong>Note:</strong> The offeringId should be in the format: <code>DEPT101YYYYTERM_001</code> 
-                      <br/>For example: <code>CS1012028SUMMER_001</code> (for section 1)
-                    </p>
-                    <div className={styles.uploadExample}>
-                      <span className={styles.exampleLabel}>Example CSV:</span>
-                      <pre>
-                                        taId,offeringId
-                                        TA001,CS1012028SUMMER_001
-                                        TA002,CS1022028SUMMER_001
-                      </pre>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Show upload order and guidelines */}
-              <div className={styles.uploadGuidelines}>
-                <h3>Upload Guidelines</h3>
-                <ul>
-                  <li><b>Recommended order:</b> Courses → Offerings → Students → TAs</li>
-                  <li>For course IDs in offerings CSV, use the format: [Department][CourseCode][SemesterId]</li>
-                  <li>Example: For CS101 in Fall 2024, use <code>CS1012024FALL</code></li>
-                  <li>Multiple instructors should be separated with "and" in the Courses CSV</li>
-                  <li>Multiple class sessions for the same course offering should be separate rows with the same courseId and sectionNumber</li>
-                </ul>
+
               </div>
             </div>
           )}
