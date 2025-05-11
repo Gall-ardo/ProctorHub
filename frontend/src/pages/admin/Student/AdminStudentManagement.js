@@ -13,6 +13,7 @@ const apiClient = axios.create({
 const AdminStudentManagement = () => {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState('add'); // 'add', 'delete', 'edit'
+  const [isEditMode, setIsEditMode] = useState(false); // New state to track if we're editing
   
   // Form states
   const [studentId, setStudentId] = useState('');
@@ -21,9 +22,8 @@ const AdminStudentManagement = () => {
   const [department, setDepartment] = useState('');
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileInputKey, setFileInputKey] = useState(Date.now()); // ADD THIS STATE for resetting file input
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
 
-  
   // Course popup state
   const [isCoursePopupOpen, setIsCoursePopupOpen] = useState(false);
   
@@ -89,6 +89,8 @@ const AdminStudentManagement = () => {
             if (updateResponse.data.success) {
               setSuccess('Student updated successfully!');
               resetForm();
+              // Reset edit mode after successful update
+              setIsEditMode(false);
             }
           } else {
             // Creating a new student
@@ -166,67 +168,67 @@ const AdminStudentManagement = () => {
     }
   };
 
-const handleFileUpload = async () => {
-  if (!selectedFile) {
-    setError('Please select a file first');
-    return;
-  }
-  
-  setIsLoading(true);
-  setSuccess(null);
-  setError(null);
-  
-  const formData = new FormData();
-  formData.append('file', selectedFile);
-  
-  let uploadUrl = '';
-  let operationType = ''; // To distinguish messages
-
-  if (activeView === 'add') {
-    uploadUrl = '/admin/students/upload';
-    operationType = 'upload';
-  } else if (activeView === 'delete') {
-    uploadUrl = '/admin/students/delete-by-csv'; // New endpoint for CSV deletion
-    operationType = 'deletion';
-  } else {
-    setError('File operation is not supported for the current view.');
-    setIsLoading(false);
-    return;
-  }
-
-  try {
-    console.log(`Processing file ${selectedFile.name} for ${operationType} via ${uploadUrl}`);
-    const response = await apiClient.post(uploadUrl, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    
-    if (response.data.success) {
-      let successMsg = '';
-      if (operationType === 'upload') {
-        successMsg = `Uploaded successfully! ${response.data.studentsCreated} students added, ${response.data.studentsFailed} errors.`;
-      } else if (operationType === 'deletion') {
-        successMsg = `Deletion process finished. ${response.data.studentsDeleted} students deleted, ${response.data.studentsFailed} errors.`;
-      }
-      setSuccess(successMsg);
-      setSelectedFile(null); // Clear the selected file
-      resetForm(); // Reset form fields
-
-      if (activeView === 'delete') {
-        setFindResults(null); // Clear any manually searched students
-      }
-    } else {
-      // Handle cases where response.data.success is false but HTTP status is 2xx
-      setError(response.data.message || `An unknown error occurred during file ${operationType}.`);
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      setError('Please select a file first');
+      return;
     }
-  } catch (error) {
-    console.error(`Error during file ${operationType}:`, error);
-    setError(error.response?.data?.message || `An error occurred during file ${operationType}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    
+    setIsLoading(true);
+    setSuccess(null);
+    setError(null);
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    let uploadUrl = '';
+    let operationType = ''; // To distinguish messages
+
+    if (activeView === 'add') {
+      uploadUrl = '/admin/students/upload';
+      operationType = 'upload';
+    } else if (activeView === 'delete') {
+      uploadUrl = '/admin/students/delete-by-csv'; // New endpoint for CSV deletion
+      operationType = 'deletion';
+    } else {
+      setError('File operation is not supported for the current view.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      console.log(`Processing file ${selectedFile.name} for ${operationType} via ${uploadUrl}`);
+      const response = await apiClient.post(uploadUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        let successMsg = '';
+        if (operationType === 'upload') {
+          successMsg = `Uploaded successfully! ${response.data.studentsCreated} students added, ${response.data.studentsFailed} errors.`;
+        } else if (operationType === 'deletion') {
+          successMsg = `Deletion process finished. ${response.data.studentsDeleted} students deleted, ${response.data.studentsFailed} errors.`;
+        }
+        setSuccess(successMsg);
+        setSelectedFile(null); // Clear the selected file
+        resetForm(); // Reset form fields
+
+        if (activeView === 'delete') {
+          setFindResults(null); // Clear any manually searched students
+        }
+      } else {
+        // Handle cases where response.data.success is false but HTTP status is 2xx
+        setError(response.data.message || `An unknown error occurred during file ${operationType}.`);
+      }
+    } catch (error) {
+      console.error(`Error during file ${operationType}:`, error);
+      setError(error.response?.data?.message || `An error occurred during file ${operationType}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDeleteStudent = async (id) => {
     if (!window.confirm('Are you sure you want to delete this student?')) {
@@ -255,15 +257,15 @@ const handleFileUpload = async () => {
   };
 
   const handleEditStudent = (student) => {
-    // Switch to add view and fill the form with the student's data
-    setActiveView('add');
+    // Modified to preserve the edit view
+    setIsEditMode(true);
     setStudentId(student.studentId);
     setNameSurname(student.nameSurname);
     setEmail(student.email);
     setDepartment(student.department);
     setSelectedCourses(student.courses || []);
     
-    // Store the ID for the update operation - use student.id (Sequelize) not _id (MongoDB)
+    // Store the ID for the update operation
     setFindResults({ id: student.id });
   };
 
@@ -275,9 +277,15 @@ const handleFileUpload = async () => {
     setSelectedCourses([]);
     setMessage({ text: '', type: '' });
     setFindResults(null);
-    setSelectedFile(null); // ADD THIS to clear the selected file from state
-    setFileInputKey(Date.now()); // ADD THIS to reset the actual file input element
+    setSelectedFile(null);
+    setFileInputKey(Date.now());
+    setIsEditMode(false); // Reset edit mode too
   };
+  
+  // Add this useEffect to initialize component
+  useEffect(() => {
+    // Component initialization if needed
+  }, []);
 
   return (
     <div className={styles.studentManagement}>
@@ -319,23 +327,27 @@ const handleFileUpload = async () => {
         <div className={styles.leftPanel}>
           <div className={styles.actionButtons}>
             <div 
-              className={`${styles.actionButton} ${activeView === 'add' ? styles.active : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'add' && !isEditMode ? styles.active : ''}`} 
               onClick={() => {
-                setActiveView('add');
-                resetForm();
+                if (!isEditMode) { // Only switch if not in edit mode
+                  setActiveView('add');
+                  resetForm();
+                }
               }}
             >
-              <div className={`${styles.circleIcon} ${activeView === 'add' ? styles.active : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'add' && !isEditMode ? styles.active : ''}`}>
                 <span>+</span>
               </div>
-              <span className={`${styles.buttonLabel} ${activeView === 'add' ? styles.active : ''}`}>Add Student</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'add' && !isEditMode ? styles.active : ''}`}>Add Student</span>
             </div>
             
             <div 
               className={`${styles.actionButton} ${activeView === 'delete' ? styles.active : ''}`} 
               onClick={() => {
-                setActiveView('delete');
-                resetForm();
+                if (!isEditMode) { // Only switch if not in edit mode
+                  setActiveView('delete');
+                  resetForm();
+                }
               }}
             >
               <div className={`${styles.circleIcon} ${activeView === 'delete' ? styles.active : ''}`}>
@@ -345,27 +357,28 @@ const handleFileUpload = async () => {
             </div>
             
             <div 
-              className={`${styles.actionButton} ${activeView === 'edit' ? styles.active : ''}`} 
+              className={`${styles.actionButton} ${activeView === 'edit' || isEditMode ? styles.active : ''}`} 
               onClick={() => {
-                setActiveView('edit');
-                resetForm();
+                if (!isEditMode) { // Only switch if not in edit mode
+                  setActiveView('edit');
+                  resetForm();
+                }
               }}
             >
-              <div className={`${styles.circleIcon} ${activeView === 'edit' ? styles.active : ''}`}>
+              <div className={`${styles.circleIcon} ${activeView === 'edit' || isEditMode ? styles.active : ''}`}>
                 <span>✎</span>
               </div>
-              <span className={`${styles.buttonLabel} ${activeView === 'edit' ? styles.active : ''}`}>Edit Student</span>
+              <span className={`${styles.buttonLabel} ${activeView === 'edit' || isEditMode ? styles.active : ''}`}>Edit Student</span>
             </div>
           </div>
 
-          {(activeView === 'add' || activeView === 'delete') && (
+          {(activeView === 'add' || activeView === 'delete') && !isEditMode && (
             <div 
               className={styles.fileUploadArea}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
               <div className={styles.uploadIcon}>
-                {/* Make sure this image path is correct and the image exists in your public folder */}
                 <img src="/upload-icon.png" alt="Upload" />
               </div>
               <div className={styles.uploadText}>Drag and Drop here</div>
@@ -377,7 +390,7 @@ const handleFileUpload = async () => {
                   hidden 
                   accept=".csv"
                   onChange={handleFileSelect}
-                  key={fileInputKey} // Important for resetting the input
+                  key={fileInputKey}
                 />
               </label>
 
@@ -391,7 +404,7 @@ const handleFileUpload = async () => {
               <button 
                 className={styles.uploadFileBtn}
                 onClick={handleFileUpload}
-                disabled={isLoading || !selectedFile} // Disable if no file is selected or loading
+                disabled={isLoading || !selectedFile}
               >
                 {isLoading ? 
                   (activeView === 'add' ? 'Uploading...' : 'Processing Delete...') :
@@ -399,7 +412,7 @@ const handleFileUpload = async () => {
                 }
               </button>
 
-              {/* Enhanced file format explanation section - similar to AdminUserManagement */}
+              {/* Enhanced file format explanation section */}
               <div className={styles.uploadNote}>
                 {activeView === 'add' ? (
                   <>
@@ -411,7 +424,7 @@ const handleFileUpload = async () => {
                     <br />
                     Students will be added to the system with the specified details.
                   </>
-                ) : ( // activeView === 'delete'
+                ) : (
                   <>
                     Note: For deleting, CSV should contain Student IDs (one ID per line).
                     <br />
@@ -429,10 +442,11 @@ const handleFileUpload = async () => {
         {/* Right Panel - Form Section */}
         <div className={styles.rightPanel}>
           <div className={styles.formContainer}>
-            {activeView === 'add' && (
+            {/* Add Student or Edit Student Form */}
+            {(activeView === 'add' || isEditMode) && (
               <>
                 <h2 className={styles.formTitle}>
-                  {findResults && findResults.id ? 'Edit Student Information' : 'Enter Student Information'}
+                  {isEditMode ? 'Edit Student Information' : 'Enter Student Information'}
                 </h2>
                 <form onSubmit={handleFormSubmit}>
                   <div className={styles.formGroup}>
@@ -443,6 +457,8 @@ const handleFileUpload = async () => {
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
                       required
+                      disabled={isEditMode} // Disable when editing
+                      className={isEditMode ? styles.disabledInput : ''}
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -510,18 +526,34 @@ const handleFileUpload = async () => {
                       </div>
                     )}
                   </div>
-                  <button 
-                    type="submit" 
-                    className={styles.formSubmitBtn}
-                    disabled={isLoading}
-                  >
-                    {findResults && findResults.id ? 'Update Student' : 'Add Student'}
-                  </button>
+                  <div className={styles.formActions}>
+                    <button 
+                      type="submit" 
+                      className={styles.formSubmitBtn}
+                      disabled={isLoading}
+                    >
+                      {isEditMode ? 'Update Student' : 'Add Student'}
+                    </button>
+                    
+                    {isEditMode && (
+                      <button 
+                        type="button"
+                        className={styles.cancelButton}
+                        onClick={() => {
+                          resetForm();
+                          setActiveView('edit'); // Go back to edit search view
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </form>
               </>
             )}
 
-            {activeView === 'delete' && (
+            {/* Delete Student Search Form */}
+            {activeView === 'delete' && !isEditMode && (
               <>
                 <h2 className={styles.formTitle}>Enter ID find Student</h2>
                 <form onSubmit={handleFormSubmit}>
@@ -574,7 +606,8 @@ const handleFileUpload = async () => {
               </>
             )}
 
-            {activeView === 'edit' && (
+            {/* Edit Student Search Form */}
+            {activeView === 'edit' && !isEditMode && (
               <>
                 <h2 className={styles.formTitle}>Enter ID to find Student</h2>
                 <form onSubmit={handleFormSubmit}>

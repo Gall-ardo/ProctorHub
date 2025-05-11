@@ -621,3 +621,75 @@
     transform: translateX(0);
   }
 }
+
+/* Form actions container */
+.formActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  align-items: center;
+}
+
+/* Primary form submit button (already in your CSS, but shown for reference) */
+.formSubmitBtn {
+  background-color: #c52e2e;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 5px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+}
+
+.formSubmitBtn:hover {
+  background-color: #b22a2a;
+}
+
+/* Styled Cancel button */
+.cancelButton {
+  padding: 12px 24px;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #c52e2e;
+  border: 2px solid #c52e2e;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 120px;
+  text-align: center;
+  font-size: 16px;
+  margin-left: auto;
+}
+
+.cancelButton:hover {
+  background-color: #f8e6e6;
+}
+
+.cancelButton:active {
+  transform: translateY(1px);
+}
+
+/* Disabled input field styling */
+.disabledInput {
+  background-color: #f8f8f8;
+  color: #666;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+
+/* Add this to your existing CSS for responsive layout */
+@media (max-width: 768px) {
+  .formActions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .cancelButton {
+    width: 100%;
+    margin-left: 0;
+  }
+}
