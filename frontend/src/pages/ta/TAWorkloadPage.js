@@ -124,7 +124,7 @@ const TAWorkloadPage = () => {
           
           return {
             id: item.id,
-            course: item.exam?.Course?.department + " " + item.exam?.Course?.courseCode || 'Unknown',
+            course: item.exam?.department + " " + item.exam?.Course?.courseCode || 'Unknown',
             type: `Proctoring: ${item.exam?.examType || 'Exam'}`,
             date: formattedDate,
             hours: hours,
