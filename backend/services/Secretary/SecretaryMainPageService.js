@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Exam, SwapRequest, Secretary, User } = require('../../models');
+const { Exam, SwapRequest, Secretary, User, TeachingAssistant } = require('../../models');
 
 exports.getUpcomingExams = async (secretaryId) => {
   const today = new Date();
@@ -69,11 +69,37 @@ exports.getLatestSwaps = async (secretaryId) => {
       limit: 5
     });
 
+    fromTA = await TeachingAssistant.findAll({
+      where: {
+        id: { [Op.in]: swapRequests.map(swap => swap.requesterId) }
+      },
+      include: [
+        {
+          model: User,
+          as: 'taUser',
+          attributes: ['name']
+        }
+      ]
+    });
+
+    toTA = await TeachingAssistant.findAll({
+      where: {
+        id: { [Op.in]: swapRequests.map(swap => swap.targetTaId) }
+      },
+      include: [
+        {
+          model: User,
+          as: 'taUser',
+          attributes: ['name']
+        }
+      ]
+    });
+
     return swapRequests.map(swap => ({
       id: swap.id,
       type: 'TA Swap Request',
-      from: swap.requester?.taUser?.name || 'Unknown TA',
-      to: swap.targetTa?.taUser?.name || 'Unknown TA',
+      from: fromTA.find(ta => ta.id === swap.requesterId)?.taUser.name || 'Unknown',
+      to: toTA.find(ta => ta.id === swap.targetTaId)?.taUser.name || 'Unknown',
       swapInfo: `TA swap request approved`,
       date: swap.requestDate ? new Date(swap.requestDate).toLocaleDateString() : 'Unknown',
       time: swap.requestDate ? new Date(swap.requestDate).toLocaleTimeString() : '',

@@ -278,7 +278,11 @@ async function respondToSwapRequest(responseData) {
     swapRequest.status           = 'APPROVED';
     swapRequest.respondentExamId = examIdToSwap;
     swapRequest.isApproved       = true;
+    if (swapRequest.isForumPost) {
+      swapRequest.targetTaId = respondentId;
+    }
     await swapRequest.save({ transaction: t });
+
 
     // Notify original requester
     await Notification.create({
