@@ -309,6 +309,61 @@ class CourseService {
     }
   }
 
+  async deleteCoursesByCsvData(coursesData) {
+    let deletedCount = 0;
+    const errors = [];
+
+    for (const courseIdent of coursesData) {
+      // Ensure all necessary identifiers are present
+      if (!courseIdent.department || !courseIdent.courseCode || !courseIdent.semesterId) {
+        errors.push({
+          data: courseIdent,
+          error: "Missing required identifiers (department, courseCode, or semesterId)."
+        });
+        continue;
+      }
+
+      // Construct the course ID using the same logic as in createCourse or frontend find
+      // Ensure semesterId is treated as a string for consistent ID generation
+      const courseIdToDelete = `${String(courseIdent.department)}${String(courseIdent.courseCode)}${String(courseIdent.semesterId)}`.replace(/\s+/g, '');
+      
+      console.log(`Attempting to delete course with constructed ID: ${courseIdToDelete}`);
+
+      const t = await sequelize.transaction();
+      try {
+        const course = await Course.findByPk(courseIdToDelete, { transaction: t });
+        if (!course) {
+          errors.push({
+            data: { ...courseIdent, constructedId: courseIdToDelete },
+            error: "Course not found with the provided identifiers."
+          });
+          await t.rollback(); // Rollback this specific transaction attempt
+          continue; // Move to the next course identifier
+        }
+        
+        await course.destroy({ transaction: t });
+        await t.commit();
+        deletedCount++;
+        console.log(`Successfully deleted course: ${courseIdToDelete}`);
+      } catch (error) {
+        await t.rollback();
+        console.error(`Error deleting course ${courseIdToDelete} from CSV:`, error);
+        errors.push({
+          data: { ...courseIdent, constructedId: courseIdToDelete },
+          // More specific error message for foreign key constraints
+          error: error.name === 'SequelizeForeignKeyConstraintError' ? 
+                 "Cannot delete course due to existing references (e.g., schedules, enrollments)." :
+                 error.message
+        });
+      }
+    }
+
+    return {
+      deletedCount,
+      errors
+    };
+  }
+
   /**
    * Add teaching assistants to a course
    * @param {String} courseId - The course ID

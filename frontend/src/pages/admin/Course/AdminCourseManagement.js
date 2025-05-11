@@ -481,37 +481,53 @@ const AdminCourseManagement = () => {
     resetForm();
   };
 
-  // Handle file upload for bulk course creation
+  // Handle file upload for bulk course creation or deletion
   const handleFileUpload = async () => {
     if (!selectedFile) {
       setErrorMessage('Please select a file first');
       setShowError(true);
       return;
     }
-    
+
     if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
       setErrorMessage('Only CSV files are allowed');
       setShowError(true);
       return;
     }
-    
+
     setIsLoading(true);
-    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      
-      const response = await axios.post(`${API_URL}/api/admin/courses/import`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      setSuccess(response.data.message || `File uploaded successfully. ${response.data.success} courses created.`);
-      setSelectedFile(null);
+      let response;
+      if (activeView === 'add') {
+        response = await axios.post(`${API_URL}/api/admin/courses/import`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        setSuccess(response.data.message || `File uploaded successfully. ${response.data.coursesCreated} courses created, ${response.data.coursesFailed} failed.`);
+      } else if (activeView === 'delete') {
+        // New endpoint for deleting courses by CSV
+        response = await axios.post(`${API_URL}/api/admin/courses/delete-by-csv`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        setSuccess(response.data.message || `File processed. ${response.data.coursesDeleted} courses deleted, ${response.data.coursesFailed} failed.`);
+      } else {
+        // This case should ideally not be reached if UI is set up correctly
+        setErrorMessage('Invalid action for file upload.');
+        setShowError(true);
+        setIsLoading(false);
+        return;
+      }
+
+      setSelectedFile(null); // Clear selected file on success
     } catch (error) {
-      console.error('Error uploading file:', error);
-      setErrorMessage(error.response?.data?.message || 'Failed to upload file');
+      console.error(`Error uploading file for ${activeView}:`, error);
+      setErrorMessage(error.response?.data?.message || `Failed to process file for ${activeView}`);
       setShowError(true);
     } finally {
       setIsLoading(false);
@@ -558,8 +574,7 @@ const AdminCourseManagement = () => {
             </div>
           </div>
 
-        {(activeView === 'add' || activeView === 'delete') && (
-
+{(activeView === 'add' || activeView === 'delete') && (
           <div 
             className={styles.fileUploadArea}
             onDragOver={handleDragOver}
@@ -582,15 +597,25 @@ const AdminCourseManagement = () => {
             {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
             <button 
               className={styles.uploadFileBtn}
-              onClick={handleFileUpload}
-              disabled={isLoading}
+              onClick={handleFileUpload} // This now handles both add and delete
+              disabled={isLoading || !selectedFile} // Disable if no file or loading
             >
-              {isLoading ? 'Uploading...' : 'Upload File'}
+              {isLoading ? 'Processing...' : (activeView === 'add' ? 'Upload to Add Courses' : 'Upload to Delete Courses')}
             </button>
             <div className={styles.uploadNote}>
-              Note: CSV should contain columns for CourseCode, Department, and SemesterId.
-              <br />
-              Optional columns: CourseName, Credit, IsGradCourse, StudentCount.
+              {activeView === 'add' ? (
+                <>
+                  Note: CSV for ADDING should contain columns for CourseCode, Department, and SemesterId.
+                  <br />
+                  Optional columns: CourseName, Credit, IsGradCourse, StudentCount, InstructorNames (comma-separated), TaNames (comma-separated).
+                </>
+              ) : activeView === 'delete' ? (
+                <>
+                  Note: CSV for DELETING should contain columns for CourseCode, Department, and SemesterId.
+                  <br />
+                  Each row will identify a course to be deleted.
+                </>
+              ) : null }
             </div>
           </div>
         )}

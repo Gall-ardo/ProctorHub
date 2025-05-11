@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 const csvFilter = (req, file, cb) => {
   if (file.mimetype === 'text/csv' || 
       file.originalname.endsWith('.csv') || 
-      file.mimetype === 'application/vnd.ms-excel') {
+      file.mimetype === 'application/vnd.ms-excel') { // Added for broader CSV compatibility
     cb(null, true);
   } else {
     cb(new Error('Please upload only CSV files.'), false);
@@ -53,11 +53,14 @@ if (typeof authMiddleware === 'function') {
   
   // If isAdmin is a function in the authMiddleware object
   if (typeof authMiddleware.isAdmin === 'function') {
-    router.use(authMiddleware.isAdmin);
+    // Apply isAdmin only to routes that require admin privileges,
+    // or if all routes under /admin/courses require admin, apply it here.
+    // For now, assuming all these course routes are admin-protected.
+    router.use(authMiddleware.isAdmin); 
   }
 } else {
-  console.warn("Warning: authMiddleware is not properly configured");
-  // Continue without auth middleware for debugging
+  console.warn("Warning: authMiddleware is not properly configured for course routes. Access might be unrestricted.");
+  // Continue without auth middleware for debugging or if auth is handled differently
 }
 
 // Create a new course
@@ -68,15 +71,29 @@ router.post('/', courseController.createCourse);
 if (courseController.importCoursesFromCSV) {
   router.post('/import', upload.single('file'), courseController.importCoursesFromCSV);
 } else {
-  console.error("Error: courseController.importCoursesFromCSV is undefined");
+  console.error("Error: courseController.importCoursesFromCSV is undefined. CSV import for adding courses will not work.");
   // Provide a fallback route that returns an error message
   router.post('/import', upload.single('file'), (req, res) => {
     res.status(500).json({
       success: false,
-      message: "CSV import function is not available. Please check server implementation."
+      message: "CSV import function (for adding) is not available. Please check server implementation."
     });
   });
 }
+
+if (courseController.deleteCoursesFromCSV) {
+  router.post('/delete-by-csv', upload.single('file'), courseController.deleteCoursesFromCSV);
+} else {
+  console.error("Error: courseController.deleteCoursesFromCSV is undefined. CSV deletion will not work.");
+  // Provide a fallback route that returns an error message
+  router.post('/delete-by-csv', upload.single('file'), (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: "CSV deletion function is not available. Please check server implementation."
+    });
+  });
+}
+// === END OF NEW ROUTE ===
 
 // Get all courses with optional filters
 router.get('/', courseController.getAllCourses);
@@ -85,9 +102,12 @@ router.get('/', courseController.getAllCourses);
 router.get('/search', courseController.searchCourses);
 
 // Get a course by course code
+// This should come before the generic /:id GET route if courseCode can be numeric
+// or indistinguishable from an ID, though typically course codes are alphanumeric.
 router.get('/code/:courseCode', courseController.getCourseByCode);
 
 // Get a course by ID
+// This route is more generic, so specific GET routes like /search or /code/:courseCode should be defined before it.
 router.get('/:id', courseController.getCourse);
 
 // Update a course
@@ -96,7 +116,6 @@ router.put('/:id', courseController.updateCourse);
 // Delete a course
 router.delete('/:id', courseController.deleteCourse);
 
-// Get instructors for a course
 router.get('/:id/instructors', courseController.getInstructors);
 
 // Get teaching assistants for a course

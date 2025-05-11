@@ -294,6 +294,97 @@ class CourseController {
       });
     }
   }
+  
+  async deleteCoursesFromCSV(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded"
+        });
+      }
+
+      console.log(`Processing uploaded file for deletion: ${req.file.originalname}`);
+      
+      const results = [];
+      const filePath = req.file.path;
+
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on("data", (data) => {
+          const transformedData = {};
+          // Map CSV columns to identifiers
+          // Expecting: CourseCode, Department, SemesterId
+          Object.keys(data).forEach(key => {
+            const lowerKey = key.toLowerCase().trim();
+            if (lowerKey === 'coursecode' || lowerKey === 'code') {
+              transformedData.courseCode = data[key];
+            } else if (lowerKey === 'department' || lowerKey === 'dept') {
+              transformedData.department = data[key];
+            } else if (lowerKey === 'semesterid' || lowerKey === 'semester') {
+              // Ensure semesterId is treated as a string
+              transformedData.semesterId = String(data[key]); 
+            }
+          });
+          
+          // Only add if all required fields for deletion are present
+          if (transformedData.courseCode && transformedData.department && transformedData.semesterId) {
+            results.push(transformedData);
+          } else {
+            console.warn('Skipping row for deletion due to missing required fields (CourseCode, Department, SemesterId):', data);
+          }
+        })
+        .on("end", async () => {
+          try {
+            // Remove the temporary file
+            fs.unlinkSync(filePath);
+            
+            console.log(`Parsed ${results.length} course identifiers for deletion from CSV`);
+
+            if (results.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No valid course identifiers found in CSV for deletion. Ensure CSV has CourseCode, Department, and SemesterId columns."
+                });
+            }
+
+            // Call a new service method to handle the deletion
+            const deletionResult = await courseService.deleteCoursesByCsvData(results);
+            
+            res.status(200).json({ 
+              success: true,
+              message: `${deletionResult.deletedCount} courses deleted successfully, ${deletionResult.errors.length} failed.`,
+              coursesDeleted: deletionResult.deletedCount, // Ensure frontend uses this key
+              coursesFailed: deletionResult.errors.length, // Ensure frontend uses this key
+              totalRecords: results.length,
+              errors: deletionResult.errors.length > 0 ? deletionResult.errors : undefined
+            });
+          } catch (error) {
+            console.error("Error processing course deletion data:", error);
+            res.status(500).json({
+              success: false,
+              message: "Failed to process course deletion data",
+              error: error.message
+            });
+          }
+        })
+        .on("error", (error) => {
+          console.error("Error parsing CSV for deletion:", error);
+          res.status(400).json({
+            success: false,
+            message: "Failed to parse CSV file for deletion",
+            error: error.message
+          });
+        });
+    } catch (error) {
+      console.error("Error uploading courses for deletion:", error);
+      res.status(400).json({ 
+        success: false,
+        message: "Failed to upload CSV for course deletion", 
+        error: error.message 
+      });
+    }
+  }
 
   async addTeachingAssistant(req, res) {
     try {
