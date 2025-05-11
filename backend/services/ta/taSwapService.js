@@ -4,6 +4,8 @@ const { SwapRequest, TeachingAssistant, Exam, User, Classroom, Notification } = 
 const Proctoring = require('../../models/Proctoring');
 const { Op } = require('sequelize');
 const emailService = require('../../services/emailService');
+const sequelize = require('../../config/db');
+
 
 /**
  * Create a personal swap request from one TA to another
@@ -163,153 +165,148 @@ const getSwapRequestsForTa = async (taId) => {
  * @param {string} responseData.examIdToSwap - ID of the exam offered in return
  * @returns {Promise<Object>} - the updated swap request
  */
-const respondToSwapRequest = async (responseData) => {
+/**
+ * Respond to a swap request with an exam to swap
+ * @param {Object} responseData
+ * @param {string} responseData.swapRequestId
+ * @param {string} responseData.respondentId
+ * @param {string} responseData.examIdToSwap
+ */
+async function respondToSwapRequest(responseData) {
   const { swapRequestId, respondentId, examIdToSwap } = responseData;
-
-  // Find the swap request
-  const swapRequest = await SwapRequest.findByPk(swapRequestId, {
-    include: [
-      {
-        model: TeachingAssistant,
-        as: 'requester',
-        include: {
-          model: User,
-          as: 'taUser',
-          attributes: ['id', 'name', 'email']
+  const t = await sequelize.transaction();
+  try {
+    // 1) Load swapRequest + its original requester (with user) + exam info
+    const swapRequest = await SwapRequest.findByPk(swapRequestId, {
+      include: [
+        {
+          model: TeachingAssistant,
+          as: 'requester',
+          include: [{ model: User, as: 'taUser', attributes: ['id','name','email'] }]
+        },
+        {
+          model: Exam,
+          as: 'exam',
+          attributes: ['id','courseName','instructorId']
         }
-      },
-      {
-        model: Exam,
-        as: 'exam'
-      }
-    ]
-  });
+      ],
+      transaction: t
+    });
+    if (!swapRequest) throw new Error('Swap request not found');
+    if (swapRequest.status !== 'PENDING') throw new Error('This swap request has already been processed');
 
-  if (!swapRequest) {
-    throw new Error('Swap request not found');
-  }
-
-  if (swapRequest.status !== 'PENDING') {
-    throw new Error('This swap request has already been processed');
-  }
-
-  // Find the exam to swap
-  const examToSwap = await Exam.findByPk(examIdToSwap);
-  if (!examToSwap) {
-    throw new Error('Exam not found');
-  }
-
-  // Update swap request status
-  swapRequest.status = 'APPROVED';
-  swapRequest.respondentExamId = examIdToSwap;
-  swapRequest.isApproved = true;
-  await swapRequest.save();
-
-  // Perform the actual swap in the database
-  // Find the original exam's TA assignment
-  const originalExamAssignment = await Proctoring.findOne({
-    where: {
-      examId: swapRequest.examId,
-      taId: swapRequest.requesterId
+    // 2) Load the two Proctoring assignments, including their Exam.duration & department
+    const originalProctor = await Proctoring.findOne({
+      where: { examId: swapRequest.examId, taId: swapRequest.requesterId },
+      include: [{ model: Exam, as: 'exam', attributes: ['duration','department'] }],
+      transaction: t
+    });
+    const swapProctor = await Proctoring.findOne({
+      where: { examId: examIdToSwap, taId: respondentId },
+      include: [{ model: Exam, as: 'exam', attributes: ['duration','department'] }],
+      transaction: t
+    });
+    if (!originalProctor || !swapProctor) throw new Error('Exam assignments not found');
+    if (originalProctor.status !== 'ACCEPTED' || swapProctor.status !== 'ACCEPTED') {
+      throw new Error('Both proctorings must be ACCEPTED before swapping.');
     }
-  });
 
-  // Find the swap exam's TA assignment
-  const swapExamAssignment = await Proctoring.findOne({
-    where: {
-      examId: examIdToSwap,
-      taId: respondentId
-    }
-  });
+    // 3) Load both TA records *with* their User for notifications
+    const requesterTA  = await TeachingAssistant.findByPk(swapRequest.requesterId, {
+      include: [{ model: User, as: 'taUser', attributes: ['id','name','email'] }],
+      transaction: t
+    });
+    const respondentTA = await TeachingAssistant.findByPk(respondentId, {
+      include: [{ model: User, as: 'taUser', attributes: ['id','name','email'] }],
+      transaction: t
+    });
+    if (!requesterTA || !respondentTA) throw new Error('TA records not found');
 
-  if (!originalExamAssignment || !swapExamAssignment) {
-    throw new Error('Exam assignments not found');
+    // 4) Compute raw minutes & rounded hours
+    const origMin = originalProctor.exam.duration;
+    const swapMin = swapProctor.exam.duration;
+    const origH   = Math.ceil(origMin / 60);
+    const swapH   = Math.ceil(swapMin / 60);
+
+    // 5) Determine department‐match flags
+    const origDeptReq  = originalProctor.exam.department === requesterTA.department;
+    const swapDeptReq  = swapProctor.exam.department   === requesterTA.department;
+    const origDeptResp = originalProctor.exam.department === respondentTA.department;
+    const swapDeptResp = swapProctor.exam.department   === respondentTA.department;
+
+    // 6) Update requesterTA’s counters & workload
+    requesterTA.totalProctoringInDepartment    =
+      (requesterTA.totalProctoringInDepartment    || 0)
+      - (origDeptReq ? origH : 0)
+      + (swapDeptReq ? swapH : 0);
+    requesterTA.totalNonDepartmentProctoring =
+      (requesterTA.totalNonDepartmentProctoring || 0)
+      - (!origDeptReq ? origH : 0)
+      + (!swapDeptReq ? swapH : 0);
+    requesterTA.totalWorkload                =
+      (requesterTA.totalWorkload                || 0)
+      - origMin
+      + swapMin;
+
+    // 7) Update respondentTA’s counters & workload
+    respondentTA.totalProctoringInDepartment =
+    (respondentTA.totalProctoringInDepartment || 0)
+    - (swapDeptResp ? swapH : 0)     // subtract swap‐exam hours if it was in‐dept
+    + (origDeptResp ? origH : 0);    // add original‐exam hours if it’s in‐dept
+    
+    respondentTA.totalNonDepartmentProctoring =
+      (respondentTA.totalNonDepartmentProctoring || 0)
+      - (!swapDeptResp ? swapH : 0)    // subtract swap‐exam hours if it was out‐dept
+      + (!origDeptResp ? origH : 0);   // add original‐exam hours if it’s out‐dept
+    
+    respondentTA.totalWorkload =
+      (respondentTA.totalWorkload || 0)
+      - swapMin                        // lose their own exam’s minutes
+      + origMin;                       // gain the requester’s exam’s minutes
+
+    // 8) Swap the assignments
+    originalProctor.taId = respondentId;
+    swapProctor.taId     = swapRequest.requesterId;
+    await originalProctor.save({ transaction: t });
+    await swapProctor.save({ transaction: t });
+
+    // 9) Persist TA changes
+    await requesterTA.save({ transaction: t });
+    await respondentTA.save({ transaction: t });
+
+    // 10) Mark swapRequest approved + notifications
+    swapRequest.status           = 'APPROVED';
+    swapRequest.respondentExamId = examIdToSwap;
+    swapRequest.isApproved       = true;
+    await swapRequest.save({ transaction: t });
+
+    // Notify original requester
+    await Notification.create({
+      id:          uuidv4(),
+      recipientId: requesterTA.id,
+      subject:     'Swap Request Accepted',
+      message:     `${respondentTA.taUser.name} has accepted your swap request for ${swapRequest.exam.courseName}.`,
+      date:        new Date(),
+      isRead:      false
+    }, { transaction: t });
+
+    // Notify instructor
+    await Notification.create({
+      id:          uuidv4(),
+      recipientId: swapRequest.exam.instructorId,
+      subject:     'Exam Swapped',
+      message:     `The exam ${swapRequest.exam.courseName} has been swapped between ${requesterTA.taUser.name} and ${respondentTA.taUser.name}.`,
+      date:        new Date(),
+      isRead:      false
+    }, { transaction: t });
+
+    await t.commit();
+    return { success: true, message: 'Swap completed and workloads updated' };
+  } catch (err) {
+    await t.rollback();
+    throw err;
   }
-
-  // Check if both proctorings are accepted
-  if (originalExamAssignment.status !== 'ACCEPTED' || swapExamAssignment.status !== 'ACCEPTED') {
-    throw new Error('Both proctorings must be accepted before swapping. Please check your proctoring status.');
-  }
-
-  console.log('Swapping proctorings:', {
-    original: {
-      id: originalExamAssignment.id,
-      examId: originalExamAssignment.examId,
-      taId: originalExamAssignment.taId,
-      status: originalExamAssignment.status
-    },
-    swap: {
-      id: swapExamAssignment.id,
-      examId: swapExamAssignment.examId,
-      taId: swapExamAssignment.taId,
-      status: swapExamAssignment.status
-    }
-  });
-
-  // Swap the assignments
-  originalExamAssignment.taId = respondentId;
-  swapExamAssignment.taId = swapRequest.requesterId;
-
-  await originalExamAssignment.save();
-  await swapExamAssignment.save();
-
-
-  const respondent = await TeachingAssistant.findByPk(respondentId, {
-    include: {
-      model: User,
-      as: 'taUser',
-      attributes: ['id', 'name', 'email']
-    }
-  });
-  if (!respondent) {
-    throw new Error('Respondent TA not found');
-  }
-
-  await Notification.create({
-    id: uuidv4(),
-    recipientId: swapRequest.requester.taUser.id,
-    subject: 'Swap Request Accepted',
-    message: `${respondent.taUser.name} has been accepted your swap request.`,
-    date: new Date(),
-    isRead: false
-  });
-
-  
-  await Notification.create({
-    id: uuidv4(),
-    recipientId: swapRequest.exam.instructorId,
-    subject: 'Exam is Swapped',
-    message: `The exam ${swapRequest.exam.courseName} has been swapped between ${swapRequest.requester.taUser.name} and ${respondent.taUser.name}.`,
-    date: new Date(),
-    isRead: false
-  });
-
-  // Send email to the requester TA
-  /*await emailService.sendEmail({
-    to: swapRequest.requester.taUser.email,
-    subject: 'Swap Request Accepted',
-    text: `${respondent.taUser.name} has accepted your swap request for the exam ${swapRequest.exam.courseName}.`
-  });*/
-
-  // Send email to the respondent TA
-  /*await emailService.sendEmail({
-    to: respondent.taUser.email,
-    subject: 'Swap Request Accepted',
-    text: `You have accepted the swap request for the exam ${swapRequest.exam.courseName} from ${swapRequest.requester.taUser.name}.`
-  });*/
-
-  // Send email to the instructor
-  /*await emailService.sendEmail({
-    to: swapRequest.exam.instructorEmail,
-    subject: 'Exam Swapped',
-    text: `The exam ${swapRequest.exam.courseName} has been swapped between ${swapRequest.requester.taUser.name} and ${respondent.taUser.name}.`
-  });*/
-
-  return {
-    success: true,
-    message: 'Swap successfully completed. Both proctoring assignments have been updated.'
-  };
-};
+}
 
 /**
  * Get all user's exams for swap - Only show ACCEPTED proctorings

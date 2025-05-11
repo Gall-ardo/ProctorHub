@@ -124,13 +124,33 @@ class EmailService {
     }
   }
 
-  async sendProctorAssignmentEmail(recipient, name, courseName, examDate, startTime, endTime) {
+  async sendProctorAssignmentEmail(recipient, name, courseName, examDate, duration) {
     console.log(`Sending proctor assignment email to ${recipient}`);
     try {
-      const formattedDate = 
-        (examDate instanceof Date)
-          ? examDate.toLocaleDateString()
-          : new Date(examDate).toLocaleDateString();
+      const dateObj = (examDate instanceof Date)
+        ? examDate
+        : new Date(examDate);
+
+      const formattedDate = dateObj.toLocaleDateString('en-US', {
+        weekday: 'long', // Optional: "Monday"
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      // Calculate start and end times using duration
+      const startTimeObj = dateObj;
+      const endTimeObj = new Date(dateObj.getTime() + (duration || 120) * 60000);
+
+      const startTime = startTimeObj.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const endTime = endTimeObj.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
 
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -158,6 +178,7 @@ class EmailService {
       console.error('Error sending proctor assignment email:', err);
       return false;
     }
+
   }
 
   async sendEmail(to, subject, text) {

@@ -11,7 +11,6 @@ export default function SecretaryMainPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Base URL for all API calls
   const API_URL = 'http://localhost:5001/api'; // Ensure this matches your backend URL
 
   const getAuthHeaders = () => {
@@ -31,12 +30,10 @@ export default function SecretaryMainPage() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-        // Fetch dashboard data from the backend
+        // Directly fetch the dashboard data - our backend will use the authenticated user's ID
         const response = await axios.get(`${API_URL}/secretary/dashboard`, getAuthHeaders());
-
         const { upcomingExams, latestSwaps } = response.data;
 
-        // Set the state for exams and swaps
         setUpcomingExams(upcomingExams || []);
         setLatestSwaps(latestSwaps || []);
       } catch (err) {
@@ -135,14 +132,23 @@ export default function SecretaryMainPage() {
                 <h3>{selectedInfo.data.course}</h3>
                 <p><strong>Date:</strong> {selectedInfo.data.date}</p>
                 <p><strong>Time:</strong> {selectedInfo.data.time}</p>
-                <p><strong>Duration:</strong> {selectedInfo.data.duration}</p>
-                <p><strong>Classrooms:</strong> {selectedInfo.data.classrooms.join(', ')}</p>
+                <p><strong>Duration:</strong> {selectedInfo.data.duration} minutes</p>
+                <p><strong>Department:</strong> {selectedInfo.data.department}</p>
+                {/* Only show classrooms if available */}
+                {selectedInfo.data.classrooms && (
+                  <p><strong>Classrooms:</strong> {Array.isArray(selectedInfo.data.classrooms) 
+                     ? selectedInfo.data.classrooms.join(', ') 
+                     : selectedInfo.data.classrooms}
+                  </p>
+                )}
               </>
             ) : (
               <>
                 <h3>{selectedInfo.data.from} → {selectedInfo.data.to}</h3>
                 <p><strong>Swap Info:</strong> {selectedInfo.data.swapInfo}</p>
                 <p><strong>Date & Time:</strong> {selectedInfo.data.date} {selectedInfo.data.time}</p>
+                <p><strong>Exam:</strong> {selectedInfo.data.examName}</p>
+                <p><strong>Exam Date:</strong> {selectedInfo.data.examDate}</p>
               </>
             )}
           </div>

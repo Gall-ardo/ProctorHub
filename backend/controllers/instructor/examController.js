@@ -301,8 +301,7 @@ class ExamController {
                     ta.name,
                     result.examDetails.courseName,
                     result.examDetails.date,
-                    result.examDetails.startTime,
-                    result.examDetails.endTime
+                    result.examDetails.duration
                 );
             });
             await Promise.all(emailPromises);
