@@ -3,6 +3,7 @@ const router = require('express').Router();
 const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
 const ctrl = require('../controllers/Dean/leaveRequestController');
 const deanHomePageController = require('../controllers/Dean/deanHomePageController');
+const examController = require('../controllers/Dean/examController');
 
 // Fetch data for the Dean's homepage (all exams and swaps)
 router.get(
@@ -57,6 +58,111 @@ router.get(
             }
         });
     }
+);
+
+router.post(
+    '/exams',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.createExam
+);
+
+router.get(
+    '/exams',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.getInstructorExams
+);
+
+router.get(
+    '/exams/:examId',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.getExamById
+);
+
+router.put(
+    '/exams/:examId',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.updateExam
+);
+
+router.delete(
+    '/exams/:examId',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.deleteExam
+);
+
+// New route for exam-specific TA availability including leave status
+router.get(
+    '/available-tas-for-exam',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.getAvailableTAsForExam
+);
+
+// Proctor assignment route
+router.post(
+    '/exams/assign-proctors',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.assignProctors
+);
+
+// Leave check route
+router.get(
+    '/check-ta-leave',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.checkTALeaveStatus
+);
+
+// Exam proctor swap routes
+router.post(
+    '/exams/:examId/swap-proctor',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.swapProctor
+);
+
+router.get(
+    '/exams/:examId/swap-history',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.getSwapHistory
+);
+
+// Exam proctor swap request route
+router.post(
+    '/exams/:examId/request-swap-proctor',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.requestSwapProctor
+);
+
+// Update TA workload when swapped
+router.post(
+    '/update-ta-workload',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.updateTAWorkload
+);
+
+// Get all classrooms
+router.get(
+    '/classrooms',
+    authenticateToken,
+    authorizeRole(['dean']),
+    examController.getAllClassrooms
+);
+
+router.get(
+  '/courses',
+  authenticateToken,
+  authorizeRole(['dean']),   // adjust roles if needed
+  examController.getCourses
 );
 
 module.exports = router;
