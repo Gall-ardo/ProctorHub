@@ -308,6 +308,143 @@ class StudentController {
       });
     }
   }
+  async deleteStudentsByCSV(req, res) {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    const filePath = req.file.path;
+    console.log(`Processing CSV for deletion: ${req.file.originalname}`);
+    
+    const studentIdsToDelete = [];
+    const errors = [];
+    let deletedCount = 0;
+    let failedCount = 0;
+    let recordsInCSV = 0;
+
+    try {
+      const stream = fs.createReadStream(filePath)
+        .pipe(csv({
+          mapHeaders: ({ header }) => header.trim().toLowerCase(), // Normalize headers
+          skipEmptyLines: true,
+        }))
+        .on("data", (data) => {
+          recordsInCSV++;
+          // Try to find studentId, ID, or the first column if no header matches
+          let studentId = null;
+          if (data['studentid']) {
+            studentId = data['studentid'];
+          } else if (data['id']) {
+            studentId = data['id'];
+          } else {
+            const firstColumnKey = Object.keys(data)[0];
+            if (firstColumnKey) {
+              studentId = data[firstColumnKey];
+            }
+          }
+
+          if (studentId && studentId.trim() !== '') {
+            studentIdsToDelete.push(studentId.trim());
+          } else {
+            console.warn("Skipping row with no discernible student ID:", data);
+            // Optionally count this as a "failed" or "skipped" record for reporting
+          }
+        })
+        .on("end", async () => {
+          try { // New try-block for async operations post-stream
+            fs.unlinkSync(filePath); // Remove the temporary file
+            
+            console.log(`Parsed ${studentIdsToDelete.length} student IDs from CSV for deletion out of ${recordsInCSV} records.`);
+
+            if (studentIdsToDelete.length === 0 && recordsInCSV > 0) {
+               return res.status(200).json({ // Or 400 if no valid IDs is an error
+                success: true, // Or false, depending on desired behavior
+                message: "No valid student IDs found in the uploaded CSV file to process for deletion.",
+                studentsDeleted: 0,
+                studentsFailed: recordsInCSV, // All records failed to provide an ID
+                totalRecordsInCSV: recordsInCSV,
+                errors: [{ record: 'all', error: 'No valid student IDs found in CSV columns (expected header: studentid or id, or data in the first column).'}]
+              });
+            }
+             if (studentIdsToDelete.length === 0 && recordsInCSV === 0) {
+               return res.status(400).json({
+                success: false,
+                message: "The uploaded CSV file is empty or contains no processable data.",
+              });
+            }
+
+
+            for (const studentIdValue of studentIdsToDelete) {
+              try {
+                const student = await studentService.findStudentByStudentId(studentIdValue);
+                if (student) {
+                  await studentService.deleteStudent(student.id); // student.id is the primary key
+                  deletedCount++;
+                } else {
+                  errors.push({ studentId: studentIdValue, error: "Student not found" });
+                  failedCount++;
+                }
+              } catch (error) {
+                errors.push({ studentId: studentIdValue, error: error.message });
+                failedCount++;
+                console.error(`Error deleting student with ID ${studentIdValue}:`, error);
+              }
+            }
+            
+            res.status(200).json({ 
+              success: true,
+              message: `Deletion process finished. ${deletedCount} students deleted, ${failedCount} failed.`,
+              studentsDeleted: deletedCount,
+              studentsFailed: failedCount,
+              totalRecordsProcessed: studentIdsToDelete.length, // Number of IDs attempted
+              errors: errors.length > 0 ? errors : undefined
+            });
+          } catch (processingError) {
+            console.error("Error during post-stream processing in deleteStudentsByCSV:", processingError);
+            // filePath might have been deleted, or might not.
+            // The outer catch will handle generic server errors if headers not sent.
+            if (!res.headersSent) {
+                 res.status(500).json({
+                    success: false,
+                    message: "An error occurred after reading the CSV file.",
+                    error: processingError.message
+                });
+            }
+          }
+        })
+        .on("error", (streamError) => { // Stream parsing error
+          console.error("Error parsing CSV for deletion:", streamError);
+          fs.unlink(filePath, (unlinkErr) => { // Attempt to clean up
+            if (unlinkErr) console.error("Error unlinking file on stream error:", unlinkErr);
+          });
+          if (!res.headersSent) {
+            res.status(400).json({
+              success: false,
+              message: "Failed to parse CSV file for deletion",
+              error: streamError.message
+            });
+          }
+        });
+    } catch (error) { // Outer catch for errors before stream processing starts or unhandled by stream
+      console.error("Error in deleteStudentsByCSV controller:", error);
+      if (req.file && req.file.path) {
+        // Ensure temp file is deleted if an error occurs early
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) console.error("Error unlinking file on outer catch:", unlinkErr);
+        });
+      }
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          success: false,
+          message: "Failed to process student deletion by CSV", 
+          error: error.message 
+        });
+      }
+    }
+  }
 }
 
 module.exports = new StudentController();

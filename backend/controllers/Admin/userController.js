@@ -394,6 +394,100 @@ class UserController {
       });
     }
   }
+
+
+  // controllers/Admin/userController.js
+// ... (other requires and UserController methods) ...
+
+  async deleteUsersFromCSV(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded"
+        });
+      }
+
+      console.log(`Processing CSV for user deletion: ${req.file.originalname}`);
+      
+      const idsToDelete = [];
+      const filePath = req.file.path;
+      const forceDelete = req.query.force === 'true';
+
+      fs.createReadStream(filePath)
+        .pipe(csv({ mapHeaders: ({ header }) => header.trim().toLowerCase() }))
+        .on("data", (row) => {
+          let id = null;
+          if (row.id) id = row.id.trim();
+          else if (row.userid) id = row.userid.trim();
+          else if (Object.keys(row).length > 0) {
+            const firstColumnKey = Object.keys(row)[0];
+            if (row[firstColumnKey]) id = row[firstColumnKey].trim();
+          }
+          if (id && id.length > 0) { idsToDelete.push(id); }
+          else if (id !== null) { console.warn(`Skipping empty ID from CSV row:`, row); }
+        })
+        .on("end", async () => {
+          fs.unlinkSync(filePath); 
+          
+          if (idsToDelete.length === 0) {
+            return res.status(400).json({
+              success: false,
+              message: "No valid user IDs found in the CSV file."
+            });
+          }
+
+          console.log(`Attempting to delete ${idsToDelete.length} users via CSV. Force delete: ${forceDelete}`);
+          const deleteResult = await userService.bulkDeleteUsersByIds(idsToDelete, forceDelete);
+          
+          // --- MODIFIED MESSAGE CONSTRUCTION ---
+          let summaryMessage;
+          if (deleteResult.failedCount > 0) {
+            summaryMessage = `${deleteResult.deletedCount} users deleted, ${deleteResult.failedCount} failed. Check server logs for details.`;
+          } else {
+            summaryMessage = `${deleteResult.deletedCount} users successfully deleted.`;
+          }
+          if (forceDelete && deleteResult.deletedCount > 0) {
+            summaryMessage += " (Force delete applied)";
+          }
+          // --- END MODIFIED MESSAGE CONSTRUCTION ---
+
+          res.status(200).json({ 
+            success: true,
+            message: summaryMessage, // Use the shorter summary message
+            deletedCount: deleteResult.deletedCount,
+            failedCount: deleteResult.failedCount,
+            totalProcessed: idsToDelete.length,
+            // Keep detailed errors in the response for potential debugging/logging on client if needed
+            errors: deleteResult.errors.length > 0 ? deleteResult.errors : undefined 
+          });
+        })
+        .on("error", (error) => {
+          // ... (error handling remains the same)
+          console.error("Error parsing CSV for deletion:", error);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+          res.status(400).json({
+            success: false,
+            message: "Failed to parse CSV file for deletion",
+            error: error.message
+          });
+        });
+    } catch (error) {
+      // ... (error handling remains the same)
+      console.error("Error processing CSV for user deletion:", error);
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to process CSV for user deletion", 
+        error: error.message 
+      });
+    }
+  }
+
 }
 
 module.exports = new UserController();

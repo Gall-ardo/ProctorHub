@@ -21,6 +21,8 @@ const AdminStudentManagement = () => {
   const [department, setDepartment] = useState('');
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(Date.now()); // ADD THIS STATE for resetting file input
+
   
   // Course popup state
   const [isCoursePopupOpen, setIsCoursePopupOpen] = useState(false);
@@ -164,38 +166,67 @@ const AdminStudentManagement = () => {
     }
   };
 
-  const handleFileUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a file first');
-      return;
-    }
-    
-    setIsLoading(true);
-    setSuccess(null);
-    setError(null);
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      
-      console.log("Uploading file:", selectedFile.name);
-      const response = await apiClient.post('/admin/students/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      if (response.data.success) {
-        setSuccess(`Uploaded successfully! ${response.data.studentsCreated} students added, ${response.data.studentsFailed} errors.`);
-        setSelectedFile(null);
+const handleFileUpload = async () => {
+  if (!selectedFile) {
+    setError('Please select a file first');
+    return;
+  }
+  
+  setIsLoading(true);
+  setSuccess(null);
+  setError(null);
+  
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  
+  let uploadUrl = '';
+  let operationType = ''; // To distinguish messages
+
+  if (activeView === 'add') {
+    uploadUrl = '/admin/students/upload';
+    operationType = 'upload';
+  } else if (activeView === 'delete') {
+    uploadUrl = '/admin/students/delete-by-csv'; // New endpoint for CSV deletion
+    operationType = 'deletion';
+  } else {
+    setError('File operation is not supported for the current view.');
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    console.log(`Processing file ${selectedFile.name} for ${operationType} via ${uploadUrl}`);
+    const response = await apiClient.post(uploadUrl, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
       }
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      setError(error.response?.data?.message || 'An error occurred uploading the file');
-    } finally {
-      setIsLoading(false);
+    });
+    
+    if (response.data.success) {
+      let successMsg = '';
+      if (operationType === 'upload') {
+        successMsg = `Uploaded successfully! ${response.data.studentsCreated} students added, ${response.data.studentsFailed} errors.`;
+      } else if (operationType === 'deletion') {
+        successMsg = `Deletion process finished. ${response.data.studentsDeleted} students deleted, ${response.data.studentsFailed} errors.`;
+      }
+      setSuccess(successMsg);
+      setSelectedFile(null); // Clear the selected file
+      resetForm(); // Reset form fields
+
+      if (activeView === 'delete') {
+        setFindResults(null); // Clear any manually searched students
+      }
+    } else {
+      // Handle cases where response.data.success is false but HTTP status is 2xx
+      setError(response.data.message || `An unknown error occurred during file ${operationType}.`);
     }
-  };
+  } catch (error) {
+    console.error(`Error during file ${operationType}:`, error);
+    setError(error.response?.data?.message || `An error occurred during file ${operationType}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleDeleteStudent = async (id) => {
     if (!window.confirm('Are you sure you want to delete this student?')) {
@@ -244,6 +275,8 @@ const AdminStudentManagement = () => {
     setSelectedCourses([]);
     setMessage({ text: '', type: '' });
     setFindResults(null);
+    setSelectedFile(null); // ADD THIS to clear the selected file from state
+    setFileInputKey(Date.now()); // ADD THIS to reset the actual file input element
   };
 
   return (
@@ -332,6 +365,7 @@ const AdminStudentManagement = () => {
               onDrop={handleDrop}
             >
               <div className={styles.uploadIcon}>
+                {/* Make sure this image path is correct and the image exists in your public folder */}
                 <img src="/upload-icon.png" alt="Upload" />
               </div>
               <div className={styles.uploadText}>Drag and Drop here</div>
@@ -343,20 +377,49 @@ const AdminStudentManagement = () => {
                   hidden 
                   accept=".csv"
                   onChange={handleFileSelect}
+                  key={fileInputKey} // Important for resetting the input
                 />
               </label>
-              {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
+
+              {/* This part displays the name of the selected file */}
+              {selectedFile && (
+                <div className={styles.selectedFile}>
+                  {selectedFile.name}
+                </div>
+              )}
+              
               <button 
                 className={styles.uploadFileBtn}
                 onClick={handleFileUpload}
-                disabled={isLoading}
+                disabled={isLoading || !selectedFile} // Disable if no file is selected or loading
               >
-                Upload File
+                {isLoading ? 
+                  (activeView === 'add' ? 'Uploading...' : 'Processing Delete...') :
+                  (activeView === 'add' ? 'Upload (Add Students)' : 'Upload (Delete Students)')
+                }
               </button>
-              <div className={styles.fileFormat}>
-                <small>Accepted format: CSV</small>
-                <small>Required columns: studentId, nameSurname, email, department</small>
-                <small>Optional columns: courses (comma-separated)</small>
+
+              {/* Enhanced file format explanation section - similar to AdminUserManagement */}
+              <div className={styles.uploadNote}>
+                {activeView === 'add' ? (
+                  <>
+                    Note: For adding, CSV should contain columns for ID, Name, Email, Department, and optional Courses.
+                    <br />
+                    Required columns: studentId, nameSurname, email, department
+                    <br />
+                    Optional columns: courses (comma-separated course codes)
+                    <br />
+                    Students will be added to the system with the specified details.
+                  </>
+                ) : ( // activeView === 'delete'
+                  <>
+                    Note: For deleting, CSV should contain Student IDs (one ID per line).
+                    <br />
+                    The first line can be a header (e.g., "ID", "StudentID", or "studentId").
+                    <br />
+                    Students listed in the CSV will be removed from the system.
+                  </>
+                )}
               </div>
             </div>
           )}

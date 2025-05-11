@@ -6,6 +6,7 @@ const DeansOffice = require("../../models/DeansOffice");
 const TeachingAssistant = require("../../models/TeachingAssistant");
 const Secretary = require("../../models/Secretary");
 
+
 const Schedule = require("../../models/Schedule");
 const TimeSlot = require("../../models/TimeSlot");
 const Workload = require("../../models/Workload");
@@ -17,6 +18,8 @@ const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
 const sequelize = require("../../config/db");
 const emailService = require("../../services/emailService");
+const Proctoring = require("../../models/Proctoring");       // <<<< ----- ADD THIS
+const TARequest = require("../../models/TARequest");    
 
 class UserService {
   // Generate a random password
@@ -369,170 +372,174 @@ class UserService {
       const user = await User.findByPk(id, { transaction: t });
       
       if (!user) {
-        throw new Error("User not found");
+        throw new Error("User not found"); // This will be caught by bulkDeleteUsersByIds
       }
 
-      // Log the deletion attempt
       console.log(`Attempting to delete user ${id} of type ${user.userType}${force ? ' with force flag' : ''}`);
       
-      // Prevent deleting student users through this service
       if (user.userType.toLowerCase() === 'student') {
-        throw new Error("Students should be managed through the student management interface");
+        throw new Error("Students cannot be deleted through this admin interface.");
       }
       
-      // If force is true, we'll use a different approach to handle dependencies
       if (force) {
+        // ... (force delete logic - make sure models here are also imported if used directly)
         console.log('Using forced deletion to handle dependencies');
-        
-        // We'll use MySQL-specific code since you're using MySQL
-        // Temporarily disable foreign key checks to force delete
         await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', { transaction: t });
         
-        // Delete from specific user type table first
+        // When using force, we might want to directly destroy from the specific type table
+        // then the User table, relying on the FOREIGN_KEY_CHECKS = 0.
+        // Or, ensure the model destroy methods are robust enough.
+        
+        // Example: Destroying TA specific records. This part might need more refinement
+        // if direct model.destroy doesn't handle all cascade scenarios under force.
+        if (user.userType.toLowerCase() === "ta") {
+            // Attempt to destroy specific TA related data even in force mode,
+            // as FOREIGN_KEY_CHECKS=0 might not clean everything if not defined with ON DELETE CASCADE
+            // This is a bit redundant with FOREIGN_KEY_CHECKS=0 but can be safer.
+            await Workload.destroy({ where: { taId: id }, transaction: t, force: true });
+            await LeaveRequest.destroy({ where: { taId: id }, transaction: t, force: true });
+            await SwapRequest.destroy({ where: { [Op.or]: [{ requesterId: id }, { targetTaId: id }] }, transaction: t, force: true });
+            const schedule = await Schedule.findOne({ where: { taId: id }, transaction: t });
+            if (schedule) {
+              await TimeSlot.destroy({ where: { scheduleId: schedule.id }, transaction: t, force: true });
+              await schedule.destroy({ transaction: t, force: true });
+            }
+            await TARequest.destroy({ where: { taId: id }, transaction: t, force: true });
+            await Proctoring.destroy({ where: { taId: id }, transaction: t, force: true });
+             // Raw queries for join tables might still be needed if ON DELETE CASCADE isn't set
+            await sequelize.query( `DELETE FROM examproctors WHERE teachingAssistantId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE });
+            await sequelize.query( `DELETE FROM givencoursetas WHERE teachingAssistantId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE });
+            await sequelize.query( `DELETE FROM takenofferingtas WHERE teachingAssistantId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE });
+        } else if (user.userType.toLowerCase() === "instructor") {
+            // Similar for instructors
+            await Workload.destroy({ where: { instructorId: id }, transaction: t, force: true });
+            await TARequest.destroy({ where: { instructorId: id }, transaction: t, force: true });
+            await sequelize.query( `DELETE FROM instructorofferings WHERE instructorId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE });
+            await sequelize.query( `DELETE FROM instructorcourses WHERE instructorId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE });
+        }
+
+        // Now destroy from the specific role table
         switch (user.userType.toLowerCase()) {
-          case "ta":
-            // Only attempt to delete if record exists in this table
-            const ta = await TeachingAssistant.findByPk(id, { transaction: t });
-            if (ta) await ta.destroy({ transaction: t });
-            break;
-          case "instructor":
-            const instructor = await Instructor.findByPk(id, { transaction: t });
-            if (instructor) await instructor.destroy({ transaction: t });
-            break;
-          case "secretary":
-            const secretary = await Secretary.findByPk(id, { transaction: t });
-            if (secretary) await secretary.destroy({ transaction: t });
-            break;
-          case "dean":
-            const dean = await DeansOffice.findByPk(id, { transaction: t });
-            if (dean) await dean.destroy({ transaction: t });
-            break;
-          case "admin":
-            const admin = await Admin.findByPk(id, { transaction: t });
-            if (admin) await admin.destroy({ transaction: t });
-            break;
+          case "ta": await TeachingAssistant.destroy({ where: { id }, transaction: t, force: true }); break;
+          case "instructor": await Instructor.destroy({ where: { id }, transaction: t, force: true }); break;
+          case "secretary": await Secretary.destroy({ where: { id }, transaction: t, force: true }); break;
+          case "dean": await DeansOffice.destroy({ where: { id }, transaction: t, force: true }); break;
+          case "admin": await Admin.destroy({ where: { id }, transaction: t, force: true }); break;
         }
         
-        // Delete the user
-        await User.destroy({ where: { id }, transaction: t });
-        
-        // Re-enable foreign key checks
+        await User.destroy({ where: { id }, transaction: t, force: true });
         await sequelize.query('SET FOREIGN_KEY_CHECKS = 1', { transaction: t });
-      } else {
-        // Normal deletion process - we'll try to delete related records first
-        
-        // Delete notifications
+
+      } else { // Normal Deletion (Not Force)
         await Notification.destroy({ where: { recipientId: id }, transaction: t });
-        
-        // Delete logs
         await Log.destroy({ where: { userId: id }, transaction: t });
         
-        // Try specific user type deletion
         switch (user.userType.toLowerCase()) {
           case "ta":
-            // Delete TA-specific relationships first
             await Workload.destroy({ where: { taId: id }, transaction: t });
             await LeaveRequest.destroy({ where: { taId: id }, transaction: t });
             await SwapRequest.destroy({ 
-              where: { 
-                [Op.or]: [
-                  { requesterId: id },
-                  { recipientId: id }
-                ]
-              }, 
+              where: { [Op.or]: [{ requesterId: id }, { targetTaId: id }] }, 
               transaction: t 
             });
-            
-            // Delete Schedule and TimeSlots
             const schedule = await Schedule.findOne({ where: { taId: id }, transaction: t });
             if (schedule) {
               await TimeSlot.destroy({ where: { scheduleId: schedule.id }, transaction: t });
               await schedule.destroy({ transaction: t });
             }
             
-            // Delete from join tables - requires raw SQL
-            try {
-              await sequelize.query(
-                `DELETE FROM ExamProctors WHERE TeachingAssistantId = ?`,
-                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
-              );
-            } catch (error) {
-              console.error('Error deleting from ExamProctors:', error);
-            }
+            // IMPORTANT: Make sure TARequest and Proctoring are imported at the top of this file
+            await TARequest.destroy({ where: { taId: id }, transaction: t });
+            await Proctoring.destroy({ where: { taId: id }, transaction: t });
             
-            try {
-              await sequelize.query(
-                `DELETE FROM CourseTAs WHERE TeachingAssistantId = ?`,
-                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
-              );
-            } catch (error) {
-              console.error('Error deleting from CourseTAs:', error);
-            }
+            // Raw queries for join tables - VERIFY foreign key column names (e.g., teachingAssistantId)
+            try { await sequelize.query( `DELETE FROM examproctors WHERE teachingAssistantId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }); } 
+            catch (error) { console.error('Error deleting from examproctors:', error); }
+            try { await sequelize.query( `DELETE FROM givencoursetas WHERE teachingAssistantId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }); }
+            catch (error) { console.error('Error deleting from givencoursetas:', error); }
+            try { await sequelize.query( `DELETE FROM takenofferingtas WHERE teachingAssistantId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }); }
+            catch (error) { console.error('Error deleting from takenofferingtas:', error); }
             
-            try {
-              await sequelize.query(
-                `DELETE FROM OfferingTAs WHERE TeachingAssistantId = ?`,
-                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
-              );
-            } catch (error) {
-              console.error('Error deleting from OfferingTAs:', error);
-            }
-            
-            // Delete the TeachingAssistant record
             await TeachingAssistant.destroy({ where: { id }, transaction: t });
             break;
             
           case "instructor":
-            // Delete instructor relationships
             await Workload.destroy({ where: { instructorId: id }, transaction: t });
+            // IMPORTANT: Make sure TARequest is imported
+            await TARequest.destroy({where: { instructorId: id }, transaction: t});
+
+            // Raw queries for join tables - VERIFY foreign key column names (e.g., instructorId)
+            try { await sequelize.query( `DELETE FROM instructorofferings WHERE instructorId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }); }
+            catch (error) { console.error('Error deleting from instructorofferings:', error); }
+            try { await sequelize.query( `DELETE FROM instructorcourses WHERE instructorId = ?`, { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }); }
+            catch (error) { console.error('Error deleting from instructorcourses:', error); }
             
-            // Delete from join tables
-            try {
-              await sequelize.query(
-                `DELETE FROM OfferingInstructors WHERE InstructorId = ?`,
-                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
-              );
-            } catch (error) {
-              console.error('Error deleting from OfferingInstructors:', error);
-            }
-            
-            try {
-              await sequelize.query(
-                `DELETE FROM InstructorCourses WHERE InstructorId = ?`,
-                { replacements: [id], transaction: t, type: sequelize.QueryTypes.DELETE }
-              );
-            } catch (error) {
-              console.error('Error deleting from InstructorCourses:', error);
-            }
-            
-            // Delete from Instructor table
             await Instructor.destroy({ where: { id }, transaction: t });
             break;
             
           case "secretary":
             await Secretary.destroy({ where: { id }, transaction: t });
             break;
-            
           case "dean":
             await DeansOffice.destroy({ where: { id }, transaction: t });
             break;
-            
           case "admin":
             await Admin.destroy({ where: { id }, transaction: t });
             break;
         }
         
-        // Finally delete the user
         await User.destroy({ where: { id }, transaction: t });
       }
 
       await t.commit();
       return true;
     } catch (error) {
-      console.error(`Transaction error in deleteUser for ID ${id}:`, error);
+      console.error(`Transaction error in deleteUser for ID ${id}:`, error.original?.sqlMessage || error.message || error);
       await t.rollback();
-      throw error;
+      throw error; 
     }
+  }
+
+  async bulkDeleteUsersByIds(ids, force = false) {
+    // ... (this function should be okay, the error was in the nested deleteUser call)
+    const deletedUsersInfo = [];
+    const errors = [];
+    
+    for (const id of ids) {
+      try {
+        // Check if user exists before attempting deletion
+        const user = await User.findOne({ where: { id } }); // No transaction needed for this check
+        
+        if (!user) {
+          errors.push({ id: id, error: "User not found." });
+          continue; // Skip to the next ID if user doesn't exist
+        }
+
+        if (user.userType.toLowerCase() === 'student') {
+          errors.push({ id: id, error: "Students cannot be deleted through this interface." });
+          continue;
+        }
+        
+        // If user exists and is not a student, attempt deletion
+        await this.deleteUser(user.id, force); // deleteUser handles its own transaction
+        deletedUsersInfo.push({ id: user.id, name: user.name });
+
+      } catch (error) {
+        errors.push({
+          id: id,
+          error: error.original?.sqlMessage || error.message || `Failed to delete user ${id}`
+        });
+        // Log the detailed error for server-side debugging
+        console.error(`Failed to delete user ${id} during bulk operation. Error: ${error.original?.sqlMessage || error.message}. Stack: ${error.stack}`);
+      }
+    }
+
+    return {
+      deletedCount: deletedUsersInfo.length,
+      failedCount: errors.length,
+      deletedUsers: deletedUsersInfo,
+      errors: errors
+    };
   }
 
   // Helper method to try both quoted and unquoted SQL formats

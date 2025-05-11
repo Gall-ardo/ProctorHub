@@ -38,6 +38,8 @@ const AdminUserManagement = () => {
   const [editMode, setEditMode] = useState(false); // New state to track if we're in edit mode
   const [showForceDeleteConfirmation, setShowForceDeleteConfirmation] = useState(false);
   const [forceDeleteUserId, setForceDeleteUserId] = useState(null);
+  const [forceDeleteCSV, setForceDeleteCSV] = useState(false); // For CSV force delete option
+
 
   // User type options - Removed chair option
   const userTypeOptions = [
@@ -480,6 +482,76 @@ const AdminUserManagement = () => {
     }
   };
 
+  const handleDeleteUsersFromCSV = async () => {
+    if (!selectedFile) {
+      setErrorMessage('Please select a CSV file first');
+      setShowError(true);
+      return;
+    }
+    if (selectedFile.type !== 'text/csv') {
+      setErrorMessage('Only CSV files are allowed for deletion');
+      setShowError(true);
+      return;
+    }
+
+    // Ask for confirmation before deleting
+    const confirmCsvDelete = window.confirm(
+      `Are you sure you want to attempt to delete users listed in ${selectedFile.name}? ` +
+      (forceDeleteCSV ? "This will be a FORCE DELETE, removing users and their dependencies. " : "") +
+      `This action might be irreversible.`
+    );
+
+    if (!confirmCsvDelete) {
+      setSelectedFile(null); // Clear file if user cancels
+      setForceDeleteCSV(false); // Reset the force delete checkbox
+      return;
+    }
+
+    setLoading(true);
+    // setError(null); // You might want to clear general errors if you have a separate 'error' state
+    setSuccess(null); // Clear previous success message
+    setErrorMessage(''); // Clear specific error message for this operation
+    setShowError(false); // Hide error popup
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      
+      const endpoint = `${API_URL}/api/admin/users/delete-csv${forceDeleteCSV ? '?force=true' : ''}`;
+
+      const response = await axios.post(endpoint, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      // --- MODIFIED PART ---
+      // Directly use the (now shorter) message from the backend
+      setSuccess(response.data.message); 
+      
+      // Log detailed errors to the browser's developer console for admin debugging if they exist
+      if (response.data.errors && response.data.errors.length > 0) {
+        console.warn("CSV Deletion - Detailed Failures (for admin debugging):", response.data.errors);
+      }
+      // --- END MODIFIED PART ---
+      
+      setSelectedFile(null); // Clear the selected file
+      setForceDeleteCSV(false); // Reset the force delete checkbox
+      // Optionally clear search form if it was used to find users before deciding to bulk delete
+      // clearForm(); 
+      // setSearchResults([]); 
+    } catch (err) {
+      console.error('Error deleting users from CSV:', err);
+      // Use the error message from the backend if available, otherwise a generic one
+      setErrorMessage(
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        `Error ${err.response?.status || ''}: Failed to process CSV for user deletion.`
+      );
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.userManagement}>
       {/* Using the reusable AdminNavBar component */}
@@ -543,15 +615,34 @@ const AdminUserManagement = () => {
             {selectedFile && <div className={styles.selectedFile}>{selectedFile.name}</div>}
             <button 
               className={styles.uploadFileBtn}
-              onClick={handleFileUpload}
-              disabled={loading}
+              // OLD: onClick={handleFileUpload}
+              // REPLACE onClick with this:
+              onClick={activeView === 'add' ? handleFileUpload : handleDeleteUsersFromCSV}
+              disabled={loading || !selectedFile}
             >
-              {loading ? 'Uploading...' : 'Upload File'}
+              {/* OLD: {loading ? 'Uploading...' : 'Upload File'} */}
+              {/* REPLACE button text with this: */}
+              {loading ? (activeView === 'add' ? 'Uploading...' : 'Processing Delete...') 
+                      : (activeView === 'add' ? 'Upload (Add Users)' : 'Upload (Delete Users)')}
             </button>
             <div className={styles.uploadNote}>
-              Note: CSV should contain columns for ID, Name, Email, UserType, and Department (if applicable).
-              <br />
-              Users will receive emails with auto-generated passwords.
+              {/* OLD text */}
+              {/* REPLACE note text with this: */}
+              {activeView === 'add' ? (
+                <>
+                  Note: For adding, CSV should contain columns for ID, Name, Email, UserType, and Department (if applicable).
+                  <br />
+                  Users will receive emails with auto-generated passwords.
+                </>
+              ) : ( // activeView === 'delete'
+                <>
+                  Note: For deleting, CSV should contain User IDs (one ID per line).
+                  <br />
+                  The first line can be a header (e.g., "ID" or "UserID").
+                  <br />
+                  Default is standard delete. Use 'Force Delete' checkbox for dependencies.
+                </>
+              )}
             </div>
           </div>
         )}
