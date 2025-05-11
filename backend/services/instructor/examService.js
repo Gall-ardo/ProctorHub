@@ -925,15 +925,18 @@ class ExamService {
             }
             
             await t.commit();
-            
+            const start = new Date(exam.date);
+            const end = new Date(start.getTime() + exam.duration * 60000);
+
+            const startTimeToSend = start.toTimeString().split(' ')[0]; // "06:00:00"
+            const endTimeToSend = end.toTimeString().split(' ')[0];     // e.g. "08:00:00"
             // Return the result
             return {
                 // so controller can build the mail subject/body
                 examDetails: {
                     courseName: exam.courseName,
                     date: exam.date,
-                    startTime: exam.startTime,
-                    endTime: exam.endTime
+                    duration: exam.duration,
                 },
                 assignedTAs: assignedProctors,
                 manualAssignedTAs: assignedProctors.filter(p => p.isManualAssignment).length,
