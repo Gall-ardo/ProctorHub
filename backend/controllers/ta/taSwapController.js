@@ -305,6 +305,40 @@ const getSameDepartmentTAs = async (req, res, next) => {
   }
 };
 
+/**
+ * Reject a swap request
+ */
+const rejectSwapRequest = async (req, res, next) => {
+  try {
+    const { swapRequestId } = req.params;
+    
+    // Check if user is authenticated as a TA
+    if (!req.user || req.user.userType !== 'ta') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teaching assistants can reject swap requests'
+      });
+    }
+    
+    // Use user id directly if teachingAssistant object is not available
+    const respondentId = req.user.teachingAssistant?.id || req.user.id;
+    
+    const result = await swapRequestService.rejectSwapRequest(swapRequestId, respondentId);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Swap request rejected successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('Error in rejectSwapRequest:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 // Add the new function to the exports
 module.exports = {
   createPersonalSwapRequest,
@@ -313,6 +347,7 @@ module.exports = {
   respondToSwapRequest,
   getMyExamsForSwap,
   cancelSwapRequest,
+  rejectSwapRequest, // Add this line
   getForumSwapRequests,
   getMySubmittedSwapRequests,
   getSameDepartmentTAs 

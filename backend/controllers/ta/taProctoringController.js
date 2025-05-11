@@ -97,7 +97,7 @@ const taProctoringController = {
     }
   },
   
-  // Reject a proctoring assignment
+  // Update the rejectProctoring controller to handle replacement info
   rejectProctoring: async (req, res) => {
     try {
       const proctoringId = req.params.proctoringId;
@@ -116,7 +116,15 @@ const taProctoringController = {
         return res.status(400).json(result);
       }
       
-      return res.status(200).json(result);
+      // Add information about replacement in the response
+      const responseData = {
+        ...result,
+        replacementInfo: result.replacementFound ? 
+          `A replacement TA has been automatically assigned.` : 
+          `No replacement was found automatically. The instructor will need to assign another proctor.`
+      };
+      
+      return res.status(200).json(responseData);
     } catch (error) {
       console.error('Error in rejectProctoring controller:', error);
       return res.status(500).json({
@@ -125,7 +133,6 @@ const taProctoringController = {
       });
     }
   },
-  
   // Get proctoring statistics for the logged-in TA
   getProctoringStats: async (req, res) => {
     try {

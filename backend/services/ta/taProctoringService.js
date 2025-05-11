@@ -5,6 +5,8 @@ const TeachingAssistant = require('../../models/TeachingAssistant');
 const Classroom = require('../../models/Classroom');
 const Course = require('../../models/Course');
 const { v4: uuidv4 } = require('uuid');
+const sequelize = require('../../config/db'); // Adjust the path as necessary
+const { Op } = require('sequelize');
 
 // Configure the maximum number of rejections allowed
 const MAX_REJECTIONS_ALLOWED = 2;
@@ -22,7 +24,7 @@ const taProctoringService = {
             include: [
               {
                 model: Course,
-                attributes: ['courseCode', 'department']
+                attributes: ['courseCode']
               },
               {
                 model: Classroom,
@@ -62,7 +64,7 @@ const taProctoringService = {
             include: [
               {
                 model: Course,
-                attributes: ['courseCode', 'department']
+                attributes: ['courseCode']
               },
               {
                 model: Classroom,
@@ -102,7 +104,7 @@ const taProctoringService = {
             include: [
               {
                 model: Course,
-                attributes: ['courseCode', 'department']
+                attributes: ['courseCode']
               },
               {
                 model: Classroom,
@@ -216,8 +218,10 @@ const taProctoringService = {
     }
   },
 
-  // Reject a proctoring assignment
+  // Update the rejectProctoring method in taProctoringService.js
   rejectProctoring: async (proctoringId, taId) => {
+    const t = await sequelize.transaction();
+    
     try {
       // First check if the TA has already reached max rejections
       const rejectedCount = await Proctoring.count({
@@ -228,6 +232,7 @@ const taProctoringService = {
       });
       
       if (rejectedCount >= MAX_REJECTIONS_ALLOWED) {
+        await t.rollback();
         return {
           success: false,
           message: `You have reached the maximum number of allowed rejections (${MAX_REJECTIONS_ALLOWED})`,
@@ -240,10 +245,15 @@ const taProctoringService = {
           id: proctoringId,
           taId: taId,
           status: 'PENDING'
-        }
+        },
+        include: [{
+          model: Exam,
+          as: 'exam'
+        }]
       });
       
       if (!proctoring) {
+        await t.rollback();
         return {
           success: false,
           message: 'Proctoring assignment not found or already processed'
@@ -251,16 +261,28 @@ const taProctoringService = {
       }
       
       // Update proctoring status
-      await proctoring.update({ status: 'REJECTED' });
+      await proctoring.update({ status: 'REJECTED' }, { transaction: t });
+
+      // Get the exam for this proctoring to find a replacement
+      const examId = proctoring.examId;
+      const examService = require('../../services/Instructor/examService');
+      
+      // Try to find a replacement
+      const replacementResult = await examService.findReplacementProctor(examId, taId, t);
+      
+      await t.commit();
       
       return {
         success: true,
         data: proctoring,
         message: 'Proctoring assignment rejected successfully',
         rejectionCount: rejectedCount + 1,
-        maxRejectionsAllowed: MAX_REJECTIONS_ALLOWED
+        maxRejectionsAllowed: MAX_REJECTIONS_ALLOWED,
+        replacementFound: replacementResult.replacementFound,
+        replacementTA: replacementResult.replacementTA
       };
     } catch (error) {
+      await t.rollback();
       console.error('Error rejecting proctoring:', error);
       return {
         success: false,

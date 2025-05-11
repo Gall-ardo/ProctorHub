@@ -45,6 +45,7 @@ router.get('/swaps/forum-items', swapRequestController.getForumSwapRequests);   
 router.post('/swaps/forum', swapRequestController.createForumSwapRequest); // POST /api/ta/swaps/forum
 router.get('/swaps/submitted', swapRequestController.getMySubmittedSwapRequests);        // GET /api/ta/swaps/submitted (new route)
 router.get('/swaps/department-tas', swapRequestController.getSameDepartmentTAs);  // GET /api/ta/swaps/department-tas
+router.post('/swaps/:swapRequestId/reject', swapRequestController.rejectSwapRequest); 
 
 router.get('/proctorings', taProctoringController.getAllProctorings);
 router.get('/proctorings/pending', taProctoringController.getPendingProctorings);

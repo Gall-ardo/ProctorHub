@@ -3,8 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { SwapRequest, TeachingAssistant, Exam, User, Classroom, Notification } = require('../../models');
 const Proctoring = require('../../models/Proctoring');
 const { Op } = require('sequelize');
-//const emailService = require('./../emailService');
-//const notificationService = require('./../notificationService');
+const emailService = require('../../services/emailService');
 
 /**
  * Create a personal swap request from one TA to another
@@ -60,31 +59,38 @@ const createPersonalSwapRequest = async (requestData) => {
     status: 'PENDING'
   });
 
+  // Send notification to requester TA
+  await Notification.create({
+    id: uuidv4(),
+    recipientId: requesterId, 
+    subject: 'Swap Request Created',
+    message: `Your swap request has been created successfully.`,
+    date: new Date(), 
+    isRead: false
+  });
+
   // Send notification to target TA
-  /*await notificationService.createNotification({
-    userId: targetTa.id,
-    title: 'New Swap Request',
+  await Notification.create({
+    id: uuidv4(),
+    recipientId: targetTa.taUser.id,
+    subject: 'New Swap Request',
     message: `You have received a swap request for an exam proctoring. Please check your swap requests.`,
-    type: 'SWAP_REQUEST',
-    referenceId: swapRequest.id
+    date: new Date(),
+    isRead: false
   });
 
   // Send email to target TA
-  await emailService.sendEmail({
-    to: targetTaEmail,
-    subject: 'New Proctoring Swap Request',
-    text: `You have received a swap request for an exam proctoring. Please log in to the system to check the details.`,
-    html: `
-      <h1>New Proctoring Swap Request</h1>
-      <p>You have received a swap request for an exam proctoring.</p>
-      <p>Details:</p>
-      <ul>
-        <li>Exam: ${exam.courseCode}</li>
-        <li>Date: ${new Date(exam.date).toLocaleDateString()}</li>
-        <li>Time: ${new Date(exam.date).toLocaleTimeString()} - ${new Date(exam.date).getTime() + exam.duration * 60000}</li>
-      </ul>
-      <p>Please log in to the system to respond to this request.</p>
-    `
+  /*await emailService.sendEmail({
+    to: targetTa.email,
+    subject: 'New Swap Request',
+    text: `You have received a new swap request for the exam ${exam.courseName}. Please check your ProctorHub account for details.`
+  });*/
+
+  // Send email to requester TA
+  /*await emailService.sendEmail({
+    to: targetTa.email,
+    subject: 'Swap Request Created',
+    text: `Your swap request for the exam ${exam.courseName} has been created successfully.`
   });*/
 
   return swapRequest;
@@ -247,34 +253,6 @@ const respondToSwapRequest = async (responseData) => {
   await originalExamAssignment.save();
   await swapExamAssignment.save();
 
-  // Send notification to the original requester
-  /*await notificationService.createNotification({
-    userId: swapRequest.requester.user.id,
-    title: 'Swap Request Accepted',
-    message: `Your swap request has been accepted. The swap has been completed.`,
-    type: 'SWAP_ACCEPTED',
-    referenceId: swapRequest.id
-  });
-
-  // Send email to the original requester
-  await emailService.sendEmail({
-    to: swapRequest.requester.user.email,
-    subject: 'Proctoring Swap Request Accepted',
-    text: `Your swap request has been accepted and the swap has been completed.`,
-    html: `
-      <h1>Proctoring Swap Request Accepted</h1>
-      <p>Your swap request has been accepted and the swap has been completed.</p>
-      <p>You are now assigned to proctor:</p>
-      <ul>
-        <li>Exam: ${examToSwap.courseCode}</li>
-        <li>Date: ${new Date(examToSwap.date).toLocaleDateString()}</li>
-        <li>Time: ${new Date(examToSwap.date).toLocaleTimeString()} - ${new Date(examToSwap.date).getTime() + examToSwap.duration * 60000}</li>
-      </ul>
-      <p>Please log in to the system to see your updated assignments.</p>
-    `
-  });*/
-
-  // Send notification to the respondent
 
   const respondent = await TeachingAssistant.findByPk(respondentId, {
     include: {
@@ -291,10 +269,41 @@ const respondToSwapRequest = async (responseData) => {
     id: uuidv4(),
     recipientId: swapRequest.requester.taUser.id,
     subject: 'Swap Request Accepted',
-    message: `${respondent.name} has been accepted your swap request.`,
+    message: `${respondent.taUser.name} has been accepted your swap request.`,
     date: new Date(),
     isRead: false
   });
+
+  
+  await Notification.create({
+    id: uuidv4(),
+    recipientId: swapRequest.exam.instructorId,
+    subject: 'Exam is Swapped',
+    message: `The exam ${swapRequest.exam.courseName} has been swapped between ${swapRequest.requester.taUser.name} and ${respondent.taUser.name}.`,
+    date: new Date(),
+    isRead: false
+  });
+
+  // Send email to the requester TA
+  /*await emailService.sendEmail({
+    to: swapRequest.requester.taUser.email,
+    subject: 'Swap Request Accepted',
+    text: `${respondent.taUser.name} has accepted your swap request for the exam ${swapRequest.exam.courseName}.`
+  });*/
+
+  // Send email to the respondent TA
+  /*await emailService.sendEmail({
+    to: respondent.taUser.email,
+    subject: 'Swap Request Accepted',
+    text: `You have accepted the swap request for the exam ${swapRequest.exam.courseName} from ${swapRequest.requester.taUser.name}.`
+  });*/
+
+  // Send email to the instructor
+  /*await emailService.sendEmail({
+    to: swapRequest.exam.instructorEmail,
+    subject: 'Exam Swapped',
+    text: `The exam ${swapRequest.exam.courseName} has been swapped between ${swapRequest.requester.taUser.name} and ${respondent.taUser.name}.`
+  });*/
 
   return {
     success: true,
@@ -406,14 +415,14 @@ const cancelSwapRequest = async (swapRequestId, userId) => {
     isRead: false
   });
 
-  // Send notification to target TA
-  /*await notificationService.createNotification({
-    userId: swapRequest.targetTa.user.id,
-    title: 'Swap Request Cancelled',
-    message: `A swap request has been cancelled by the requester.`,
-    type: 'SWAP_CANCELLED',
-    referenceId: swapRequest.id
+  // Send email to the target TA
+  /*await emailService.sendEmail({
+    to: swapRequest.targetTa.user.email,
+    subject: 'Swap Request Cancelled',
+    text: `The swap request has been cancelled by ${swapRequest.requester.user.name}.`
   });*/
+
+  
 
   return {
     success: true,
@@ -421,107 +430,6 @@ const cancelSwapRequest = async (swapRequestId, userId) => {
   };
 };
 
-/**
- * Get forum swap requests
- * @returns {Promise<Array>} - list of forum swap requests
- */
-/*const getForumSwapRequests = async () => {
-  const forumRequests = await SwapRequest.findAll({
-    where: {
-      isForumPost: true,
-      status: 'PENDING'
-    },
-    include: [
-      {
-        model: Exam,
-        as: 'exam',
-        attributes: ['id', 'courseName', 'date', 'duration'],
-        include: [
-          {
-            model: Classroom,
-            as: 'examRooms', // must match alias in association
-            attributes: ['name'] // or ['id', 'name'] depending on your model
-          }
-        ]
-      },
-      {
-        model: TeachingAssistant,
-        as: 'requester',
-        include: {
-          model: User,
-          as: 'taUser',
-          attributes: ['id', 'name', 'email']
-        }
-      }
-    ],
-    order: [['requestDate', 'DESC']]
-  });
-
-  return forumRequests.map(request => {
-    const examDate = new Date(request.exam.date);
-    return {
-      id: request.id,
-      course: request.exam.courseName,
-      date: examDate.toLocaleDateString(),
-      time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
-      classroom: request.exam.examRooms.map(room => room.name).join(', '),
-      submitter: request.requester.taUser.name,
-      submitTime: request.requestDate.toLocaleDateString(),
-      requesterId: request.requesterId
-    };
-  });
-};*/
-
-/**
- * Get forum swap requests
- * @returns {Promise<Array>} - list of forum swap requests
- */
-/*const getForumSwapRequests = async () => {
-  const forumRequests = await SwapRequest.findAll({
-    where: {
-      isForumPost: true,
-      status: 'PENDING'
-    },
-    include: [
-      {
-        model: Exam,
-        as: 'exam',
-        attributes: ['id', 'courseName', 'date', 'duration'],
-        include: [
-          {
-            model: Classroom,
-            as: 'examRooms', // must match alias in association
-            attributes: ['name'] // or ['id', 'name'] depending on your model
-          }
-        ]
-      },
-      {
-        model: TeachingAssistant,
-        as: 'requester',
-        include: {
-          model: User,
-          as: 'taUser',
-          attributes: ['id', 'name', 'email']
-        }
-      }
-    ],
-    order: [['requestDate', 'DESC']]
-  });
-
-  return forumRequests.map(request => {
-    const examDate = new Date(request.exam.date);
-    return {
-      id: request.id,
-      course: request.exam.courseName,
-      date: examDate.toLocaleDateString(),
-      time: `${examDate.toLocaleTimeString()} - ${new Date(examDate.getTime() + request.exam.duration * 60000).toLocaleTimeString()}`,
-      classroom: request.exam.examRooms.map(room => room.name).join(', '),
-      submitter: request.requester.taUser.name,
-      submitTime: request.requestDate.toLocaleDateString(),
-      requesterId: request.requesterId // Ensure requesterId is included
-    };
-  });
-};*/
 
 const getForumSwapRequests = async (currentTaId) => {
   const forumRequests = await SwapRequest.findAll({
@@ -719,6 +627,66 @@ const getSameDepartmentTAs = async (taId) => {
   }
 };
 
+/**
+ * Reject a swap request
+ * @param {string} swapRequestId - ID of the swap request
+ * @param {string} respondentId - ID of the TA rejecting the request
+ * @returns {Promise<Object>} - status of the rejection
+ */
+const rejectSwapRequest = async (swapRequestId, respondentId) => {
+  const swapRequest = await SwapRequest.findByPk(swapRequestId, {
+    include: [
+      {
+        model: TeachingAssistant,
+        as: 'requester',
+        include: {
+          model: User,
+          as: 'taUser',
+          attributes: ['id', 'name', 'email']
+        }
+      },
+      {
+        model: Exam,
+        as: 'exam'
+      }
+    ]
+  });
+
+  if (!swapRequest) {
+    throw new Error('Swap request not found');
+  }
+
+  if (swapRequest.status !== 'PENDING') {
+    throw new Error('This swap request has already been processed');
+  }
+
+  // Update status to rejected
+  swapRequest.status = 'REJECTED';
+  await swapRequest.save();
+  
+  // Send notification to the requester
+  await Notification.create({
+    id: uuidv4(),
+    recipientId: swapRequest.requester.taUser.id,
+    subject: 'Swap Request Rejected',
+    message: `Your swap request for ${swapRequest.exam.courseName} has been rejected.`,
+    date: new Date(),
+    isRead: false
+  });
+
+  // Optionally send email to the requester
+  /*await emailService.sendEmail({
+    to: swapRequest.requester.taUser.email,
+    subject: 'Swap Request Rejected',
+    text: `Your swap request for the exam ${swapRequest.exam.courseName} has been rejected.`
+  });*/
+
+  return {
+    success: true,
+    message: 'Swap request rejected successfully'
+  };
+};
+
 // Don't forget to export the new function
 module.exports = {
   createPersonalSwapRequest,
@@ -729,5 +697,6 @@ module.exports = {
   cancelSwapRequest,
   getForumSwapRequests,
   getSubmittedSwapRequests,
-  getSameDepartmentTAs  
+  getSameDepartmentTAs,
+  rejectSwapRequest,  
 };

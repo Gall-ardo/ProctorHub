@@ -8,6 +8,7 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [myExams, setMyExams] = useState([]);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   const API_URL = 'http://localhost:5001/api';
 
@@ -17,6 +18,7 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
       setSelectedExam(null);
       setError('');
       setSuccess('');
+      setIsRejecting(false);
       
       // Use provided exams or fetch them if not provided
       if (userExams && userExams.length > 0) {
@@ -107,6 +109,52 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
     }
   };
 
+  // Handle reject button click
+  const handleReject = async () => {
+    try {
+      setIsRejecting(true);
+      setError('');
+      setSuccess('');
+      
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setIsRejecting(false);
+        return;
+      }
+      
+      const response = await axios.post(`${API_URL}/ta/swaps/${examDetails.id}/reject`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.data.success) {
+        setSuccess('Swap request rejected successfully!');
+        // Close the modal after a brief delay to show success message
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+      } else {
+        setError(response.data.message || 'Failed to reject swap request');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error rejecting swap request. Please try again.');
+      console.error('Error rejecting swap request:', err);
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  // Handle confirmation prompt for rejection
+  const confirmReject = () => {
+    if (window.confirm('Are you sure you want to reject this swap request?')) {
+      handleReject();
+    }
+  };
+
   if (!isOpen || !examDetails) return null;
 
   return (
@@ -186,8 +234,22 @@ const TASwapExamDetailsPopup = ({ isOpen, onClose, examDetails, userExams = [] }
             )}
           </div>
           
-          {/* Swap button */}
+          {/* Action buttons */}
           <div className="ta-exam-details-actions">
+            {/* Reject button */}
+            <button 
+              className="ta-exam-details-reject-button" 
+              onClick={confirmReject}
+              disabled={isRejecting}
+              style={{
+                backgroundColor: '#f44336',
+                marginRight: '10px'
+              }}
+            >
+              {isRejecting ? 'Rejecting...' : 'Reject'}
+            </button>
+            
+            {/* Swap button */}
             <button 
               className="ta-exam-details-swap-button" 
               onClick={handleSwap}

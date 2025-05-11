@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const sequelize = require('../../config/db');
 const { Exam, Instructor, Course, Proctoring, User, TeachingAssistant } = require('../../models');
 const Notification = require('../../models/Notification');
+const emailService = require('../emailService');
 
 
 class ExamService {
@@ -1677,6 +1678,183 @@ class ExamService {
             // Rollback the transaction if there's an error
             await t.rollback();
             throw new Error(`Failed to update TA workload: ${error.message}`);
+        }
+    }
+
+    /**
+     * Find a replacement proctor when a TA rejects an assignment
+     * @param {string} examId - The exam ID
+     * @param {string} rejectedTaId - The TA ID who rejected the proctoring
+     * @param {Object} transaction - Optional Sequelize transaction
+     * @returns {Promise<Object>} The result of finding a replacement
+     */
+    async findReplacementProctor(examId, rejectedTaId, transaction = null) {
+        try {
+            // Get the exam details
+            const exam = await Exam.findByPk(examId, { transaction });
+            if (!exam) {
+                throw new Error('Exam not found');
+            }
+
+            // Get the instructor who created the exam
+            const instructorId = exam.instructorId;
+
+            // Get exam details needed for finding a replacement
+            const examDate = exam.date;
+            const courseName = exam.courseName;
+            const department = exam.department;
+            
+            console.log(`Finding replacement proctor for exam ${examId} in course ${courseName} on ${examDate}`);
+            
+            // Get all available TAs for this exam using existing method
+            const availableTAs = await this.getAvailableTAsForExam({
+                department,
+                courseId: courseName,
+                examDate,
+                checkLeaveRequests: true
+            });
+            
+            // Filter out TAs who have conflicts and the TA who just rejected
+            const eligibleTAs = availableTAs.filter(ta => 
+                ta.id !== rejectedTaId && 
+                !ta.onLeave && 
+                !ta.hasProctoringConflict && 
+                !ta.hasOfferingConflict && 
+                !ta.hasOfferingCourseExamConflict
+            );
+            
+            if (eligibleTAs.length === 0) {
+                console.log('No eligible replacement TAs found');
+                return {
+                    replacementFound: false,
+                    replacementTA: null
+                };
+            }
+            
+            // Sort TAs by the same criteria used in assignProctors method
+            // 1. Department TAs first
+            const departmentMatchTAs = eligibleTAs.filter(ta => ta.isSameDepartment);
+            const otherTAs = eligibleTAs.filter(ta => !ta.isSameDepartment);
+            
+            // Get weekend flag for exam date
+            const isWeekend = examDate ? new Date(examDate).getDay() === 0 || new Date(examDate).getDay() === 6 : false;
+            
+            // Get course details
+            const isGradCourse = eligibleTAs[0]?.isGradCourse || false;
+            
+            // Sort department TAs
+            departmentMatchTAs.sort((a, b) => {
+                // Priority: TAs without consecutive day assignments
+                if (!a.hasConsecutiveDayAssignment && b.hasConsecutiveDayAssignment) return -1;
+                if (a.hasConsecutiveDayAssignment && !b.hasConsecutiveDayAssignment) return 1;
+                
+                // For weekend exams, prioritize part-time TAs
+                if (isWeekend) {
+                    if (a.isPartTime && !b.isPartTime) return -1;
+                    if (!a.isPartTime && b.isPartTime) return 1;
+                }
+                
+                // Then prioritize course TAs
+                if (a.isCourseTa && !b.isCourseTa) return -1;
+                if (!a.isCourseTa && b.isCourseTa) return 1;
+                
+                // Then prioritize PhD status for grad courses
+                if (isGradCourse) {
+                    if (a.isPHD && !b.isPHD) return -1;
+                    if (!a.isPHD && b.isPHD) return 1;
+                }
+                
+                // Finally sort by workload
+                return (a.totalWorkload || 0) - (b.totalWorkload || 0);
+            });
+            
+            // Sort other TAs similarly
+            otherTAs.sort((a, b) => {
+                if (!a.hasConsecutiveDayAssignment && b.hasConsecutiveDayAssignment) return -1;
+                if (a.hasConsecutiveDayAssignment && !b.hasConsecutiveDayAssignment) return 1;
+                
+                if (isWeekend) {
+                    if (a.isPartTime && !b.isPartTime) return -1;
+                    if (!a.isPartTime && b.isPartTime) return 1;
+                }
+                
+                if (a.isCourseTa && !b.isCourseTa) return -1;
+                if (!a.isCourseTa && b.isCourseTa) return 1;
+                
+                if (isGradCourse) {
+                    if (a.isPHD && !b.isPHD) return -1;
+                    if (!a.isPHD && b.isPHD) return 1;
+                }
+                
+                return (a.totalWorkload || 0) - (b.totalWorkload || 0);
+            });
+            
+            // Combine the sorted lists: department TAs first, then others
+            const sortedTAs = [...departmentMatchTAs, ...otherTAs];
+            
+            if (sortedTAs.length === 0) {
+                console.log('No replacement TAs found after sorting');
+                return {
+                    replacementFound: false,
+                    replacementTA: null
+                };
+            }
+            
+            // Select the best TA as the replacement
+            const replacementTA = sortedTAs[0];
+            console.log(`Selected replacement TA: ${replacementTA.id} (${replacementTA.name})`);
+            
+            // Create a new proctoring record for the replacement TA
+            const { v4: uuidv4 } = require('uuid');
+            const Proctoring = require('../../models/Proctoring');
+            const Notification = require('../../models/Notification');
+            
+            const newProctoring = await Proctoring.create({
+                id: uuidv4(),
+                examId,
+                taId: replacementTA.id,
+                assignmentDate: new Date(),
+                isManualAssignment: false,
+                assignedBy: instructorId,
+                status: 'PENDING',
+                replacedTaId: rejectedTaId
+            }, { transaction });
+            
+            // Notify the replacement TA
+            await Notification.create({
+                id: uuidv4(),
+                recipientId: replacementTA.id,
+                subject: 'New Proctoring Assignment',
+                message: `You have been automatically assigned as a replacement proctor for an exam in ${exam.courseName} on ${new Date(exam.date).toLocaleDateString()}. This assignment occurred because another TA rejected the proctoring. Please check your dashboard.`,
+                date: new Date(),
+                isRead: false
+            }, { transaction });
+            
+            // Notify the instructor about the automatic replacement
+            await Notification.create({
+                id: uuidv4(),
+                recipientId: instructorId,
+                subject: 'Proctor Replacement',
+                message: `A TA rejected proctoring for your exam in ${exam.courseName} on ${new Date(exam.date).toLocaleDateString()}. ${replacementTA.name} has been automatically assigned as a replacement. If this is not suitable, you can manually change the proctor from the exam details.`,
+                date: new Date(),
+                isRead: false
+            }, { transaction });
+            
+            return {
+                replacementFound: true,
+                replacementTA: {
+                    id: replacementTA.id,
+                    name: replacementTA.name,
+                    department: replacementTA.department
+                }
+            };
+        } catch (error) {
+            console.error('Error finding replacement proctor:', error);
+            return {
+                replacementFound: false,
+                replacementTA: null,
+                error: error.message
+            };
         }
     }
 }
