@@ -745,6 +745,7 @@ class ExamService {
                     assignedProctors.push({
                         id: ta.id,
                         name: ta.name,
+                        email: ta.email,
                         department: ta.department || 'Unknown',
                         isManualAssignment: true
                     });
@@ -885,6 +886,7 @@ class ExamService {
                     assignedProctors.push({
                         id: ta.id,
                         name: ta.name,
+                        email: ta.email,
                         department: ta.department || 'Unknown',
                         isManualAssignment: false
                     });
@@ -906,7 +908,14 @@ class ExamService {
             
             // Return the result
             return {
-                proctors: assignedProctors,
+                // so controller can build the mail subject/body
+                examDetails: {
+                    courseName: exam.courseName,
+                    date: exam.date,
+                    startTime: exam.startTime,
+                    endTime: exam.endTime
+                },
+                assignedTAs: assignedProctors,
                 manualAssignedTAs: assignedProctors.filter(p => p.isManualAssignment).length,
                 autoAssignedTAs: assignedProctors.filter(p => !p.isManualAssignment).length,
                 totalAssigned: assignedProctors.length,

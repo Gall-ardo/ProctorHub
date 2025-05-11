@@ -1,4 +1,5 @@
 const examService  = require('../../services/Instructor/examService');
+const EmailService = require('../../services/emailService');
 class ExamController {
     /**
      * Create a new exam
@@ -291,6 +292,20 @@ class ExamController {
                 checkLeaveRequests: checkLeaveRequests !== false,
                 strictLeaveCheck: strictLeaveCheck === true
             });
+
+            // Send email notifications to assigned TAs
+            console.log("Assigned TAs:", result.assignedTAs);
+            const emailPromises = (result.assignedTAs || []).map(ta => {
+                return EmailService.sendProctorAssignmentEmail(
+                    ta.email,
+                    ta.name,
+                    result.examDetails.courseName,
+                    result.examDetails.date,
+                    result.examDetails.startTime,
+                    result.examDetails.endTime
+                );
+            });
+            await Promise.all(emailPromises);
 
             return res.status(200).json({
                 success: true,

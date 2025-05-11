@@ -124,6 +124,42 @@ class EmailService {
     }
   }
 
+  async sendProctorAssignmentEmail(recipient, name, courseName, examDate, startTime, endTime) {
+    console.log(`Sending proctor assignment email to ${recipient}`);
+    try {
+      const formattedDate = 
+        (examDate instanceof Date)
+          ? examDate.toLocaleDateString()
+          : new Date(examDate).toLocaleDateString();
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: recipient,
+        subject: `Proctor Assignment for ${courseName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin:0 auto; padding:20px; border:1px solid #ddd; border-radius:5px;">
+            <h2 style="color:#c42626;">Proctor Assignment Notification</h2>
+            <p>Dear ${name},</p>
+            <p>You have been assigned as a proctor for the following exam:</p>
+            <ul>
+              <li><strong>Course:</strong> ${courseName}</li>
+              <li><strong>Date:</strong> ${formattedDate}</li>
+              <li><strong>Time:</strong> ${startTime} – ${endTime}</li>
+            </ul>
+            <p>Please arrive at least 15 minutes before the start time and check in with the exam coordinator.</p>
+          </div>
+        `
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('Proctor assignment email sent:', info.messageId);
+      return true;
+    } catch (err) {
+      console.error('Error sending proctor assignment email:', err);
+      return false;
+    }
+  }
+
 }
 
 module.exports = new EmailService();
