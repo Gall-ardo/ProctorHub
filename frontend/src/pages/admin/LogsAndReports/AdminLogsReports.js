@@ -1,99 +1,160 @@
-import React, { useState } from 'react';
-import AdminNavBar from '../AdminNavBar'; // Import the AdminNavBar component
+import React, { useState, useEffect } from 'react';
+import AdminNavBar from '../AdminNavBar';
+import axios from 'axios';
+import { saveAs } from 'file-saver';
 import styles from './AdminLogsReports.module.css';
+import ErrorPopup from '../ErrorPopup';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const AdminLogsReports = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedReport, setSelectedReport] = useState(null);
+  const [selectedReport, setSelectedReport] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
   const [filterText, setFilterText] = useState('');
+  const [availableYears, setAvailableYears] = useState([]);
+  const [reportTypes, setReportTypes] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(false);
+  //const [selectedReportIds, setSelectedReportIds] = useState([]);
+  //const [downloadingAll, setDownloadingAll] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
 
-  // Sample data for available years
-  const availableYears = [
-    new Date().getFullYear(),
-    new Date().getFullYear() - 1,
-    new Date().getFullYear() - 2,
-    new Date().getFullYear() - 3
-  ];
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
-  // Sample data for reports
-  const reportTypes = [
-    { id: 'attendance', name: 'Attendance Reports' },
-    { id: 'exams', name: 'Exam Reports' },
-    { id: 'grades', name: 'Grade Reports' },
-    { id: 'students', name: 'Student Lists' },
-    { id: 'courses', name: 'Course Lists' },
-    { id: 'classrooms', name: 'Classroom Usage' }
-  ];
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      const [yearsRes, typesRes, semestersRes] = await Promise.all([
+        axios.get(`${API_URL}/api/admin/reports/years`),
+        axios.get(`${API_URL}/api/admin/reports/types`),
+        axios.get(`${API_URL}/api/admin/reports/semesters`)
+      ]);
 
-  // Sample data for semesters
-  const semesters = [
-    { id: 'fall', name: 'Fall Semester' },
-    { id: 'spring', name: 'Spring Semester' },
-    { id: 'summer', name: 'Summer Semester' }
-  ];
-
-  // Sample data for reports (would come from API in real implementation)
-  const reportsData = [
-    { id: 1, name: 'CS101 Attendance Fall', type: 'attendance', year: 2025, semester: 'fall', date: '2025-02-15' },
-    { id: 2, name: 'CS102 Attendance Fall', type: 'attendance', year: 2025, semester: 'fall', date: '2025-02-10' },
-    { id: 3, name: 'EE205 Attendance Fall', type: 'attendance', year: 2025, semester: 'fall', date: '2025-02-05' },
-    { id: 4, name: 'Midterm Exam Results CS101', type: 'exams', year: 2025, semester: 'fall', date: '2025-01-20' },
-    { id: 5, name: 'Final Exam Results CS102', type: 'exams', year: 2025, semester: 'fall', date: '2025-01-15' },
-    { id: 6, name: 'Student List - CS Department', type: 'students', year: 2025, semester: 'fall', date: '2025-01-10' },
-    { id: 7, name: 'CS101 Attendance Spring', type: 'attendance', year: 2024, semester: 'spring', date: '2024-05-15' },
-    { id: 8, name: 'CS102 Attendance Spring', type: 'attendance', year: 2024, semester: 'spring', date: '2024-05-10' },
-    { id: 9, name: 'Final Grades CS Department', type: 'grades', year: 2024, semester: 'spring', date: '2024-06-20' },
-    { id: 10, name: 'Classroom Usage Statistics', type: 'classrooms', year: 2024, semester: 'spring', date: '2024-06-15' }
-  ];
-
-  // Filter reports based on selections
-  const filteredReports = reportsData.filter(report => {
-    // Filter by year
-    if (selectedYear && report.year !== selectedYear) {
-      return false;
+      setAvailableYears(yearsRes.data.data || []);
+      setReportTypes(typesRes.data.data || []);
+      setSemesters(semestersRes.data.data || []);
+    } catch (error) {
+      setErrorMessage('Failed to fetch initial report data.');
+      setShowError(true);
+    } finally {
+      setLoading(false);
+      fetchReports();
     }
-    
-    // Filter by report type
-    if (selectedReport && report.type !== selectedReport) {
-      return false;
-    }
-    
-    // Filter by semester
-    if (selectedSemester && report.semester !== selectedSemester) {
-      return false;
-    }
-    
-    // Filter by search text
-    if (filterText && !report.name.toLowerCase().includes(filterText.toLowerCase())) {
-      return false;
-    }
-    
-    return true;
-  });
-
-  const handleDownload = (reportId) => {
-    const report = reportsData.find(r => r.id === reportId);
-    console.log(`Downloading report: ${report.name}`);
-    // In a real implementation, this would trigger an API call to download the file
-    alert(`Downloading ${report.name}...`);
   };
 
-  const handleDownloadSelected = () => {
-    const selectedReports = document.querySelectorAll('input[name="report-checkbox"]:checked');
-    if (selectedReports.length === 0) {
-      alert('Please select at least one report to download');
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const params = {};
+      if (selectedYear) params.year = selectedYear;
+      if (selectedReport) params.type = selectedReport;
+      if (selectedSemester) params.semester = selectedSemester;
+      if (filterText) params.search = filterText;
+
+      const response = await axios.get(`${API_URL}/api/admin/reports`, { params });
+      setReports(response.data.data || []);
+    } catch (error) {
+      setErrorMessage('Failed to fetch reports.');
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, [selectedYear, selectedReport, selectedSemester, filterText]);
+
+ const handleDownload = async (reportId) => {
+  setLoading(true);
+  try {
+    const report = reports.find(r => r.id === reportId);
+
+    const response = await axios.post(`${API_URL}/api/admin/reports/download`, {
+      type: report.type,
+      year: report.year,
+      semester: report.semester
+    }, { responseType: 'blob' });
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    saveAs(blob, `${report.name.replace(/\s+/g, '_')}.pdf`);
+  } catch (error) {
+    setErrorMessage('Failed to download report.');
+    setShowError(true);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+  /*const handleDownloadSelected = async () => {
+    if (selectedReportIds.length === 0) {
+      setErrorMessage('Please select at least one report to download');
+      setShowError(true);
       return;
     }
-    
-    const reportIds = Array.from(selectedReports).map(cb => parseInt(cb.value));
-    console.log('Downloading selected reports:', reportIds);
-    alert(`Downloading ${reportIds.length} selected reports...`);
+
+    setDownloadingAll(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/admin/reports/download-multiple`, {
+        ids: selectedReportIds
+      }, {
+        responseType: 'blob'
+      });
+
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      saveAs(blob, `reports_${new Date().toISOString().slice(0, 10)}.zip`);
+    } catch (error) {
+      setErrorMessage('Failed to download reports.');
+      setShowError(true);
+    } finally {
+      setDownloadingAll(false);
+    }
+  };*/
+
+  const handleGenerateReport = async (type) => {
+    if (!selectedYear || !selectedSemester) {
+      setErrorMessage('Please select a year and semester.');
+      setShowError(true);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/admin/reports/generate/${type}`, {
+        params: {
+          year: selectedYear,
+          semester: selectedSemester
+        }
+      });
+
+      await fetchReports();
+      alert(`${response.data.data.name} generated successfully.`);
+    } catch (error) {
+      setErrorMessage(`Failed to generate ${type} report.`);
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  /*const handleReportSelection = (reportId, isChecked) => {
+    setSelectedReportIds(prev => isChecked ? [...prev, reportId] : prev.filter(id => id !== reportId));
+  };
+
+  const handleSelectAll = (isChecked) => {
+    setSelectedReportIds(isChecked ? reports.map(r => r.id) : []);
+  };*/
 
   const handleClearFilters = () => {
     setSelectedYear(new Date().getFullYear());
-    setSelectedReport(null);
+    setSelectedReport('');
     setSelectedSemester('');
     setFilterText('');
   };
@@ -113,6 +174,7 @@ const AdminLogsReports = () => {
               <select 
                 value={selectedYear} 
                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                disabled={loading}
               >
                 {availableYears.map(year => (
                   <option key={year} value={year}>{year}</option>
@@ -123,8 +185,9 @@ const AdminLogsReports = () => {
             <div className={styles.filterGroup}>
               <label>Report Type</label>
               <select 
-                value={selectedReport || ''} 
-                onChange={(e) => setSelectedReport(e.target.value || null)}
+                value={selectedReport} 
+                onChange={(e) => setSelectedReport(e.target.value)}
+                disabled={loading}
               >
                 <option value="">All Reports</option>
                 {reportTypes.map(type => (
@@ -138,6 +201,7 @@ const AdminLogsReports = () => {
               <select 
                 value={selectedSemester} 
                 onChange={(e) => setSelectedSemester(e.target.value)}
+                disabled={loading}
               >
                 <option value="">All Semesters</option>
                 {semesters.map(sem => (
@@ -153,12 +217,14 @@ const AdminLogsReports = () => {
                 placeholder="Search reports..." 
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
+                disabled={loading}
               />
             </div>
             
             <button 
               className={styles.clearFiltersBtn}
               onClick={handleClearFilters}
+              disabled={loading}
             >
               Clear Filters
             </button>
@@ -167,77 +233,57 @@ const AdminLogsReports = () => {
         
         <div className={styles.reportsSection}>
           <div className={styles.reportsHeader}>
-            <h2>Available Reports ({filteredReports.length})</h2>
-            <button 
-              className={styles.downloadSelectedBtn}
-              onClick={handleDownloadSelected}
-            >
-              Download Selected
-            </button>
+            <h2>Available Reports ({reports.length})</h2>
           </div>
           
           <div className={styles.reportsTableContainer}>
-            <table className={styles.reportsTable}>
-              <thead>
-                <tr>
-                  <th className={styles.checkboxColumn}>
-                    <input 
-                      type="checkbox" 
-                      onChange={(e) => {
-                        const checkboxes = document.querySelectorAll('input[name="report-checkbox"]');
-                        checkboxes.forEach(cb => {
-                          cb.checked = e.target.checked;
-                        });
-                      }}
-                    />
-                  </th>
-                  <th>Report Name</th>
-                  <th>Type</th>
-                  <th>Year</th>
-                  <th>Semester</th>
-                  <th>Date</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredReports.length > 0 ? (
-                  filteredReports.map(report => (
-                    <tr key={report.id}>
-                      <td>
-                        <input 
-                          type="checkbox" 
-                          name="report-checkbox" 
-                          value={report.id}
-                        />
-                      </td>
-                      <td>{report.name}</td>
-                      <td>
-                        {reportTypes.find(t => t.id === report.type)?.name || report.type}
-                      </td>
-                      <td>{report.year}</td>
-                      <td>
-                        {semesters.find(s => s.id === report.semester)?.name || report.semester}
-                      </td>
-                      <td>{report.date}</td>
-                      <td>
-                        <button 
-                          className={styles.downloadBtn}
-                          onClick={() => handleDownload(report.id)}
-                        >
-                          Download
-                        </button>
+            {loading ? (
+              <div className={styles.loadingSpinner}>Loading...</div>
+            ) : (
+              <table className={styles.reportsTable}>
+                <thead>
+                  <tr>
+                    <th>Report Name</th>
+                    <th>Type</th>
+                    <th>Year</th>
+                    <th>Semester</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.length > 0 ? (
+                    reports.map(report => (
+                      <tr key={report.id}>
+                        <td>{report.name}</td>
+                        <td>
+                          {reportTypes.find(t => t.id === report.type)?.name || report.type}
+                        </td>
+                        <td>{report.year}</td>
+                        <td>
+                          {semesters.find(s => s.id === report.semester)?.name || report.semester}
+                        </td>
+                        <td>
+                          <button 
+                            className={styles.downloadBtn}
+                            onClick={() => handleDownload(report.id)}
+                            disabled={loading}
+                          >
+                            Download
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className={styles.noReportsMessage}>
+                        No reports found matching your criteria
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className={styles.noReportsMessage}>
-                      No reports found matching your criteria
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+
+            )}
           </div>
         </div>
       </div>

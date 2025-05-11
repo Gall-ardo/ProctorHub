@@ -7,9 +7,38 @@ const Report = sequelize.define("Report", {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  isProctoring: DataTypes.BOOLEAN,
-  isWorkload: DataTypes.BOOLEAN,
-  details: DataTypes.TEXT,
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  type: {
+    type: DataTypes.ENUM('proctoring', 'swap', 'student', 'course', 'ta', 'workload'),
+    allowNull: false,
+  },
+  semesterId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  filePath: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  generatedBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  department: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  additionalInfo: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  }
 });
 
 module.exports = Report;
