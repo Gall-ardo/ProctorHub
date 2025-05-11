@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
     if (path.extname(file.originalname).toLowerCase() !== '.csv') {
@@ -34,15 +34,24 @@ if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads');
 }
 
-// Routes
+// Basic routes
 router.post("/", semesterController.createSemester);
 router.get("/:id", semesterController.getSemester);
 router.get("/", semesterController.findAllSemesters);
 router.delete("/:id", semesterController.deleteSemester);
 
-// File upload routes
+// File upload routes - individual uploads
 router.post("/:id/offerings/upload", upload.single("file"), semesterController.uploadOfferings);
 router.post("/:id/students/upload", upload.single("file"), semesterController.uploadStudents);
 router.post("/:id/tas/upload", upload.single("file"), semesterController.uploadTeachingAssistants);
+router.post("/:id/courses/upload", upload.single("file"), semesterController.uploadCourses);
+
+// Unified upload route - can handle multiple files in one request (optional)
+router.post("/:id/upload", upload.fields([
+  { name: 'coursesFile', maxCount: 1 },
+  { name: 'offeringsFile', maxCount: 1 },
+  { name: 'studentsFile', maxCount: 1 },
+  { name: 'assistantsFile', maxCount: 1 }
+]), semesterController.processSemesterUploads);
 
 module.exports = router;

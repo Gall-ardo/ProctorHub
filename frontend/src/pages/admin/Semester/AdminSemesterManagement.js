@@ -19,10 +19,11 @@ const AdminSemesterManagement = () => {
   const [semesterYear, setSemesterYear] = useState('');
   const [term, setTerm] = useState('');
   
-  // Upload states
+  // Upload states - now with 4 files
   const [offeringsFile, setOfferingsFile] = useState(null);
   const [studentsFile, setStudentsFile] = useState(null);
   const [assistantsFile, setAssistantsFile] = useState(null);
+  const [coursesFile, setCoursesFile] = useState(null);
 
   // Status states
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,11 @@ const AdminSemesterManagement = () => {
   // Confirmation states
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmationData, setConfirmationData] = useState(null);
+
+  // Upload order tracking - to ensure courses are uploaded before offerings
+  const [uploadStage, setUploadStage] = useState(null); // null, 'courses', 'offerings', 'students', 'tas', 'complete'
+  const [uploadResults, setUploadResults] = useState([]);
+  const [semesterId, setSemesterId] = useState(null);
 
   // Term options
   const termOptions = [
@@ -73,6 +79,9 @@ const AdminSemesterManagement = () => {
         case 'assistants':
           setAssistantsFile(file);
           break;
+        case 'courses':
+          setCoursesFile(file);
+          break;
         default:
           break;
       }
@@ -97,6 +106,9 @@ const AdminSemesterManagement = () => {
         case 'assistants':
           setAssistantsFile(file);
           break;
+        case 'courses':
+          setCoursesFile(file);
+          break;
         default:
           break;
       }
@@ -120,6 +132,60 @@ const AdminSemesterManagement = () => {
     return true;
   };
 
+  // Sequential upload function to handle files in the correct order
+  const processUploadsSequentially = async (semId) => {
+    try {
+      setUploadStage('courses');
+      setUploadResults([]);
+      const sid = semId || selectedSemesterId;
+      
+      if (!sid) {
+        throw new Error('No semester ID available');
+      }
+      
+      // Step 1: Process courses first (if available)
+      if (coursesFile) {
+        const coursesResult = await uploadFile(sid, 'courses', coursesFile);
+        setUploadResults(prev => [...prev, `Courses: ${coursesResult.coursesCreated} created, ${coursesResult.coursesFailed} failed`]);
+        
+        // Log instructor assignments if available
+        if (coursesResult.instructorAssignments && coursesResult.instructorAssignments.length > 0) {
+          setUploadResults(prev => [...prev, `Instructor assignments: ${coursesResult.instructorAssignments.length} created`]);
+        }
+      }
+      
+      // Step 2: Process offerings after courses
+      setUploadStage('offerings');
+      if (offeringsFile) {
+        const offeringsResult = await uploadFile(sid, 'offerings', offeringsFile);
+        setUploadResults(prev => [...prev, `Offerings: ${offeringsResult.offeringsCreated} created, ${offeringsResult.offeringsFailed} failed`]);
+      }
+      
+      // Step 3: Process students
+      setUploadStage('students');
+      if (studentsFile) {
+        const studentsResult = await uploadFile(sid, 'students', studentsFile);
+        setUploadResults(prev => [...prev, `Students: ${studentsResult.enrollmentsCreated} enrolled, ${studentsResult.enrollmentsFailed} failed`]);
+      }
+      
+      // Step 4: Process TAs
+      setUploadStage('tas');
+      if (assistantsFile) {
+        const tasResult = await uploadFile(sid, 'assistants', assistantsFile);
+        setUploadResults(prev => [...prev, `Teaching Assistants: ${tasResult.assignmentsCreated} assigned, ${tasResult.assignmentsFailed} failed`]);
+      }
+      
+      setUploadStage('complete');
+      return true;
+    } catch (error) {
+      console.error('Error in sequential upload:', error);
+      setErrorMessage(`Upload failed: ${error.message || 'Unknown error'}`);
+      setShowError(true);
+      setUploadStage(null);
+      return false;
+    }
+  };
+
   const uploadFile = async (semesterId, fileType, file) => {
     if (!file) return null;
 
@@ -138,20 +204,26 @@ const AdminSemesterManagement = () => {
         case 'assistants':
           endpoint = `${API_URL}/api/admin/semesters/${semesterId}/tas/upload`;
           break;
+        case 'courses':
+          endpoint = `${API_URL}/api/admin/semesters/${semesterId}/courses/upload`;
+          break;
         default:
           throw new Error(`Unknown file type: ${fileType}`);
       }
 
+      console.log(`Uploading ${fileType} file to ${endpoint}`);
       const response = await axios.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
+      console.log(`${fileType} upload response:`, response.data);
       return response.data;
     } catch (error) {
       console.error(`Error uploading ${fileType} file:`, error);
-      throw error;
+      const errorMsg = error.response?.data?.message || error.message || `Error uploading ${fileType}`;
+      throw new Error(errorMsg);
     }
   };
 
@@ -168,48 +240,24 @@ const AdminSemesterManagement = () => {
       };
       
       const semesterResponse = await axios.post(`${API_URL}/api/admin/semesters`, semesterData);
+      const newSemesterId = semesterResponse.data.data.id;
       
-      const semesterId = semesterResponse.data.data.id;
+      setSemesterId(newSemesterId);
       
-      // Now upload files if they exist
-      const uploadResults = [];
-      
-      if (offeringsFile) {
-        try {
-          const offeringsResult = await uploadFile(semesterId, 'offerings', offeringsFile);
-          uploadResults.push(`Offerings: ${offeringsResult.offeringsCreated} created, ${offeringsResult.offeringsFailed} failed`);
-        } catch (error) {
-          uploadResults.push(`Offerings upload error: ${error.response?.data?.message || error.message}`);
-        }
-      }
-      
-      if (studentsFile) {
-        try {
-          const studentsResult = await uploadFile(semesterId, 'students', studentsFile);
-          uploadResults.push(`Students: ${studentsResult.enrollmentsCreated} enrolled, ${studentsResult.enrollmentsFailed} failed`);
-        } catch (error) {
-          uploadResults.push(`Students upload error: ${error.response?.data?.message || error.message}`);
-        }
-      }
-      
-      if (assistantsFile) {
-        try {
-          const tasResult = await uploadFile(semesterId, 'assistants', assistantsFile);
-          uploadResults.push(`Teaching Assistants: ${tasResult.assignmentsCreated} assigned, ${tasResult.assignmentsFailed} failed`);
-        } catch (error) {
-          uploadResults.push(`Teaching Assistants upload error: ${error.response?.data?.message || error.message}`);
-        }
-      }
+      // Process uploads in sequence
+      await processUploadsSequentially(newSemesterId);
       
       // Set success message
-      let successMessage = `Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label} created successfully.`;
+      const termLabel = termOptions.find(t => t.value === term)?.label || term;
+      let successMessage = `Semester ${semesterYear} ${termLabel} created successfully.`;
+      
       if (uploadResults.length > 0) {
         successMessage += ' ' + uploadResults.join('. ');
       }
       
       setSuccess(successMessage);
       
-      // Reset form
+      // Reset form after successful creation
       resetForm();
       
     } catch (error) {
@@ -226,49 +274,61 @@ const AdminSemesterManagement = () => {
       setShowError(true);
     } finally {
       setLoading(false);
+      setUploadStage(null);
     }
   };
 
   const handleFindSemester = async () => {
-    if (!validateForm()) return;
+    if (!semesterYear || !term) {
+      setErrorMessage('Please enter both year and term to find a semester');
+      setShowError(true);
+      return;
+    }
     
     setLoading(true);
     
     try {
-      // Find semester by year and term
-      const response = await axios.get(`${API_URL}/api/admin/semesters`, {
-        params: {
-          year: semesterYear,
-          semesterType: term
+      // Generate semester ID from year and term
+      const semesterId = `${semesterYear}${term}`;
+      
+      // Fetch semester data
+      const response = await axios.get(`${API_URL}/api/admin/semesters/${semesterId}`);
+      
+      if (response.data && response.data.success) {
+        setSelectedSemesterId(semesterId);
+        
+        // If in delete mode, prepare confirmation data
+        if (activeAction === 'delete') {
+          setConfirmationData({
+            id: semesterId,
+            year: semesterYear,
+            term: termOptions.find(t => t.value === term)?.label || term
+          });
         }
-      });
-      
-      if (response.data.data.length === 0) {
-        setErrorMessage('No semester found with the specified year and term');
-        setShowError(true);
-        return;
-      }
-      
-      // Set the semester ID for deletion
-      setSelectedSemesterId(response.data.data[0].id);
-      
-      if (activeAction === 'edit') {
-        setSuccess(`Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label} found. You can now upload new files.`);
+        
+        // Show success notification
+        setSuccess(`Found semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label || term}`);
       } else {
-        setSuccess(`Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label} found. Click the button below to delete.`);
+        throw new Error('Semester not found');
       }
-      
     } catch (error) {
       console.error('Error finding semester:', error);
       
+      let errorMsg = 'Failed to find semester';
+      
       if (error.response) {
-        setErrorMessage(error.response.data?.message || `Error ${error.response.status}: Failed to find semester`);
+        if (error.response.status === 404) {
+          errorMsg = `Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label || term} not found`;
+        } else {
+          errorMsg = error.response.data?.message || `Error ${error.response.status}: ${errorMsg}`;
+        }
       } else if (error.request) {
-        setErrorMessage('Server not responding. Please check your connection.');
+        errorMsg = 'Server not responding. Please check your connection.';
       } else {
-        setErrorMessage(`Error: ${error.message}`);
+        errorMsg = error.message || errorMsg;
       }
       
+      setErrorMessage(errorMsg);
       setShowError(true);
     } finally {
       setLoading(false);
@@ -277,44 +337,50 @@ const AdminSemesterManagement = () => {
 
   const handleDeleteConfirmation = () => {
     if (!selectedSemesterId) {
-      setErrorMessage('Please find a semester first');
+      setErrorMessage('No semester selected for deletion');
       setShowError(true);
       return;
     }
     
-    const semesterForPopup = {
-      id: selectedSemesterId,
-      year: semesterYear,
-      semesterType: termOptions.find(t => t.value === term)?.label || term
-    };
-    
-    setConfirmationData(semesterForPopup);
     setShowConfirmation(true);
   };
 
   const handleDeleteSemester = async () => {
-    setShowConfirmation(false);
+    if (!selectedSemesterId) {
+      setErrorMessage('No semester selected for deletion');
+      setShowError(true);
+      return;
+    }
+    
     setLoading(true);
+    setShowConfirmation(false);
     
     try {
-      await axios.delete(`${API_URL}/api/admin/semesters/${selectedSemesterId}`);
+      const response = await axios.delete(`${API_URL}/api/admin/semesters/${selectedSemesterId}`);
       
-      setSuccess(`Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label} deleted successfully`);
-      
-      // Reset form
-      resetForm();
-      
+      if (response.data && response.data.success) {
+        // Show success notification
+        setSuccess(`Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label || term} deleted successfully`);
+        
+        // Reset form
+        resetForm();
+      } else {
+        throw new Error('Failed to delete semester');
+      }
     } catch (error) {
       console.error('Error deleting semester:', error);
       
+      let errorMsg = 'Failed to delete semester';
+      
       if (error.response) {
-        setErrorMessage(error.response.data?.message || `Error ${error.response.status}: Failed to delete semester`);
+        errorMsg = error.response.data?.message || `Error ${error.response.status}: ${errorMsg}`;
       } else if (error.request) {
-        setErrorMessage('Server not responding. Please check your connection.');
+        errorMsg = 'Server not responding. Please check your connection.';
       } else {
-        setErrorMessage(`Error: ${error.message}`);
+        errorMsg = error.message || errorMsg;
       }
       
+      setErrorMessage(errorMsg);
       setShowError(true);
     } finally {
       setLoading(false);
@@ -331,38 +397,12 @@ const AdminSemesterManagement = () => {
     setLoading(true);
     
     try {
-      // Upload files for the existing semester
-      const uploadResults = [];
-      
-      if (offeringsFile) {
-        try {
-          const offeringsResult = await uploadFile(selectedSemesterId, 'offerings', offeringsFile);
-          uploadResults.push(`Offerings: ${offeringsResult.offeringsCreated} created, ${offeringsResult.offeringsFailed} failed`);
-        } catch (error) {
-          uploadResults.push(`Offerings upload error: ${error.response?.data?.message || error.message}`);
-        }
-      }
-      
-      if (studentsFile) {
-        try {
-          const studentsResult = await uploadFile(selectedSemesterId, 'students', studentsFile);
-          uploadResults.push(`Students: ${studentsResult.enrollmentsCreated} enrolled, ${studentsResult.enrollmentsFailed} failed`);
-        } catch (error) {
-          uploadResults.push(`Students upload error: ${error.response?.data?.message || error.message}`);
-        }
-      }
-      
-      if (assistantsFile) {
-        try {
-          const tasResult = await uploadFile(selectedSemesterId, 'assistants', assistantsFile);
-          uploadResults.push(`Teaching Assistants: ${tasResult.assignmentsCreated} assigned, ${tasResult.assignmentsFailed} failed`);
-        } catch (error) {
-          uploadResults.push(`Teaching Assistants upload error: ${error.response?.data?.message || error.message}`);
-        }
-      }
+      // Process uploads in sequence
+      await processUploadsSequentially();
       
       // Set success message
-      let successMessage = `Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label} updated successfully.`;
+      let successMessage = `Semester ${semesterYear} ${termOptions.find(t => t.value === term)?.label || term} updated successfully.`;
+      
       if (uploadResults.length > 0) {
         successMessage += ' ' + uploadResults.join('. ');
       }
@@ -375,17 +415,21 @@ const AdminSemesterManagement = () => {
     } catch (error) {
       console.error('Error updating semester:', error);
       
+      let errorMsg = 'Failed to update semester';
+      
       if (error.response) {
-        setErrorMessage(error.response.data?.message || `Error ${error.response.status}: Failed to update semester`);
+        errorMsg = error.response.data?.message || `Error ${error.response.status}: ${errorMsg}`;
       } else if (error.request) {
-        setErrorMessage('Server not responding. Please check your connection.');
+        errorMsg = 'Server not responding. Please check your connection.';
       } else {
-        setErrorMessage(`Error: ${error.message}`);
+        errorMsg = error.message || errorMsg;
       }
       
+      setErrorMessage(errorMsg);
       setShowError(true);
     } finally {
       setLoading(false);
+      setUploadStage(null);
     }
   };
 
@@ -395,8 +439,11 @@ const AdminSemesterManagement = () => {
     setOfferingsFile(null);
     setStudentsFile(null);
     setAssistantsFile(null);
+    setCoursesFile(null);
     setSelectedSemesterId(null);
     setSuccess(null);
+    setUploadResults([]);
+    setUploadStage(null);
   };
 
   // Get the form title based on active action
@@ -416,6 +463,9 @@ const AdminSemesterManagement = () => {
   // Get action button text
   const getActionButtonText = () => {
     if (loading) {
+      if (uploadStage) {
+        return `Processing ${uploadStage}...`;
+      }
       return 'Processing...';
     }
     
@@ -423,9 +473,9 @@ const AdminSemesterManagement = () => {
       case 'add':
         return 'Add Semester';
       case 'delete':
-        return selectedSemesterId ? 'Delete Semester' : 'Find Semester to Delete';
+        return selectedSemesterId ? 'Delete Semester' : 'Find Semester';
       case 'edit':
-        return selectedSemesterId ? 'Upload Files' : 'Find Semester to Edit';
+        return selectedSemesterId ? 'Update Semester' : 'Find Semester';
       default:
         return '';
     }
@@ -456,7 +506,7 @@ const AdminSemesterManagement = () => {
     }
   };
 
-  // Render upload section
+// Render upload section
   const renderUploadBox = (fileType, file, title, note) => {
     return (
       <div className={styles.uploadBox}>
@@ -561,93 +611,97 @@ const AdminSemesterManagement = () => {
                 </div>
               </div>
               
+              {/* Upload Progress Indicator */}
+              {uploadStage && (
+                <div className={styles.uploadProgress}>
+                  <div className={styles.progressTitle}>Upload Progress:</div>
+                  <div className={styles.progressSteps}>
+                    <div className={`${styles.progressStep} ${uploadStage === 'courses' || uploadStage === 'offerings' || uploadStage === 'students' || uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
+                      Courses
+                    </div>
+                    <div className={`${styles.progressStep} ${uploadStage === 'offerings' || uploadStage === 'students' || uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
+                      Offerings
+                    </div>
+                    <div className={`${styles.progressStep} ${uploadStage === 'students' || uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
+                      Students
+                    </div>
+                    <div className={`${styles.progressStep} ${uploadStage === 'tas' || uploadStage === 'complete' ? styles.active : ''}`}>
+                      TAs
+                    </div>
+                    <div className={`${styles.progressStep} ${uploadStage === 'complete' ? styles.active : ''}`}>
+                      Complete
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Action Buttons - Consistently placed under the form for all modes */}
               <div className={styles.formActions}>
-                {/* Delete mode buttons */}
-                {activeAction === 'delete' && !selectedSemesterId && (
-                  <button 
-                    className={styles.actionButton}
-                    onClick={handleFindSemester}
-                    disabled={loading}
-                  >
-                    {loading ? 'Processing...' : 'Find Semester to Delete'}
-                  </button>
-                )}
-                
-                {activeAction === 'delete' && selectedSemesterId && (
-                  <button 
-                    className={styles.deleteButton}
-                    onClick={handleDeleteConfirmation}
-                    disabled={loading}
-                  >
-                    {loading ? 'Processing...' : 'Delete Semester'}
-                  </button>
-                )}
-                
-                {/* Edit mode - Find button */}
-                {activeAction === 'edit' && !selectedSemesterId && (
-                  <button 
-                    className={styles.actionButton}
-                    onClick={handleFindSemester}
-                    disabled={loading}
-                  >
-                    {loading ? 'Processing...' : 'Find Semester to Edit'}
-                  </button>
-                )}
-                
-                {/* Add mode button */}
-                {activeAction === 'add' && (
-                  <button 
-                    className={styles.actionButton}
-                    onClick={handleAddSemester}
-                    disabled={loading}
-                  >
-                    {loading ? 'Processing...' : 'Add Semester'}
-                  </button>
-                )}
-                
-                {/* Edit mode - Update button (after semester is found) */}
-                {activeAction === 'edit' && selectedSemesterId && (
-                  <button 
-                    className={styles.actionButton}
-                    onClick={handleEditSemester}
-                    disabled={loading}
-                  >
-                    {loading ? 'Processing...' : 'Update Semester'}
-                  </button>
-                )}
+                <button 
+                  className={activeAction === 'delete' && selectedSemesterId ? styles.deleteButton : styles.actionButton}
+                  onClick={handleActionButtonClick}
+                  disabled={loading}
+                >
+                  {getActionButtonText()}
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Upload Areas - Only shown for Add or Edit mode */}
+          {/* Right Column - Upload Areas in 2x2 grid - Only shown for Add or Edit mode */}
           {activeAction !== 'delete' && (
             <div className={styles.rightColumn}>
-              {renderUploadBox(
-                'offerings', 
-                offeringsFile, 
-                'Upload Offerings List',
-                'CSV should contain: CourseId, Section, InstructorId, Day, StartTime, EndTime, RoomId, Capacity'
+              <h2 className={styles.uploadSectionTitle}>Upload Files</h2>
+              
+              {/* Display warning if offerings file is selected but no courses file */}
+              {offeringsFile && !coursesFile && activeAction === 'add' && (
+                <div className={styles.warningBox}>
+                  <b>Warning:</b> It's recommended to upload course catalog first before offerings.
+                  Offerings reference courses by ID and will fail if the courses don't exist.
+                </div>
               )}
               
-              {renderUploadBox(
-                'students', 
-                studentsFile, 
-                'Upload Students List',
-                'CSV should contain: StudentId, Name, Email, CourseId, Section'
-              )}
+              <div className={styles.uploadGrid}>
+                {renderUploadBox(
+                  'courses', 
+                  coursesFile, 
+                  'Course Catalog',
+                  'CSV should contain: CourseCode, Department, CourseName, Credit, IsGradCourse, Instructor (Required: CourseCode & Department)'
+                )}
+                {renderUploadBox(
+                  'offerings', 
+                  offeringsFile, 
+                  'Course Offerings',
+                  'CSV should contain: courseId, sectionNumber, day, startTime, endTime (Required: courseId & sectionNumber)'
+                )}
+                {renderUploadBox(
+                  'students', 
+                  studentsFile, 
+                  'Student Enrollments',
+                  'CSV should contain: StudentId, Name, Email, CourseId, Section'
+                )}
+                {renderUploadBox(
+                  'assistants', 
+                  assistantsFile, 
+                  'Teaching Assistants',
+                  'CSV should contain: TAId, CourseId, Section, Workload'
+                )}
+              </div>
               
-              {renderUploadBox(
-                'assistants', 
-                assistantsFile, 
-                'Upload Teaching Assistants List',
-                'CSV should contain: TAId, CourseId, Section, Workload'
-              )}
+              {/* Show upload order and guidelines */}
+              <div className={styles.uploadGuidelines}>
+                <h3>Upload Guidelines</h3>
+                <ul>
+                  <li><b>Recommended order:</b> Courses → Offerings → Students → TAs</li>
+                  <li>For course IDs in offerings CSV, use the format: [Department][CourseCode][SemesterId]</li>
+                  <li>Example: For CS101 in Fall 2024, use <code>CS1012024FALL</code></li>
+                  <li>Multiple instructors should be separated with "and" in the Courses CSV</li>
+                  <li>Multiple class sessions for the same course offering should be separate rows with the same courseId and sectionNumber</li>
+                </ul>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Removed bottom button container - now all buttons are inside the form */}
 
         {/* Confirmation Popup for Delete */}
         {showConfirmation && (
