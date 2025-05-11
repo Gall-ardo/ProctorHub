@@ -334,10 +334,8 @@ function InstructorAssignPage() {
                             return (
                                 <div key={course.id} className="course-card">
                                     <div className="course-info">
-                                        <h3>{course.code || course.courseCode}: {course.name || course.courseName}</h3>
-                                        <p>Semester: {course.semester || 'Current'}</p>
+                                        <h3>{course.department + (course.code || course.courseCode)}: {course.name || course.courseName}</h3>
                                         <p className="ta-count">
-                                            TAs Needed: {course.taNeeded || '?'} |
                                             TAs Requested: {coursePreferences.length}
                                         </p>
                                     </div>
@@ -393,7 +391,7 @@ function InstructorAssignPage() {
                                     <option value="">-- Select a course --</option>
                                     {instructorCourses.map(course => (
                                         <option key={course.id} value={course.id}>
-                                            {course.code || course.courseCode}: {course.name || course.courseName}
+                                            {course.department + (course.code || course.courseCode)}: {course.name || course.courseName}
                                         </option>
                                     ))}
                                 </select>
