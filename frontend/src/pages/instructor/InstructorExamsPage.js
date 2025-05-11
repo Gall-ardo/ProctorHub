@@ -792,142 +792,145 @@ const handlePrintStudentsRandomly = async (examId) => {
       }
       
       const headers = getAuthHeader();
-      // Calculate duration in minutes from start and end time
-      const startParts = formData.startTime.split(':').map(part => parseInt(part, 10));
-      const endParts = formData.endTime.split(':').map(part => parseInt(part, 10));
-
-      // Convert to minutes
-      const startMinutes = (startParts[0] * 60) + startParts[1];
-      const endMinutes = (endParts[0] * 60) + endParts[1];
-
-      // Calculate duration (handle cases where exam goes past midnight)
-      let durationMinutes = endMinutes - startMinutes;
-      if (durationMinutes < 0) {
-        durationMinutes += 24 * 60; // Add 24 hours in minutes
-      }
-
-      // Parse the date correctly
-      const examDate = new Date(formData.date);
-      examDate.setHours(startParts[0], startParts[1], 0, 0);
-
-      // Check if date is valid
-      if (isNaN(examDate.getTime())) {
-        throw new Error('Invalid date format.');
-      }
-
-      // Format time strings
-      const startTimeStr = `${startParts[0].toString().padStart(2, '0')}:${startParts[1].toString().padStart(2, '0')}`;
-      const endTimeStr = `${endParts[0].toString().padStart(2, '0')}:${endParts[1].toString().padStart(2, '0')}`;
-
-      // Prepare exam data for API
-      const examData = {
-        ...formData,
-        duration: durationMinutes,
-        manualAssignedTAs: selectedTAs.length,
-        date: examDate.toISOString(),
-        startTime: startTimeStr,
-        endTime: endTimeStr
-      };
-
-      console.log('Submitting exam data:', examData);
 
       let examResponse;
       if (isAddExamOpen) {
+        // For creating new exam - Calculate duration and format date/time
+        const startParts = formData.startTime.split(':').map(part => parseInt(part, 10));
+        const endParts = formData.endTime.split(':').map(part => parseInt(part, 10));
+
+        // Convert to minutes
+        const startMinutes = (startParts[0] * 60) + startParts[1];
+        const endMinutes = (endParts[0] * 60) + endParts[1];
+
+        // Calculate duration (handle cases where exam goes past midnight)
+        let durationMinutes = endMinutes - startMinutes;
+        if (durationMinutes < 0) {
+          durationMinutes += 24 * 60; // Add 24 hours in minutes
+        }
+
+        // Parse the date correctly
+        const examDate = new Date(formData.date);
+        examDate.setHours(startParts[0], startParts[1], 0, 0);
+
+        // Check if date is valid
+        if (isNaN(examDate.getTime())) {
+          throw new Error('Invalid date format.');
+        }
+
+        // Format time strings
+        const startTimeStr = `${startParts[0].toString().padStart(2, '0')}:${startParts[1].toString().padStart(2, '0')}`;
+        const endTimeStr = `${endParts[0].toString().padStart(2, '0')}:${endParts[1].toString().padStart(2, '0')}`;
+
+        // Prepare full exam data for API
+        const examData = {
+          ...formData,
+          duration: durationMinutes,
+          manualAssignedTAs: selectedTAs.length,
+          date: examDate.toISOString(),
+          startTime: startTimeStr,
+          endTime: endTimeStr
+        };
+
+        console.log('Submitting new exam data:', examData);
         // Create new exam
         examResponse = await axios.post(`${API_URL}/instructor/exams`, examData, { headers });
-      } else {
-        // Update existing exam
-        examResponse = await axios.put(`${API_URL}/instructor/exams/${selectedExam.id}`, examData, { headers });
-      }
-
-      if (examResponse.data.success) {
-        // Get the exam ID
-        const examId = isAddExamOpen ? examResponse.data.data.id : selectedExam.id;
         
-        // Format date for leave request checking
-        const formattedExamDate = examDate.toISOString().split('T')[0];
-        
-        // Double-check if any selected TAs have leave conflicts
-        // Fetch all approved leave requests that overlap with the exam date
-        try {
-          // Only proceed with the TAs that don't have leave conflicts
-          const leaveCheckResponse = await axios.get(
-            `${API_URL}/instructor/check-ta-leave?examDate=${formattedExamDate}`,
-            { headers }
-          );
+        if (examResponse.data.success) {
+          // Get the exam ID
+          const examId = examResponse.data.data.id;
           
-          if (leaveCheckResponse.data.success && leaveCheckResponse.data.data) {
-            const tasOnLeave = leaveCheckResponse.data.data;
+          // Format date for leave request checking
+          const formattedExamDate = examDate.toISOString().split('T')[0];
+          
+          // Double-check if any selected TAs have leave conflicts
+          // Fetch all approved leave requests that overlap with the exam date
+          try {
+            // Only proceed with the TAs that don't have leave conflicts
+            const leaveCheckResponse = await axios.get(
+              `${API_URL}/instructor/check-ta-leave?examDate=${formattedExamDate}`,
+              { headers }
+            );
             
-            // Filter out any TAs that have leave conflicts
-            const filteredSelectedTAs = selectedTAs.filter(ta => !tasOnLeave.includes(ta.id));
-            
-            // If some TAs were filtered out, show a warning
-            if (filteredSelectedTAs.length < selectedTAs.length) {
-              const removedTAs = selectedTAs.filter(ta => tasOnLeave.includes(ta.id)).map(ta => ta.name).join(', ');
-              alert(`Warning: The following manually selected TAs have approved leave requests for ${formattedExamDate} and will not be assigned: ${removedTAs}`);
+            if (leaveCheckResponse.data.success && leaveCheckResponse.data.data) {
+              const tasOnLeave = leaveCheckResponse.data.data;
+              
+              // Filter out any TAs that have leave conflicts
+              const filteredSelectedTAs = selectedTAs.filter(ta => !tasOnLeave.includes(ta.id));
+              
+              // If some TAs were filtered out, show a warning
+              if (filteredSelectedTAs.length < selectedTAs.length) {
+                const removedTAs = selectedTAs.filter(ta => tasOnLeave.includes(ta.id)).map(ta => ta.name).join(', ');
+                alert(`Warning: The following manually selected TAs have approved leave requests for ${formattedExamDate} and will not be assigned: ${removedTAs}`);
+              }
+              
+              // Always assign proctors automatically as part of exam creation
+              const proctorAssignmentData = {
+                examId,
+                courseName: formData.courseName,
+                manuallySelectedTAs: filteredSelectedTAs.map(ta => ta.id),
+                proctorNum: formData.proctorNum,
+                prioritizeCourseAssistants: formData.prioritizeCourseAssistants,
+                prioritizeDepartmentTAs: true, 
+                prioritizePartTimeForWeekend: true,
+                autoAssignRemainingTAs: true,
+                department: formData.department,
+                examDate: formattedExamDate,
+                checkLeaveRequests: true,
+                strictLeaveCheck: true
+              };
+              
+              try {
+                // Assign proctors immediately after creating the exam
+                await axios.post(`${API_URL}/instructor/exams/assign-proctors`, proctorAssignmentData, { headers });
+                console.log("Proctors assigned successfully");
+              } catch (proctorError) {
+                console.error('Error assigning proctors:', proctorError);
+                alert('Exam was created but proctor assignment failed: ' + 
+                      (proctorError.response?.data?.message || proctorError.message));
+              }
             }
-            
-            // Always assign proctors automatically as part of exam creation/update
+          } catch (leaveCheckError) {
+            console.error('Error checking TA leave status:', leaveCheckError);
+            // Fall back to traditional proctor assignment
             const proctorAssignmentData = {
               examId,
               courseName: formData.courseName,
-              manuallySelectedTAs: filteredSelectedTAs.map(ta => ta.id),
+              manuallySelectedTAs: selectedTAs.map(ta => ta.id),
               proctorNum: formData.proctorNum,
               prioritizeCourseAssistants: formData.prioritizeCourseAssistants,
-              prioritizeDepartmentTAs: true, // Always prioritize TAs from the same department
-              prioritizePartTimeForWeekend: true, // Prioritize part-time TAs for weekend exams
-              autoAssignRemainingTAs: true, // Always auto-assign remaining TAs
+              prioritizeDepartmentTAs: true,
+              prioritizePartTimeForWeekend: true,
+              autoAssignRemainingTAs: true,
               department: formData.department,
-              examDate: formattedExamDate, // Include exam date for leave request checking
-              checkLeaveRequests: true, // Enable checking for leave requests where examDate falls within startDate and endDate
-              strictLeaveCheck: true // Strict enforcement - never assign TAs on leave, even if proctor number isn't reached
+              examDate: formattedExamDate,
+              checkLeaveRequests: true,
+              strictLeaveCheck: true
             };
             
             try {
-              // Assign proctors immediately after creating/updating the exam
-              // Backend should check LeaveRequest table and filter out TAs with approved leave requests
-              // that have the exam date falling within the leave request's startDate and endDate range
               await axios.post(`${API_URL}/instructor/exams/assign-proctors`, proctorAssignmentData, { headers });
-              console.log("Proctors assigned successfully");
+              console.log("Proctors assigned successfully (fallback)");
             } catch (proctorError) {
               console.error('Error assigning proctors:', proctorError);
               alert('Exam was created but proctor assignment failed: ' + 
                     (proctorError.response?.data?.message || proctorError.message));
-              // Continue with exam creation/update even if proctor assignment fails
             }
-          } else {
-            throw new Error('Failed to check TA leave status');
-          }
-        } catch (leaveCheckError) {
-          console.error('Error checking TA leave status:', leaveCheckError);
-          // Fall back to traditional proctor assignment
-          // Always assign proctors automatically as part of exam creation/update
-          const proctorAssignmentData = {
-            examId,
-            courseName: formData.courseName,
-            manuallySelectedTAs: selectedTAs.map(ta => ta.id),
-            proctorNum: formData.proctorNum,
-            prioritizeCourseAssistants: formData.prioritizeCourseAssistants,
-            prioritizeDepartmentTAs: true, // Always prioritize TAs from the same department
-            prioritizePartTimeForWeekend: true, // Prioritize part-time TAs for weekend exams
-            autoAssignRemainingTAs: true, // Always auto-assign remaining TAs
-            department: formData.department,
-            examDate: formattedExamDate, // Include exam date for leave request checking
-            checkLeaveRequests: true, // Enable checking for leave requests where examDate falls within startDate and endDate
-            strictLeaveCheck: true // Strict enforcement - never assign TAs on leave, even if proctor number isn't reached
-          };
-          
-          try {
-            await axios.post(`${API_URL}/instructor/exams/assign-proctors`, proctorAssignmentData, { headers });
-            console.log("Proctors assigned successfully (fallback)");
-          } catch (proctorError) {
-            console.error('Error assigning proctors:', proctorError);
-            alert('Exam was created but proctor assignment failed: ' + 
-                  (proctorError.response?.data?.message || proctorError.message));
           }
         }
+      } else {
+        // For updating existing exam - only update examType and classrooms
+        const updateData = {
+          examType: formData.examType,
+          classrooms: formData.classrooms
+        };
         
+        console.log('Updating exam with data:', updateData);
+        // Update existing exam with minimal data
+        examResponse = await axios.put(`${API_URL}/instructor/exams/${selectedExam.id}`, updateData, { headers });
+      }
+
+      if (examResponse.data.success) {
         // Refresh the exams list
         const examsResponse = await axios.get(`${API_URL}/instructor/my-exams`, { headers });
         if (examsResponse.data.success) {
@@ -1471,6 +1474,7 @@ const handlePrintStudentsRandomly = async (examId) => {
                         onChange={handleCourseSelect}
                         className="custom-dropdown"
                         required
+                        disabled
                     >
                       <option value="">Select a course</option>
                       {courses && courses.length > 0 ? (
@@ -1491,11 +1495,8 @@ const handlePrintStudentsRandomly = async (examId) => {
                         type="text"
                         name="department"
                         value={formData.department}
-                        onChange={handleInputChange}
-                        placeholder="e.g., CS"
-                        required
-                        readOnly={formData.courseName !== ''}
-                        className={formData.courseName !== '' ? 'readonly-input' : ''}
+                        readOnly
+                        className="readonly-input"
                     />
                   </div>
 
@@ -1505,9 +1506,8 @@ const handlePrintStudentsRandomly = async (examId) => {
                       <input
                           type="date"
                           value={formData.date}
-                          onChange={handleDateChange}
-                          required
-                          className="date-input"
+                          className="date-input readonly-input"
+                          readOnly
                       />
                     </div>
                   </div>
@@ -1519,8 +1519,8 @@ const handlePrintStudentsRandomly = async (examId) => {
                           type="time"
                           name="startTime"
                           value={formData.startTime}
-                          onChange={handleInputChange}
-                          required
+                          className="readonly-input"
+                          readOnly
                       />
                     </div>
                     <div className="time-container">
@@ -1529,8 +1529,8 @@ const handlePrintStudentsRandomly = async (examId) => {
                           type="time"
                           name="endTime"
                           value={formData.endTime}
-                          onChange={handleInputChange}
-                          required
+                          className="readonly-input"
+                          readOnly
                       />
                     </div>
                   </div>
@@ -1564,49 +1564,6 @@ const handlePrintStudentsRandomly = async (examId) => {
                           ) : null;
                         })}
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <label>Automatic Proctor Number:</label>
-                    <input
-                        type="number"
-                        name="proctorNum"
-                        value={formData.proctorNum}
-                        onChange={handleInputChange}
-                        required
-                        min="0"
-                    />
-                    <p className="hint-text">
-                      Number of TAs to be automatically assigned based on workload
-                    </p>
-                  </div>
-
-                  <div className="form-row checkbox-row">
-                    <label className="checkbox-container">
-                      <input
-                          type="checkbox"
-                          name="prioritizeCourseAssistants"
-                          checked={formData.prioritizeCourseAssistants}
-                          onChange={handleInputChange}
-                      />
-                      <span className="checkmark"></span>
-                      Prioritize TAs of selected course
-                    </label>
-                    <p className="hint-text">
-                      TAs will be prioritized in this order: 1) Department TAs, 2) Part-time TAs for weekend exams, 3) Course TAs (if checkbox selected), 4) Other TAs by workload.
-                      For graduate courses, PhD TAs will also be prioritized. TAs with approved leave requests on the exam date cannot be assigned.
-                    </p>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="proctor-selection-row">
-                      <button type="button" className="select-proctor-btn" onClick={handleOpenSelectProctors}>
-                        Select Manual Proctors ({selectedTAs.length})
-                      </button>
-                      <p className="hint-text">
-                        You can manually select specific TAs as proctors
-                      </p>
                     </div>
                   </div>
 
