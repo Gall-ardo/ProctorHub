@@ -51,3 +51,6 @@
 - [Yunus Emre Erkan](https://github.com/yunusee) - 22203670
 - [Sude Ergün](https://github.com/SudeErgun) - 22203822
 - [Elif Lara Oğuzhan](https://github.com/eliflaraoguzhan) - 22203138
+- 
+## Setup Instructions
+For detailed setup instructions, please refer to our [Setup Guide](https://github.com/Gall-ardo/ProctorHub/blob/main/SETUP.md).
