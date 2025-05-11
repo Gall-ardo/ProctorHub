@@ -1,14 +1,41 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
 const { getMainPageData } = require('../controllers/Secretary/SecretaryMainPageController');
 const workloadController = require('../controllers/Secretary/workloadApproveController');
 const leaveRequestController = require('../controllers/Secretary/leaveRequestController');
+const { Secretary, LeaveRequest } = require('../models');
 
 // Test route without authentication
 router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Secretary routes are working properly!' });
 });
+
+// Add this route for getting secretary profile
+router.get(
+  '/me',
+  authenticateToken,
+  authorizeRole(['secretary']),
+  async (req, res) => {
+    try {
+      const secretary = await Secretary.findByPk(req.user.id);
+      if (!secretary) {
+        return res.status(404).json({ message: 'Secretary profile not found' });
+      }
+      return res.json({ 
+        status: "success", 
+        data: secretary 
+      });
+    } catch (err) {
+      console.error('Error fetching secretary profile:', err);
+      return res.status(500).json({
+        message: 'Error fetching secretary profile',
+        detail: err.message
+      });
+    }
+  }
+);
 
 // Dashboard route for secretary
 router.get(

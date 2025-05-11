@@ -2,6 +2,15 @@
 const router = require('express').Router();
 const { authenticateToken, authorizeRole } = require('../middleware/authMiddleware');
 const ctrl = require('../controllers/Dean/leaveRequestController');
+const deanHomePageController = require('../controllers/Dean/deanHomePageController');
+
+// Fetch data for the Dean's homepage (all exams and swaps)
+router.get(
+  '/home',
+  authenticateToken,
+  authorizeRole(['dean']),
+  deanHomePageController.getHomePageData
+);
 
 router.get(
   '/leave-requests/pending',
