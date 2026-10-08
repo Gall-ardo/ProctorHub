@@ -9,6 +9,42 @@ const { v4: uuidv4 } = require('uuid');
 const TimeSlot = sequelize.models.TimeSlot;
 const Offering = sequelize.models.Offering;
 
+/**
+ * Roll back a transaction, logging (rather than throwing) any rollback failure
+ * so the original error is the one propagated to the caller.
+ * @param {Transaction} transaction - The Sequelize transaction
+ */
+const safeRollback = async (transaction) => {
+  try {
+    await transaction.rollback();
+  } catch (rollbackError) {
+    console.error('Error rolling back transaction:', rollbackError);
+  }
+};
+
+/**
+ * Create timeslot records for an offering within a transaction
+ * @param {string} offeringId - The offering ID
+ * @param {Array} timeslots - Array of timeslot objects with day, startTime, and endTime
+ * @param {Transaction} transaction - The Sequelize transaction
+ * @returns {Promise<Array>} - The created timeslots
+ */
+const insertTimeslots = async (offeringId, timeslots, transaction) => {
+  const createdTimeslots = [];
+  for (const slot of timeslots) {
+    const timeslot = await TimeSlot.create({
+      id: uuidv4(),
+      offeringId,
+      day: slot.day,
+      startTime: slot.startTime,
+      endTime: slot.endTime
+    }, { transaction });
+    
+    createdTimeslots.push(timeslot);
+  }
+  return createdTimeslots;
+};
+
 const timeslotService = {
   /**
    * Create timeslots for an offering
@@ -24,37 +60,23 @@ const timeslotService = {
       // Verify the offering exists
       const offering = await Offering.findByPk(offeringId, { transaction });
       if (!offering) {
-        await transaction.rollback();
         throw new Error(`Offering with ID ${offeringId} not found`);
       }
       
       // Validate timeslots format
       if (!Array.isArray(timeslots) || timeslots.length === 0) {
-        await transaction.rollback();
         throw new Error('Timeslots must be a non-empty array');
       }
       
       // Validate each timeslot
       for (const slot of timeslots) {
         if (!slot.day || !slot.startTime || !slot.endTime) {
-          await transaction.rollback();
           throw new Error('Each timeslot must have day, startTime, and endTime');
         }
       }
       
       // Create timeslots
-      const createdTimeslots = [];
-      for (const slot of timeslots) {
-        const timeslot = await TimeSlot.create({
-          id: uuidv4(),
-          offeringId,
-          day: slot.day,
-          startTime: slot.startTime,
-          endTime: slot.endTime
-        }, { transaction });
-        
-        createdTimeslots.push(timeslot);
-      }
+      const createdTimeslots = await insertTimeslots(offeringId, timeslots, transaction);
       
       // Commit the transaction
       await transaction.commit();
@@ -62,13 +84,7 @@ const timeslotService = {
       return createdTimeslots;
     } catch (error) {
       // Rollback the transaction in case of an error
-      if (transaction) {
-        try {
-          await transaction.rollback();
-        } catch (rollbackError) {
-          console.error('Error rolling back transaction:', rollbackError);
-        }
-      }
+      await safeRollback(transaction);
       
       console.error('Error creating timeslots:', error);
       throw error;
@@ -129,7 +145,6 @@ const timeslotService = {
       // Verify the offering exists
       const offering = await Offering.findByPk(offeringId, { transaction });
       if (!offering) {
-        await transaction.rollback();
         throw new Error(`Offering with ID ${offeringId} not found`);
       }
       
@@ -140,18 +155,7 @@ const timeslotService = {
       });
       
       // Create new timeslots
-      const createdTimeslots = [];
-      for (const slot of timeslots) {
-        const timeslot = await TimeSlot.create({
-          id: uuidv4(),
-          offeringId,
-          day: slot.day,
-          startTime: slot.startTime,
-          endTime: slot.endTime
-        }, { transaction });
-        
-        createdTimeslots.push(timeslot);
-      }
+      const createdTimeslots = await insertTimeslots(offeringId, timeslots, transaction);
       
       // Commit the transaction
       await transaction.commit();
@@ -159,13 +163,7 @@ const timeslotService = {
       return createdTimeslots;
     } catch (error) {
       // Rollback the transaction in case of an error
-      if (transaction) {
-        try {
-          await transaction.rollback();
-        } catch (rollbackError) {
-          console.error('Error rolling back transaction:', rollbackError);
-        }
-      }
+      await safeRollback(transaction);
       
       console.error('Error updating timeslots:', error);
       throw error;
