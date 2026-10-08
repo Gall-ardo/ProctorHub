@@ -15,6 +15,11 @@ const User = require('../../models/User');
 const { v4: uuidv4 } = require('uuid');
 
 class SemesterController {
+  constructor() {
+    // Routes pass this method unbound, but it calls the CSV helpers via `this`
+    this.processSemesterUploads = this.processSemesterUploads.bind(this);
+  }
+
   async createSemester(req, res) {
     try {
       // Log request data for debugging
